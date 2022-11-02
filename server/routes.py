@@ -27,6 +27,7 @@ def test(repo_id, user_id: uuid.UUID, session: Session = ActiveSession):
         recipients_emails=[email_user.email],
         file_path=archive_path,
     )
+    msg_creator.clear_temp()
     return "success"
 
 
@@ -63,6 +64,7 @@ async def create_repository(*,
         recipients_emails=[email_user.email],
         file_path=archive_path,
     )
+    msg_creator.clear_temp()
 
     return db_repository
 

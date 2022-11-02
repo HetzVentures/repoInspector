@@ -3,19 +3,12 @@ from datetime import datetime
 from sqlmodel import Session
 from models import RepositoryUser, Repository
 from sqlalchemy import func, desc, inspect
-
-
-
-
+import os
 import csv
 import json
 import logging
 import zipfile
 from os.path import basename
-import uuid
-
-import requests
-
 
 class MessageCreator:
 
@@ -24,14 +17,15 @@ class MessageCreator:
         self.repo_id = repo_id
         self.logger = logging.getLogger('MESSAGE CREATION')
         self.repo = session.query(Repository).where(Repository.id == repo_id).first()
+        self.temp_path = f'temp/repo_{self.repo_id}'
 
     def create_message(self) -> tuple:
 
         rows = self.session.query(RepositoryUser).where(RepositoryUser.repository_id == self.repo_id).all()
 
         if rows:
-            file_path = f'temp/session_{self.repo_id}.csv'
-            json_file_path = f'temp/session_{self.repo_id}.json'
+            file_path = f'{self.temp_path}.csv'
+            json_file_path = f'{self.temp_path}.json'
             self.create_csv(
                 file_path=file_path,
                 rows=rows,
@@ -60,7 +54,7 @@ class MessageCreator:
             json_file_path: str,
     ) -> str:
         try:
-            archive_path = f'{file_path.split(".")[0]}.zip'
+            archive_path = f'{self.temp_path}.zip'
 
             with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as archive:
                 archive.write(file_path, basename(file_path))
@@ -72,6 +66,11 @@ class MessageCreator:
                 file_path=file_path,
                 json_file_path=json_file_path,
             )
+
+    def clear_temp(self):
+        os.remove(f'{self.temp_path}.csv')
+        os.remove(f'{self.temp_path}.json')
+        os.remove(f'{self.temp_path}.zip')
 
     @staticmethod
     def create_csv(
