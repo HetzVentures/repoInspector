@@ -1,0 +1,9 @@
+[development]
+dynaconf_merge = true
+
+[development.db]
+echo = true
+
+[production]
+dynaconf_merge = true
+

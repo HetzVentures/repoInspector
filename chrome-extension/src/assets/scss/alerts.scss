@@ -1,0 +1,56 @@
+/* Basic picocss alerts */
+
+
+// import some colors from pico _colors.scss
+$amber-50: #fff8e1 !default;
+$amber-900: #ff6f00 !default;
+$green-50: #e8f5e9 !default;
+$green-800: #1b5e20 !default;
+$red-50: #ffebee !default;
+$red-900: #b71c1c !default;
+
+
+// simple picocss alerts
+// inherit responsive typography, responsive spacing, icons and size
+
+.float-bottom {
+  position: fixed;
+  width: calc(100% - 25px);
+  margin-right: 25px;
+  margin-top: 25px;
+  bottom: 0;
+}
+
+.alert {
+  $iconsize: calc(var(--font-size) *  1.5); // 24px / 30px if $enable-responsive-spacings
+  margin-bottom: var(--spacing); // some default space below alert element
+  padding: var(--form-element-spacing-vertical) var(--form-element-spacing-horizontal); // same as forms .input
+  border-radius: var(--border-radius);
+  //font-weight: 500; // var(--font-weight);
+  //font-size: 1rem;
+  //line-height: var(--line-height);
+  color: var(--color);
+  background-color: var(--background-color);
+  border: 1px solid var(--background-color); // compensate for 1px border
+
+  // icon
+  background-image: var(--icon);
+  background-position: center left var(--form-element-spacing-vertical); // use vertical for icon left align
+  background-size: $iconsize auto;
+  padding-left: calc(var(--form-element-spacing-vertical) * 2 + #{$iconsize});
+}
+.alert-danger {
+  --background-color: #{$red-50};
+  --icon: var(--icon-invalid);
+  --color: #{$red-900};
+}
+.alert-warning {
+  --background-color: #{$amber-50};
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='#{rgba(darken($amber-900, 15%), .999)}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='12' y1='8' x2='12' y2='12'%3E%3C/line%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'%3E%3C/line%3E%3C/svg%3E");
+  --color: #{darken($amber-900, 20%)};
+}
+.alert-success {
+  --background-color: #{$green-50};
+  --icon: var(--icon-valid);
+  --color: #{$green-800};
+}
