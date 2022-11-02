@@ -15,7 +15,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+server/temp/*
 # Distribution / packaging
 .Python
 build/
