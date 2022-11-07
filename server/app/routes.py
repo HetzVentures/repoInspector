@@ -1,17 +1,17 @@
 import uuid
 from fastapi import APIRouter, Request, Form
 from typing import List
-from db import ActiveSession
+from app.db import ActiveSession
 from sqlmodel import Session
-from app import templates
+from app.app import templates
 from fastapi.responses import HTMLResponse
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from config import settings
+from app.config import settings
 from fastapi.exceptions import HTTPException
-from utils.message import MessageCreator
-from utils.sender import email_sender
-import models
+from app.utils.message import MessageCreator
+from app.utils.sender import email_sender
+import app.models as models
 
 repository_router = APIRouter()
 

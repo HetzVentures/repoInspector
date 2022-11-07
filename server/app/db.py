@@ -1,7 +1,7 @@
 from fastapi import Depends
 from sqlmodel import Session, SQLModel, create_engine
-from models import SQLModel
-from config import settings
+from app.models import SQLModel
+from app.config import settings
 
 engine = create_engine(
     settings.db.sql_url,

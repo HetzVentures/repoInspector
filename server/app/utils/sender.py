@@ -5,7 +5,7 @@ from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Union, List
-from config import settings
+from app.config import settings
 
 class EmailNotifier:
     _message_template = 'Subject: {subject}\n\n{message}'

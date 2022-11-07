@@ -1,7 +1,7 @@
 
 from datetime import datetime
 from sqlmodel import Session
-from models import RepositoryUser, Repository
+from app.models import RepositoryUser, Repository
 from sqlalchemy import func, desc, inspect
 import os
 import csv
