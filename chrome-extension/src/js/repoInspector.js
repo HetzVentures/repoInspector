@@ -130,5 +130,3 @@ class RepoInspector {
         })
     }
 }
-
-export const repoInspector = new RepoInspector();

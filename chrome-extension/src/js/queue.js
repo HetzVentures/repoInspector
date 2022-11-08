@@ -1,7 +1,6 @@
 import { initOctokit } from '@/js/octokit.js';
 import { urlStore, userStore } from '@/js/store.js';
 import { api } from '@/js/api'
-import { runInspector } from '@/entry/background';
 import { initToken } from './helpers';
 import { auth } from '@/js/authentication'
 
@@ -197,7 +196,6 @@ class QueueService {
 
     async _finishInspection() {
         // on finish inspection we deactivate the interval and send the data to the server for packaging and emailing it.
-        // Once the data is saved we run runInspector() again in the event another repo is waiting to be inspected.
         this.deactivateInterval()
         const urlData = await urlStore.get(this.currentRepoUrl);
         urlData.done = true;
@@ -220,10 +218,7 @@ class QueueService {
         urlStore.set(this.currentRepoUrl, urlData);
 
         // remove repo from inspection queue
-        await urlStore.deleteUrlQueue(this.currentRepoUrl)
-        // when we are done inspecting the entire repo, move on to the next repo if applicable
-        setTimeout(()=> runInspector(), 500);
-        
+        await urlStore.deleteUrlQueue(this.currentRepoUrl)        
     }
 
       run(currentRepoUrl) {
