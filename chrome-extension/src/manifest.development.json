@@ -8,6 +8,16 @@
     },
     "permissions": ["storage", "unlimitedStorage", "activeTab", "scripting", "alarms"],
     "options_page": "options.html",
+    "content_scripts": [
+        {
+            "matches": ["https://*.github.com/*"],
+            "js": ["/content.js"]
+        }
+    ],
+    "web_accessible_resources": [{
+        "resources": ["/inspection-script.js", "/"],
+        "matches": ["https://*.github.com/*"]
+      }],
     "icons": {
         "16": "images/icon16.png",
         "48": "images/icon48.png",
