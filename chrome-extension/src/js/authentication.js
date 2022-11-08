@@ -36,7 +36,7 @@ export class Authentication {
 
     loginWithGoogle() {
         const loginPopup = popupCenter({
-            url: `${api.urlBase}/login/${this.currentUser.uuid}`,
+            url: `${api.urlBase}login/${this.currentUser.uuid}`,
             title: 'login',
             w: 100,
             h: 100

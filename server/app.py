@@ -7,4 +7,4 @@ app = FastAPI(middleware=[
     Middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 ])
 
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory="templates")
