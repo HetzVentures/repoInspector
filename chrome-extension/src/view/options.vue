@@ -73,9 +73,15 @@ export default {
   },
   methods: {
     async refreshStore() {
+        // this function refreshes the UI as well as checks to see if a new repo needs to be parsed. It runs
+        // every 5 seconds
         this.urlStoreData = await urlStore.all();
         this.currentRepo = await queueService.currentRepo();
-        repoInspector.inspectAssets();
+        const newRepo = await urlStore.newRepo();
+        // only start parsing if we are working on a new repo
+        if (newRepo) {
+          repoInspector.inspectAssets();
+        }
     },
     keys(data) {
       if (data) {

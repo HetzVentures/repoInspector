@@ -118,6 +118,21 @@ export class UrlStore {
         return this.set(url, urlData)
     }
 
+    async newRepo() {
+        // save if the user just deleted this repo
+        return new Promise((resolve) => {
+            chrome.storage.local.get(async ({ NEW_REPO }) => {
+                if (NEW_REPO) {
+                    NEW_REPO = false;
+                    await chrome.storage.local.set({ NEW_REPO })
+                    // there is a new repo, now set the status to false
+                    resolve(true)
+                }
+                resolve(false)
+            })
+          });
+    }
+
     clearDelete(url) {
         // remove url from list of deleted urls
         return new Promise((resolve) => {
@@ -137,7 +152,9 @@ export class UrlStore {
             chrome.storage.local.get(async ({ URL_QUEUE }) => {
                 if (!URL_QUEUE.includes(url)) {
                     URL_QUEUE.push(url)
-                    chrome.storage.local.set({ URL_QUEUE })
+                    await chrome.storage.local.set({ URL_QUEUE })
+                    const NEW_REPO = true
+                    await chrome.storage.local.set({ NEW_REPO })
                 }
                 resolve()
             })
