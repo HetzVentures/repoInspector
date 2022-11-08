@@ -152,7 +152,9 @@ export class UrlStore {
                 if (index !== -1) {
                     URL_QUEUE.splice(index, 1);
                 }
-                chrome.storage.local.set({ URL_QUEUE })
+                await chrome.storage.local.set({ URL_QUEUE })
+                // Clear QUEUE_STATE data
+                await chrome.storage.local.remove(['QUEUE_STATE'])
                 resolve()
             })
         })

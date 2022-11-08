@@ -146,9 +146,6 @@
               this.showSummary = true
               await urlStore.createUrl(this.repoUrl, stargazers_count, forks, this.createName())
               this.refreshStore();
-              // chrome.runtime.sendMessage({
-              //   msg: "inspectRepo"
-              // })
               chrome.runtime.openOptionsPage()
             }
             catch(error) {
