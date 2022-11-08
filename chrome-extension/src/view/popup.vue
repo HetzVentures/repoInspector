@@ -11,7 +11,7 @@
               <input type="text" v-model="newToken" name="token">
               <button v-bind:disabled="!newToken" v-on:click="save">Save</button>
           </template>
-          <button v-else-if="!currentUser.email" v-on:click="openLogin()">Login</button>
+          <button v-bind:disabled="!currentUser?.uuid" v-else-if="!currentUser.email" v-on:click="openLogin()">Login</button>
           <template v-else>
               <input v-bind:placeholder="currentRepo ? 'Scanning repo...' : 'Repo URL'" type="text" v-bind:disabled="currentRepo" v-model="repoUrl" name="repoUrl">
               <button v-bind:aria-busy="!!currentRepo" v-bind:disabled="currentRepo" v-on:click="runInspect">Inspect</button>
@@ -187,10 +187,18 @@
         window.close();
       }
       },
-      mounted() {
+      async mounted() {
         setInterval(()=> {
           this.refreshStore();
         }, 5000)
+        this.currentUser = await auth.getStoredUser()
+        
+        // check if current user has logged in
+        if (!this.currentUser?.email) {
+          setInterval(async()=> {
+            this.currentUser = await auth.getStoredUser()
+        }, 2000)
+        }
       }
       
   }

@@ -29,6 +29,14 @@ export class Authentication {
             this.currentUser = CURRENT_USER;
         })
     }
+
+    getStoredUser() {
+        return new Promise((resolve) => {
+            chrome.storage.local.get(async ({ CURRENT_USER }) => {
+                resolve(CURRENT_USER)
+            })
+        })
+    }
     
     logout() {
         chrome.storage.local.clear();
