@@ -10,7 +10,7 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "app.main:app",
+                "main:app",
                 // "app:app",
                 "--port",
                 "8005"

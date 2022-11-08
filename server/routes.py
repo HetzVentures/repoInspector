@@ -1,5 +1,5 @@
 import uuid
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, BackgroundTasks
 from typing import List
 from db import ActiveSession
 from sqlmodel import Session
@@ -31,24 +31,14 @@ def test(repo_id, user_id: uuid.UUID, session: Session = ActiveSession):
     return "success"
 
 
-@repository_router.post("/", response_model=models.RepositoryResponse)
-async def create_repository(*, 
- session: Session = ActiveSession,
- user_id: uuid.UUID,
- repository: models.RepositoryCreate,
- forks: List[models.RepositoryUserCreate],
- stargazers: List[models.RepositoryUserCreate]):
-    db_repository = models.Repository.from_orm(repository)
-    session.add(db_repository)
-    session.commit()
-    session.refresh(db_repository)
+def process_repository(forks: list, stargazers: list, user_id: uuid.UUID, repository: models.Repository, session: Session):
     for fork in forks:
-        fork.repository_id = db_repository.id
+        fork.repository_id = repository.id
         fork.interaction_type = models.INTERACTION_TYPE.FORK
         db_fork = models.RepositoryUser.from_orm(fork)
         session.add(db_fork)
     for stargazer in stargazers:
-        stargazer.repository_id = db_repository.id
+        stargazer.repository_id = repository.id
         stargazer.interaction_type = models.INTERACTION_TYPE.STARGAZER
         db_stargazers = models.RepositoryUser.from_orm(stargazer)
         session.add(db_stargazers)
@@ -56,7 +46,7 @@ async def create_repository(*,
     
     email_user = session.query(models.EmailUser).where(models.EmailUser.uuid == user_id).first()
 
-    msg_creator = MessageCreator(session, db_repository.id)
+    msg_creator = MessageCreator(session, repository.id)
     message_text, archive_path = msg_creator.create_message()
     email_sender.send_message(
         subject=f"Repository summary for {repository.name}",
@@ -65,6 +55,22 @@ async def create_repository(*,
         file_path=archive_path,
     )
     msg_creator.clear_temp()
+
+
+@repository_router.post("/", response_model=models.RepositoryResponse)
+async def create_repository(*, 
+ session: Session = ActiveSession,
+ background_tasks: BackgroundTasks,
+ user_id: uuid.UUID,
+ repository: models.RepositoryCreate,
+ forks: List[models.RepositoryUserCreate],
+ stargazers: List[models.RepositoryUserCreate]):
+    db_repository = models.Repository.from_orm(repository)
+    session.add(db_repository)
+    session.commit()
+    session.refresh(db_repository)
+
+    background_tasks.add_task(process_repository, forks, stargazers, user_id, db_repository, session)
 
     return db_repository
 

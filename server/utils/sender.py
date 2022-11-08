@@ -1,11 +1,10 @@
 import smtplib
-import ssl
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Union, List
-from app.config import settings
+from config import settings
 
 class EmailNotifier:
     _message_template = 'Subject: {subject}\n\n{message}'
@@ -24,10 +23,8 @@ class EmailNotifier:
             file_path: str = None,
     ):
         recipients_emails = list(recipients_emails)
-        # context = ssl.create_default_context()
 
         with(smtplib.SMTP_SSL(self.smtp_server, self.port)) as server:
-            # server.starttls(context=context)
             server.login(self.sender_email, self.sender_pwd)
 
             msg = MIMEMultipart()
