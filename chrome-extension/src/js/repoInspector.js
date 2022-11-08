@@ -9,13 +9,21 @@ const PER_PAGE = 100;
 
 initToken().then(token => octokit = initOctokit(token))
 
-export class RepoInspector {
+class RepoInspector {
+
+    constructor() {
+        this.currentRepo = null;
+    }
+
     async inspectAssets() {
         // set the mapper function for the returned GET request from octokit. Sometimes the user link will be nested
         // like in this case where the object "owner" contains the users url
         const repo = await queueService.currentRepo();
-        if (!repo) {
+        if (!repo || this.currentRepo === repo) {
             return
+        }
+        else {
+            this.currentRepo = repo;
         }
         if (!userStore.isActiveRepo(repo)) {
             userStore.newDb(repo)
@@ -43,7 +51,7 @@ export class RepoInspector {
         // All data regarding a particular repo are stored in a JS object and not in the local storage. This means that if chrome is
         // restarted, all data collected will be lost.
 
-        const repo = await queueService.currentRepo();
+        const repo = this.currentRepo;
         const urlData = await urlStore.get(repo);
 
         // initialize data collection progress
@@ -122,3 +130,5 @@ export class RepoInspector {
         })
     }
 }
+
+export const repoInspector = new RepoInspector();

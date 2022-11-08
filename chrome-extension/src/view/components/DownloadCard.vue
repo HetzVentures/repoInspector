@@ -48,7 +48,7 @@ export default {
         return 0
       },
       timeRemaining(queueProgress) {
-        const ESTIMATED_SECONDS_PER_CALL = 5;
+        const ESTIMATED_SECONDS_PER_CALL = 1.2;
         if (queueProgress?.current && queueProgress?.max) {
           const totalMinutes = (queueProgress.max - queueProgress.current) * ESTIMATED_SECONDS_PER_CALL / 60;
           if (totalMinutes > 1) {

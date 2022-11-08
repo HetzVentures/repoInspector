@@ -6,6 +6,7 @@ from app.config import settings
 engine = create_engine(
     settings.db.sql_url,
     echo=settings.db.echo,
+    connect_args={'options': '-csearch_path={}'.format('repo_inspector')}
 )
 
 def update_engine(new_engine):
@@ -13,7 +14,7 @@ def update_engine(new_engine):
     global_vars['engine'] = new_engine
 
 
-def create_db_and_tables(engine):
+def create_db_and_tables(engine):   
     SQLModel.metadata.create_all(engine)
 
 

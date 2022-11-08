@@ -3,28 +3,14 @@
     "name": "repo-inspector",
     "description": "Inspect repositories",
     "version": "0.0.1",
-    "background": {
-        "service_worker": "/background.js"
-    },
     "action": {
         "default_popup": "popup.html"
     },
     "permissions": ["storage", "unlimitedStorage", "activeTab", "scripting", "alarms"],
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "/content.js"
-            ]
-        }
-    ],
     "options_page": "options.html",
     "icons": {
-        "16": "src/assets/icons/icon16.png",
-        "32": "src/assets/icons/icon32.png",
-        "48": "src/assets/icons/icon48.png",
-        "128": "src/assets/icons/icon128.png"
+        "16": "images/icon16.png",
+        "48": "images/icon48.png",
+        "128": "images/icon128.png"
       }
 }

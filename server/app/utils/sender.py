@@ -24,10 +24,10 @@ class EmailNotifier:
             file_path: str = None,
     ):
         recipients_emails = list(recipients_emails)
-        context = ssl.create_default_context()
+        # context = ssl.create_default_context()
 
-        with(smtplib.SMTP(self.smtp_server, self.port)) as server:
-            server.starttls(context=context)
+        with(smtplib.SMTP_SSL(self.smtp_server, self.port)) as server:
+            # server.starttls(context=context)
             server.login(self.sender_email, self.sender_pwd)
 
             msg = MIMEMultipart()

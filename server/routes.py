@@ -1,17 +1,17 @@
 import uuid
-from fastapi import APIRouter, Request, Form, BackgroundTasks
+from fastapi import APIRouter, Request, Form
 from typing import List
-from app.db import ActiveSession
+from db import ActiveSession
 from sqlmodel import Session
-from app.app import templates
+from app import templates
 from fastapi.responses import HTMLResponse
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from app.config import settings
+from config import settings
 from fastapi.exceptions import HTTPException
-from app.utils.message import MessageCreator
-from app.utils.sender import email_sender
-import app.models as models
+from utils.message import MessageCreator
+from utils.sender import email_sender
+import models
 
 repository_router = APIRouter()
 
@@ -31,36 +31,9 @@ def test(repo_id, user_id: uuid.UUID, session: Session = ActiveSession):
     return "success"
 
 
-def process_repository(forks: list, stargazers: list, user_id: uuid.UUID, repository: models.Repository, session: Session):
-    for fork in forks:
-        fork.repository_id = repository.id
-        fork.interaction_type = models.INTERACTION_TYPE.FORK
-        db_fork = models.RepositoryUser.from_orm(fork)
-        session.add(db_fork)
-    for stargazer in stargazers:
-        stargazer.repository_id = repository.id
-        stargazer.interaction_type = models.INTERACTION_TYPE.STARGAZER
-        db_stargazers = models.RepositoryUser.from_orm(stargazer)
-        session.add(db_stargazers)
-    session.commit()
-    
-    email_user = session.query(models.EmailUser).where(models.EmailUser.uuid == user_id).first()
-
-    msg_creator = MessageCreator(session, repository.id)
-    message_text, archive_path = msg_creator.create_message()
-    email_sender.send_message(
-        subject=f"Repository summary for {repository.name}",
-        message=message_text,
-        recipients_emails=[email_user.email],
-        file_path=archive_path,
-    )
-    msg_creator.clear_temp()
-
-
 @repository_router.post("/", response_model=models.RepositoryResponse)
 async def create_repository(*, 
  session: Session = ActiveSession,
- background_tasks: BackgroundTasks,
  user_id: uuid.UUID,
  repository: models.RepositoryCreate,
  forks: List[models.RepositoryUserCreate],
@@ -69,8 +42,29 @@ async def create_repository(*,
     session.add(db_repository)
     session.commit()
     session.refresh(db_repository)
+    for fork in forks:
+        fork.repository_id = db_repository.id
+        fork.interaction_type = models.INTERACTION_TYPE.FORK
+        db_fork = models.RepositoryUser.from_orm(fork)
+        session.add(db_fork)
+    for stargazer in stargazers:
+        stargazer.repository_id = db_repository.id
+        stargazer.interaction_type = models.INTERACTION_TYPE.STARGAZER
+        db_stargazers = models.RepositoryUser.from_orm(stargazer)
+        session.add(db_stargazers)
+    session.commit()
+    
+    email_user = session.query(models.EmailUser).where(models.EmailUser.uuid == user_id).first()
 
-    background_tasks.add_task(process_repository, forks, stargazers, user_id, db_repository, session)
+    msg_creator = MessageCreator(session, db_repository.id)
+    message_text, archive_path = msg_creator.create_message()
+    email_sender.send_message(
+        subject=f"Repository summary for {repository.name}",
+        message=message_text,
+        recipients_emails=[email_user.email],
+        file_path=archive_path,
+    )
+    msg_creator.clear_temp()
 
     return db_repository
 

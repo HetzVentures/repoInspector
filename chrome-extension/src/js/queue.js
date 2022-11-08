@@ -5,7 +5,7 @@ import { runInspector } from '@/entry/background';
 import { initToken } from './helpers';
 import { auth } from '@/js/authentication'
 
-const LOCATION_REQUEST_THROTTLE = 1500;
+const LOCATION_REQUEST_THROTTLE = 1000;
 const STORAGE_WRITE_THROTTLE = 10;
 const NOMINATIM_LOCATION_API_Q = "https://nominatim.openstreetmap.org/search.php?format=jsonv2&addressdetails=1&q=";
 let octokit;

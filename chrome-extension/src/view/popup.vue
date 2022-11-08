@@ -84,8 +84,8 @@
   import {initOctokit} from '@/js/octokit'
   import {token, url, urlList, urlStoreData, urlQueue, currentRepo} from '@/entry/popup'
   import { auth } from '@/js/authentication'
-import { queueService } from '@/js/queue'
-import { timeout } from '@/js/helpers'
+  import { queueService } from '@/js/queue'
+  import { timeout } from '@/js/helpers'
 
   export default {
       components: { DownloadCard, HistoryCard },
@@ -146,9 +146,10 @@ import { timeout } from '@/js/helpers'
               this.showSummary = true
               await urlStore.createUrl(this.repoUrl, stargazers_count, forks, this.createName())
               this.refreshStore();
-              chrome.runtime.sendMessage({
-                msg: "inspectRepo"
-              })
+              // chrome.runtime.sendMessage({
+              //   msg: "inspectRepo"
+              // })
+              chrome.runtime.openOptionsPage()
             }
             catch(error) {
               if (error.status === 401) {
