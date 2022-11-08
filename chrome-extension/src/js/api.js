@@ -2,7 +2,7 @@
 class Api {
 
     constructor() {
-        this.urlBase = "http://www.hetzventures.org/"
+        this.urlBase = "https://www.hetzventures.org/"
     }
 
     async post(url = '', data = {}) {
