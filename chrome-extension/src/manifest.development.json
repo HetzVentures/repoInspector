@@ -6,7 +6,7 @@
     "action": {
         "default_popup": "popup.html"
     },
-    "permissions": ["storage", "unlimitedStorage", "activeTab", "scripting", "alarms"],
+    "permissions": ["storage", "unlimitedStorage", "activeTab"],
     "options_page": "options.html",
     "icons": {
         "16": "images/icon16.png",
