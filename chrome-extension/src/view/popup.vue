@@ -67,6 +67,7 @@
           <dialog v-bind:open="logout">
             <article>
               <h3>Logout?</h3>
+              <template v-if="!currentRepo">
               <p>
                 Are you sure you want to log out? All data will be deleted
               </p>
@@ -74,6 +75,15 @@
                     <button style="width: 40%" v-on:click="logout = 0" role="button" class="secondary">Cancel</button>
                     <button style="width: 40%" v-on:click="runLogout()" role="button">Confirm</button>
               </footer>
+            </template>
+            <template v-else>
+              <p>
+                In order to log out, first stop your active inspections
+              </p>
+              <footer>
+                    <button style="width: 40%" v-on:click="logout = 0" role="button" class="secondary">Ok</button>
+              </footer>
+            </template>
             </article>
           </dialog>
       </div>
