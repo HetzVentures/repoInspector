@@ -6,17 +6,19 @@
         <script src="https://accounts.google.com/gsi/client" async defer></script>
         <article>
             <header>Login to repoInspector</header>
+            <div style="width: 220px; margin: auto;">
                 <div id="g_id_onload"
-                data-client_id="{{data_client_id}}"
-                data-login_uri="https://www.hetzventures.org/login/verify/{{ email_user_uuid }}"
-                data-auto_prompt="false">
-            </div>
-            <div class="g_id_signin"
-                data-type="standard"
-                data-size="large"
-                data-theme="outline"
-                data-text="sign_in_with"
-                data-shape="rectangular">
+                    data-client_id="{{data_client_id}}"
+                    data-login_uri="https://www.hetzventures.org/login/verify/{{ email_user_uuid }}"
+                    data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                    data-type="standard"
+                    data-size="large"
+                    data-theme="outline"
+                    data-text="sign_in_with"
+                    data-shape="rectangular">
+                </div>
             </div>
             <footer>
                 Your email will only be used to send you reports
