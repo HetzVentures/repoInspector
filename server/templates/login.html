@@ -1,18 +1,27 @@
 <html>
-    <body>
+    <head>
+        <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    </head>
+    <body style="text-align: center">
         <script src="https://accounts.google.com/gsi/client" async defer></script>
-        <div id="g_id_onload"
-            data-client_id="{{data_client_id}}"
-            data-login_uri="https://www.hetzventures.org/login/verify/{{ email_user_uuid }}"
-            data-auto_prompt="false">
-        </div>
-        <div class="g_id_signin"
-            data-type="standard"
-            data-size="large"
-            data-theme="outline"
-            data-text="sign_in_with"
-            data-shape="rectangular"
-            data-logo_alignment="left">
-        </div>
+        <article>
+            <header>Login to repoInspector</header>
+                <div id="g_id_onload"
+                data-client_id="{{data_client_id}}"
+                data-login_uri="https://www.hetzventures.org/login/verify/{{ email_user_uuid }}"
+                data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin"
+                data-type="standard"
+                data-size="large"
+                data-theme="outline"
+                data-text="sign_in_with"
+                data-shape="rectangular"
+                data-logo_alignment="left">
+            </div>
+            <footer>
+                Your email will only be used to send you reports
+            </footer>
+          </article>
     </body>
 </html>
