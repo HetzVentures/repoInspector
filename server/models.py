@@ -65,6 +65,7 @@ class RepositoryUser(SQLModel, table=True):
     following: Optional[int]
     event_count: Optional[int]
     real_user: Optional[bool]
+    active_user: Optional[bool]
     created_at: datetime
     updated_at: datetime
 
@@ -93,6 +94,7 @@ class RepositoryUserCreate(BaseModel):
     following: Optional[int]
     event_count: Optional[int]
     real_user: Optional[bool]
+    active_user: Optional[bool]
     created_at: datetime
     updated_at: datetime
 

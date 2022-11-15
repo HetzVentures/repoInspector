@@ -80,7 +80,7 @@ export default {
         const newRepo = await urlStore.newRepo();
         // only start parsing if we are working on a new repo
         if (newRepo) {
-          repoInspector.inspectAssets();
+          repoInspector.inspectAssets(newRepo);
         }
     },
     keys(data) {
@@ -101,7 +101,6 @@ export default {
       })
       setInterval(()=> {
         this.refreshStore();
-
       }, 5000)
     }
 }

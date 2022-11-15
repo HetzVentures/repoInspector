@@ -10,8 +10,27 @@
               <label for="token">Access token</label>
               <input type="text" v-model="newToken" name="token">
               <button v-bind:disabled="!newToken" v-on:click="save">Save</button>
+
+              <article>
+                <header>Hi!</header>
+                This is repo inspector - a tool for extracting data from repositories. 
+                We will need a github access token to begin. Click the link to get started
+                <footer>
+                  <a role="button" target="_blank" href="https://github.com/HetzVentures/repoInspector" class="outline">Let's get started!</a>
+                </footer>
+              </article>
+
           </template>
-          <button v-bind:disabled="!currentUser?.uuid" v-else-if="!currentUser.email" v-on:click="openLogin()">Login</button>
+          <template v-else-if="!currentUser.email">
+            <article>
+                <header>Almost there!</header>
+                We will email you the results of the inspection. The inspection is done on your computer 
+                and we aggregate the data for you and send it your way. We will only use your email to send you the search results.
+                <footer>
+                  <button v-bind:disabled="!currentUser?.uuid"  v-on:click="openLogin()">Login</button>
+                </footer>
+              </article>
+          </template>
           <template v-else>
               <input v-bind:placeholder="currentRepo ? 'Scanning repo...' : 'Repo URL'" type="text" v-bind:disabled="currentRepo" v-model="repoUrl" name="repoUrl">
               <button v-bind:aria-busy="!!currentRepo" v-bind:disabled="currentRepo" v-on:click="runInspect">Inspect</button>
@@ -24,26 +43,13 @@
                           v-bind:currentRepo="currentRepo"
                           @remove="(repo) => cancel = repo" />
               </template>
-              <button v-if="keys(urlStoreData).length > 1 || keys(urlStoreData).length === 1 && !currentRepo" @click="showHistory = !showHistory">
-                History
-              </button>
-              <template  v-if="showHistory">
-                <template v-for="urlKey of keys(urlStoreData)">
-                  <HistoryCard v-if="urlKey !== currentRepo"
-                            v-bind:key="urlKey"
-                            v-bind:repoData="urlStoreData[urlKey]" 
-                            v-bind:repoUrl="urlKey" 
-                            v-bind:currentRepo="currentRepo"
-                            @remove="(repo) => cancel = repo" />
-                </template>
+              <template v-if="!currentRepo">
+                <article>
+                  <header>You are ready!</header>
+                  To get started, navigate to a repository you are interested in, and click "Inspect". We will take care of the rest.
+              </article>
               </template>
-              <details role="list">
-                <summary aria-haspopup="listbox">Tools</summary>
-                <ul role="listbox">
-                  <li><a @click="token = 0">Change Token</a></li>
-                  <li><a @click="logout = 1">Logout</a></li>
-                </ul>
-              </details>
+              <button @click="logout = 1" class="secondary outline mt-32">Logout</button>
 
           </template>  
           <dialog v-bind:open="cancel">
@@ -79,7 +85,6 @@
   
   <script>
   import DownloadCard from './components/DownloadCard.vue'
-  import HistoryCard from './components/HistoryCard.vue'
   import { urlStore } from '@/js/store'
   import {initOctokit} from '@/js/octokit'
   import {token, url, urlList, urlStoreData, urlQueue, currentRepo} from '@/entry/popup'
@@ -88,7 +93,7 @@
   import { timeout } from '@/js/helpers'
 
   export default {
-      components: { DownloadCard, HistoryCard },
+      components: { DownloadCard },
       name: 'App',
       data() {
         return {
@@ -134,10 +139,6 @@
               if (!this.repoUrl) {
                 this.showError("You must enter a repo to inspect!");
                 return;                
-              }
-              if (this.urlStoreData[this.repoUrl]) {
-                this.showError("Repo is already inspected!");
-                return;
               }
               this.currentRepo = this.repoUrl;
               let octokit = initOctokit(this.token);
@@ -220,5 +221,8 @@
   }
   .header-margin {
     margin-top: 18px;
+  }
+  .mt-32 {
+    margin-top: 32px
   }
 </style>

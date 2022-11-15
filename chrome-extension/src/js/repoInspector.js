@@ -15,11 +15,10 @@ class RepoInspector {
         this.currentRepo = null;
     }
 
-    async inspectAssets() {
+    async inspectAssets(repo) {
         // set the mapper function for the returned GET request from octokit. Sometimes the user link will be nested
         // like in this case where the object "owner" contains the users url
-        const repo = await queueService.currentRepo();
-        if (!repo || this.currentRepo === repo) {
+        if (!repo) {
             return
         }
         else {

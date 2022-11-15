@@ -1,11 +1,12 @@
 import { initOctokit } from '@/js/octokit.js';
 import { urlStore, userStore } from '@/js/store.js';
 import { api } from '@/js/api'
-import { initToken } from './helpers';
+import { initToken, timeout } from './helpers';
 import { auth } from '@/js/authentication'
 
 const LOCATION_REQUEST_THROTTLE = 1000;
-const STORAGE_WRITE_THROTTLE = 10;
+const STORAGE_WRITE_THROTTLE = 100;
+const SYNC_THROTTLE = 5;
 const NOMINATIM_LOCATION_API_Q = "https://nominatim.openstreetmap.org/search.php?format=jsonv2&addressdetails=1&q=";
 let octokit;
 
@@ -134,8 +135,9 @@ class QueueService {
         // set progress of collecting url data from user urls.
         // In order to display progress on the client side we must write the progress to storage from the background job.
         // To limit writing to the storage too often (it can crash the extension) we only write to the storage once every STORAGE_WRITE_THROTTLE
-        if (this.queue.length <= 1 || this.queue.length % STORAGE_WRITE_THROTTLE === 0) {
+        if (this.queue.length <= 1 || this.queue.length % SYNC_THROTTLE === 0) {
             this._storeQueueProgress(this.currentRepoUrl);
+        if (this.queue.length <= 1 || this.queue.length % STORAGE_WRITE_THROTTLE === 0)
             this._saveQueueState();
         }
     }
@@ -149,10 +151,15 @@ class QueueService {
     async storeUserData(userData, type, userUrl) {
         // get location data from the github location str
         if (userData.location) {
-            let locationData = await this.getLocation(userData.location);
-            userData.country = locationData[0]?.address?.country;
-            userData.lat = locationData[0]?.lat;
-            userData.lon = locationData[0]?.lon;
+            try {
+                let locationData = await this.getLocation(userData.location);
+                userData.country = locationData[0]?.address?.country;
+                userData.lat = locationData[0]?.lat;
+                userData.lon = locationData[0]?.lon;
+            }
+            catch(error) {
+                console.error(error)
+            }
         }
 
         // get user event count
@@ -161,6 +168,12 @@ class QueueService {
 
         // define real user
         userData["real_user"] = userData.event_count > 3 || userData.followers > 3;
+
+        // define active user
+        const yearAgo = new Date(new Date().setFullYear(new Date().getFullYear() - 1)).getTime();
+        userData["active_user"] = (data.length &&
+             data[0]?.created_at && 
+             new Date(data[0]?.created_at).getTime() > yearAgo);
 
         // save user data
         userStore.set(type, userUrl, userData);
@@ -185,6 +198,9 @@ class QueueService {
         this.getUser(currentQuery.type, currentQuery.userUrl)
         }
         else {
+            this.deactivateInterval();
+            // allow any other request to finish
+            timeout(2000);
             this._finishInspection();      
 
             // if the queue is done and we have collected all the user urls
@@ -215,7 +231,7 @@ class QueueService {
             urlData.sentStatus = error
         }
 
-        urlStore.set(this.currentRepoUrl, urlData);
+        urlStore.saveUrl(this.currentRepoUrl, urlData);
 
         // remove repo from inspection queue
         await urlStore.deleteUrlQueue(this.currentRepoUrl)        

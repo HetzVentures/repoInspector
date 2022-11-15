@@ -139,6 +139,9 @@ class MessageCreator:
         real_users = session.query(RepositoryUser.id).where(RepositoryUser.repository_id == repo_id, 
                                             RepositoryUser.real_user.is_(True)).count()
 
+        active_users = session.query(RepositoryUser.id).where(RepositoryUser.repository_id == repo_id, 
+                                    RepositoryUser.active_user.is_(True)).count()
+
         message_text = f'Repository name: {self.repo.name}\n\n'
         message_text = message_text + f'Total number of profiles: {total_users}\n\n'
         in_organizations_text = f'Organization: {organizations_percent} % ' \
@@ -148,20 +151,15 @@ class MessageCreator:
         message_text = message_text + email_text
         message_text += f'\nOrg breakdown:\n'
 
-        organizations_wrote = False
-
         for organization in company_summary:
             if organization.count > 3:
                 organization_percent = "%.2f" % (organization.count / (total_users) * 100)
                 message_text = message_text + f'     {organization.company}: {organization_percent} % ' \
                                               f'({organization.count} profile(s))\n'
-                organizations_wrote = True
 
-        if not organizations_wrote:
-            message_text += f'     Suitable organizations not found\n'
-
-        # active_users_text = f'Active: {percent_of_active_profiles} % ({profiles_with_active_status} profile(s))'
-        # message_text = message_text + '\n' + active_users_text
+        active_users_text = f'Active users: {"%.2f" % (active_users / (total_users) * 100)} % ({active_users} ' \
+                            f'profile(s))\n'
+        message_text = message_text + '\n' + active_users_text
         real_users_text = f'Real users: {"%.2f" % (real_users / (total_users) * 100)} % ({real_users} ' \
                           f'profile(s))\n'
         message_text = message_text + '\n' + real_users_text

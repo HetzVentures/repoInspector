@@ -118,15 +118,28 @@ export class UrlStore {
         return this.set(url, urlData)
     }
 
+    async saveUrl(url, urlData) {
+        const data = {
+            url: urlData.url,
+            stargazers_count: urlData.stargazers_count,
+            forks_count: urlData.forks_count,
+            progress: urlData.progress,
+            queueProgress: urlData.queueProgress,
+            name: urlData.name
+        }
+        return this.set(url, data)
+    }
+
     async newRepo() {
         // save if the user just deleted this repo
         return new Promise((resolve) => {
             chrome.storage.local.get(async ({ NEW_REPO }) => {
                 if (NEW_REPO) {
+                    const repo = NEW_REPO;
                     NEW_REPO = false;
                     await chrome.storage.local.set({ NEW_REPO })
                     // there is a new repo, now set the status to false
-                    resolve(true)
+                    resolve(repo)
                 }
                 resolve(false)
             })
@@ -153,7 +166,7 @@ export class UrlStore {
                 if (!URL_QUEUE.includes(url)) {
                     URL_QUEUE.push(url)
                     await chrome.storage.local.set({ URL_QUEUE })
-                    const NEW_REPO = true
+                    const NEW_REPO = url
                     await chrome.storage.local.set({ NEW_REPO })
                 }
                 resolve()
