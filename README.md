@@ -58,6 +58,42 @@ yarn run lint
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
 
+### Server setup
+```
+cd server
+pip install -r requirements.txt
+```
+Create a file called `.secrets.toml` in the `server` directory and fill it in with the following (fill in the missing variables):
+```
+[development]
+dynaconf_merge = true
+
+[development.db]
+sql_url = ''
+
+[development.google]
+data_client_id = ""
+
+[development.email]
+username = ''
+password = ''
+smtp_server = ''
+port = ''
+
+[development.security]
+# openssl rand -hex 32
+SECRET_KEY = ""
+```
+### Run server
+```
+uvicorn main:app
+```
+### Production Setup
+The server is set up to run on Heroku, to push to heroku, add a new heroku remote and run from the base folder:
+```
+git subtree push --prefix server heroku main
+```
+The environment variables convention on the server `API_DB__<var name>` so for sql_url it would be `API_DB__sql_url`.
 ## Classifications
 
 Some data is classified by our business logic and is not fetched directly from Github. The following are data points we have defined:
