@@ -147,15 +147,19 @@ class MessageCreator:
         in_organizations_text = f'Organization: {organizations_percent} % ' \
                                 f'({organizations_total} profile(s))\n'
         message_text = message_text + in_organizations_text
-        email_text = f'Users with email - {users_with_email} {users_with_email_percent} % \n'
+        email_text = f'Email users: {users_with_email_percent} % ({users_with_email}profile(s)) \n'
         message_text = message_text + email_text
-        message_text += f'\nOrg breakdown:\n'
+
+        org_message_text = ""
 
         for organization in company_summary:
             if organization.count > 3:
                 organization_percent = "%.2f" % (organization.count / (total_users) * 100)
-                message_text = message_text + f'     {organization.company}: {organization_percent} % ' \
+                org_message_text = org_message_text + f'     {organization.company}: {organization_percent} % ' \
                                               f'({organization.count} profile(s))\n'
+
+        if org_message_text:
+            message_text += f'\nOrg breakdown:\n' + org_message_text
 
         active_users_text = f'Active users: {"%.2f" % (active_users / (total_users) * 100)} % ({active_users} ' \
                             f'profile(s))\n'
