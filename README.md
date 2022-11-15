@@ -58,5 +58,9 @@ yarn run lint
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
 
-# GEOCODING
-An important part of knowing your repo is knowing where people come from. nominatim.openstreetmap.org provides a free API which requires throttling to use, thus there is a tax of about 1.5 seconds for each API call
+## Classifications
+
+Some data is classified by our business logic and is not fetched directly from Github. The following are data points we have defined:
+- Real user - user who has had more than three "events" (commit, PR, etc.) or user who has more than three followers.
+- Active user - user who has an event in the past year.
+- Country - while users can input their location in their profile, this is free-text which make it difficult to aggregate. To solve this problem, we use nominatim.openstreetmap.org location api to fetch the country of every location free-text and extract its country.
