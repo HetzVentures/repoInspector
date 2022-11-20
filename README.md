@@ -48,7 +48,7 @@ You’re ready to start inspecting repositories! Here’s how that works:
      Note - it may take a few seconds to start showing progress, and the larger the amount of Stars or Forks, the longer it will take to start and progress. 
 3. Your result will arrive in your inbox once the progress bar hits 100%. 
      
-     Be sure to check your spam folder for the email, which will come from repoinspector@hetzventures.org
+     If you don't see the email right away, check your spam folder. The report will send from repoinspector@hetzventures.org.
 
 ## About us 
 repoInspector was originally designed and started by the team at Hetz Ventures. We were looking for a simple way to access useful data on repository user activity around Github projects for industry insights, due diligence, comparative analysis, etc. 
