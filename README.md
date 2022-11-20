@@ -1,6 +1,15 @@
 # repoInspector
 
-repoInspector is a project aiming at gathering useful data on open source repositories. This data includes things like the countries in which a repository is popular, or the organizations to which users who use a repository belong to. This project is published as a chrome extension and can be used imediately without any setup.
+repoInspector is a Github repository inspector built for anyone to gather useful data on open source repositories. Using the open Github API, we package and present available data about any repository, including: 
+- # of profiles 
+- # of active users 
+- # of all users
+- Geographical breakdown (countries)
+- Organizations to which a repo’s users belong
+- Plus, other data as available
+
+This one’s designed to be simple to use as a Chrome extension, for startup founders, devs, investors, and really - anyone!  
+
 
 ## Let's get started!
 - Download the chrome extension here
