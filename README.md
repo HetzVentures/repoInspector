@@ -1,3 +1,5 @@
+![repoInspector developed by the Hetz team](https://uploads-ssl.webflow.com/6315e930d2cfb6827aea22b2/637a1c442913f973713f6c76_repoInspector%20header.gif)
+
 # repoInspector
 
 repoInspector is a Github repository inspector built for anyone to gather useful data on open source repositories. Using the open Github API, we package and present available data about any repository, including: 
