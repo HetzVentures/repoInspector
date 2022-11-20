@@ -1,9 +1,9 @@
 # repoInspector
 
 repoInspector is a Github repository inspector built for anyone to gather useful data on open source repositories. Using the open Github API, we package and present available data about any repository, including: 
-- # of profiles 
-- # of active users 
-- # of all users
+- number of profiles 
+- number of active users 
+- number of all users
 - Geographical breakdown (countries)
 - Organizations to which a repo’s users belong
 - Plus, other data as available
