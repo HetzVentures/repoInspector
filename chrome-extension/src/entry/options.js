@@ -39,4 +39,3 @@ export let currentRepo;
 }
   window.addEventListener('beforeunload', preventClose, true);
 
-createApp(App).mount('#app')
