@@ -14,8 +14,8 @@ This one’s designed to be simple to use as a Chrome extension, for startup fou
 
 
 ## Let's get started!
-1. Download the Chrome Extension here [TBD] 
-2. Log into your Github account (if you don't have one, create one).
+1. Download the Chrome Extension [here]([url](https://chrome.google.com/webstore/detail/repo-inspector/hogkmljfjdgibeoepenpfggaiipngknb)). 
+2. Log into your [Github]([url](https://github.com/)) account (if you don't have one, create one).
 3. Create a token by clicking here or by going to Settings > Developer Settings > Personal Access Token -> Classic
 4. Press 'Generate new token' -> Classic -> and create a token, checking off the following permissions:
 
@@ -53,7 +53,7 @@ You’re ready to start inspecting repositories! Here’s how that works:
      If you don't see the email right away, check your spam folder. The report will send from repoinspector@hetzventures.org.
 
 ## About us 
-repoInspector was originally designed and started by the team at Hetz Ventures. We were looking for a simple way to access useful data on repository user activity around Github projects for industry insights, due diligence, comparative analysis, etc. 
+[repoInspector]([url](https://chrome.google.com/webstore/detail/repo-inspector/hogkmljfjdgibeoepenpfggaiipngknb)) was originally designed and started by the team at [Hetz Ventures]([url](https://www.hetz.vc/)). We were looking for a simple way to access useful data on repository user activity around Github projects for industry insights, due diligence, comparative analysis, etc. 
 
 This Chrome extension is useful for other investors, startup founders and really anyone looking to better understand user behavior and their markets. 
 
