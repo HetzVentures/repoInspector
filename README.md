@@ -1,12 +1,24 @@
+![repoInspector developed by the Hetz team](https://uploads-ssl.webflow.com/6315e930d2cfb6827aea22b2/637a1c442913f973713f6c76_repoInspector%20header.gif)
+
 # repoInspector
 
-repoInspector is a project aiming at gathering useful data on open source repositories. This data includes things like the countries in which a repository is popular, or the organizations to which users who use a repository belong to. This project is published as a chrome extension and can be used imediately without any setup.
+repoInspector is a Github repository inspector built for anyone to gather useful data on open source repositories. Using the open Github API, we package and present available data about any repository, including: 
+- number of profiles 
+- number of active users 
+- number of all users
+- Geographical breakdown (countries)
+- Organizations to which a repo’s users belong
+- Plus, other data as available
+
+This one’s designed to be simple to use as a Chrome extension, for startup founders, devs, investors, and really - anyone!  
+
 
 ## Let's get started!
-- Download the chrome extension here
-- Log into your Github account (create one if you don't have one yet)
-- Create a token by clicking [here](https://github.com/settings/tokens) or by going to profile settings > delveloper settings > token
-- Press 'Generate new token' -> classic -> and create a token with the following permissions:
+1. Download the Chrome Extension here [TBD] 
+2. Log into your Github account (if you don't have one, create one).
+3. Create a token by clicking here or by going to Settings > Developer Settings > Personal Access Token -> Classic
+4. Press 'Generate new token' -> Classic -> and create a token, checking off the following permissions:
+
 ```
  repo:status Access commit status
  repo_deployment Access deployment status
@@ -22,14 +34,31 @@ repoInspector is a project aiming at gathering useful data on open source reposi
  read:enterprise Read enterprise profile data
  read:project Read access of projects
 ```
-> :warning: You can make the expiration on the token anything you are comfortable with, we will never ask you for your token, and it will always be stored on your computer.
-- Open the chrome extension and insert the token into the text box. After saving the token, you will be asked to log in with Gmail so we can send you the repo's data.
+> :warning: Set the token’s expiration to whatever you’re comfortable with. We’ll never ask you for your token, and it will always be stored on your computer.
 
-YAY You did it!
-Now go to a repository you want to know about, open the chrome extension and click 'Inspect'!
+5. Open the Chrome extension and paste the token into the token field. 
+6. After saving the token, you will be asked to log in with Gmail so we can email you repo data as you request it.
 
-___
-If you are someone who wants to contribute to this project and make it better, we welcome you! here is how you can get set up:
+## Using repoInspector
+You’re ready to start inspecting repositories! Here’s how that works: 
+
+1. In your browser, go to the Github page for a repository you’re curious about, open the Chrome extension and click Inspect. 
+     
+     Before you inspect, you have a few options for the data. Toggle between receiving Only Stars (default), Only Forks, Stars and Forks, or Sampling.
+2. Once you click Inspect, you’ll see a progress window. 
+     
+     Note - it may take a few seconds to start showing progress, and the larger the amount of Stars or Forks, the longer it will take to start and progress. 
+3. Your result will arrive in your inbox once the progress bar hits 100%. 
+     
+     If you don't see the email right away, check your spam folder. The report will send from repoinspector@hetzventures.org.
+
+## About us 
+repoInspector was originally designed and started by the team at Hetz Ventures. We were looking for a simple way to access useful data on repository user activity around Github projects for industry insights, due diligence, comparative analysis, etc. 
+
+This Chrome extension is useful for other investors, startup founders and really anyone looking to better understand user behavior and their markets. 
+
+We welcome contributors to this project! Here’s how you can get set up:
+
 ## Project setup
 There is both a client and a server in this repository. You can decide to only work on the client side (i.e. the chrome extension) or on both.
 To set up the client side, clone the repo and:
