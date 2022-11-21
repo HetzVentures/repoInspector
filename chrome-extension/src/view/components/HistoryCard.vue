@@ -9,11 +9,11 @@
             <li><strong><a class="text" v-bind:href="repoUrl" target="_blank">{{ repoData?.name }}</a></strong></li>
         </ul>
         </nav>
-        <b>Settings: </b>
-        {{ typeStatus(repoData.settings.stars) }} Stars 
-        {{ typeStatus(repoData.settings.forks) }} Forks
-        {{ typeStatus(repoData.settings.location) }} Location
-        {{ typeStatus(repoData.settings.sample) }} Sample
+          <b>Settings: </b>
+        {{ typeStatus(repoData.settings?.stars) }} Stars 
+        {{ typeStatus(repoData.settings?.forks) }} Forks
+        {{ typeStatus(repoData.settings?.location) }} Location
+        {{ typeStatus(repoData.settings?.sample) }} Sample
     </article>
 </template>
 

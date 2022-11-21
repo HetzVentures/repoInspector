@@ -121,13 +121,15 @@ export class UrlStore {
     }
 
     async saveUrl(url, urlData) {
+        // extract only what if important to hold for history display
         const data = {
             url: urlData.url,
             stargazers_count: urlData.stargazers_count,
             forks_count: urlData.forks_count,
             progress: urlData.progress,
             queueProgress: urlData.queueProgress,
-            name: urlData.name
+            name: urlData.name,
+            settings: urlData.settings
         }
         return this.set(url, data)
     }
