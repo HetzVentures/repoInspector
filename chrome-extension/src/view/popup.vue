@@ -34,6 +34,8 @@
           <template v-else>
               <input v-bind:placeholder="currentRepo ? 'Scanning repo...' : 'Repo URL'" type="text" v-bind:disabled="currentRepo" v-model="repoUrl" name="repoUrl">
               <button v-bind:aria-busy="!!currentRepo" v-bind:disabled="currentRepo" v-on:click="runInspect">Inspect</button>
+              <button v-if="keys(urlStoreData).length" v-on:click="openDownloads()" class="outline">Downloads Page</button>
+
               
               <template v-for="urlKey of keys(urlStoreData)">
                 <DownloadCard v-if="urlKey === currentRepo"
@@ -43,12 +45,36 @@
                           v-bind:currentRepo="currentRepo"
                           @remove="(repo) => cancel = repo" />
               </template>
-              <template v-if="!currentRepo">
-                <article>
-                  <header>You are ready!</header>
-                  To get started, navigate to a repository you are interested in, and click "Inspect". We will take care of the rest.
+                <article v-if="!currentRepo">
+                  <header>Settings</header>
+                  <fieldset>
+                    <label for="sample">
+                      <input v-on:change="setSettings('sample', settings.sample)" v-model="settings.sample" type="checkbox" id="sample" name="sample" role="switch">
+                      Sample repos with over 2k user <em data-tooltip="Recommended to expedite the inspection">(?)</em>
+                    </label>
+                  </fieldset>
+                  <fieldset>
+                    <label for="location">
+                      <input v-on:change="setSettings('location', settings.location)" v-model="settings.location" type="checkbox" id="location" name="location" role="switch">
+                      Aggregate location <em data-tooltip="Getting aggregated user location slows inspection">(?)</em>
+                    </label>
+                  </fieldset>
+                  <fieldset>
+                    <label for="stars">
+                      <input v-on:change="setSettings('stars', settings.stars)" v-model="settings.stars" type="checkbox" id="stars" name="stars" role="switch">
+                      Get users who have <b>starred</b> the repo
+                    </label>
+                  </fieldset>
+                  <fieldset>
+                    <label for="forks">
+                      <input v-on:change="setSettings('forks', settings.forks)" v-model="settings.forks" type="checkbox" id="forks" name="forks" role="switch">
+                      Get users who have <b>forked</b> the repo
+                    </label>
+                  </fieldset>
+                  <footer>
+                      Lost? Review instructions <a target="_blank" href="https://github.com/HetzVentures/repoInspector">here</a>
+                  </footer>
               </article>
-              </template>
               <button @click="logout = 1" class="secondary outline mt-32">Logout</button>
 
           </template>  
@@ -97,10 +123,11 @@
   import DownloadCard from './components/DownloadCard.vue'
   import { urlStore } from '@/js/store'
   import {initOctokit} from '@/js/octokit'
-  import {token, url, urlList, urlStoreData, urlQueue, currentRepo} from '@/entry/popup'
+  import {token, url, urlList, urlStoreData, urlQueue, currentRepo, settings} from '@/entry/popup'
   import { auth } from '@/js/authentication'
   import { queueService } from '@/js/queue'
   import { timeout } from '@/js/helpers'
+  import { settingsStore } from '@/js/store'
 
   export default {
       components: { DownloadCard },
@@ -114,6 +141,7 @@
             stargazers_count: 0,
             forks: 0
           },
+          settings: settings,
           showSummary: false,
           urlList: urlList,
           urlStoreData: urlStoreData,
@@ -143,6 +171,10 @@
           let urlParts = this.repoUrl.split("/");
           return `${urlParts[3]}/${urlParts[4]}`
         },
+        setSettings(k, v) {
+          this.settings[k] = v;
+          settingsStore.set(this.settings);
+        },
         async runInspect() {
           // collect initial data on repo and send message to background to start inspecting it.
             try {
@@ -150,12 +182,16 @@
                 this.showError("You must enter a repo to inspect!");
                 return;                
               }
+              if (!this.settings.forks && !this.settings.stars) {
+                this.showError("You must select if you want forks, stars or both (but not none)");
+                return;                
+              }
               this.currentRepo = this.repoUrl;
               let octokit = initOctokit(this.token);
               const {data: { stargazers_count, forks }} = await octokit.request(`GET ${this.cleanRepoUrl()}`)
               this.summary = { stargazers_count, forks }
               this.showSummary = true
-              await urlStore.createUrl(this.repoUrl, stargazers_count, forks, this.createName())
+              await urlStore.createUrl(this.repoUrl, stargazers_count, forks, this.createName(), this.settings)
               this.refreshStore();
               chrome.runtime.openOptionsPage()
             }
@@ -168,6 +204,9 @@
               }
               console.error(error)
             }
+        },
+        openDownloads() {
+          chrome.runtime.openOptionsPage()
         },
         async refreshStore() {
           this.urlStoreData = await urlStore.all();

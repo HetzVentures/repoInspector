@@ -6,6 +6,7 @@ import { queueService } from '@/js/queue.js'
 // let running = {stargazers: false, forks: false};
 let octokit;
 const PER_PAGE = 100;
+const MAX_SAMPLE = 2000;
 
 initToken().then(token => octokit = initOctokit(token))
 
@@ -27,16 +28,37 @@ class RepoInspector {
         if (!userStore.isActiveRepo(repo)) {
             userStore.newDb(repo)
         }
-        const inspectionParams = [
+
+
+        // Define the amount of pages to skip when collecting users. This is used when user is scrapping large repo
+        // and wants to get only a sample.
+        const urlData = await urlStore.get(repo);
+        let skip = 1;
+        if (urlData.settings.sample) {
+            let max = 0;
+            urlData.settings.stars && (max = max + urlData.stargazers_count);
+            urlData.settings.forks && (max = max + urlData.forks_count);
+            if (max > MAX_SAMPLE) {
+                skip = Math.ceil(max / MAX_SAMPLE)
+            }
+            
+        }
+
+        // Set up the inspectionParams based on the inspection settings
+        const inspectionParams = []
+        urlData.settings.stars && inspectionParams.push(
             {
                 mapper: (data)=> data.map(x => x.url),
-                type: "stargazers"
-            },
+                type: "stargazers",
+                skip: skip
+            })
+        urlData.settings.forks && inspectionParams.push(
             {
                 mapper: (data)=> data.map(x => x.owner.url),
-                type: "forks"
-            }
-        ]
+                type: "forks",
+                skip: skip
+            })
+        
         this.inspect(inspectionParams)
     }
 
@@ -65,7 +87,7 @@ class RepoInspector {
             const maxPages = Math.ceil(urlData[`${type}_count`]/PER_PAGE)
     
             // Look for all assets's users
-            for (let inspectedPages = 1; inspectedPages <= maxPages; inspectedPages++) {
+            for (let inspectedPages = 1; inspectedPages <= maxPages; inspectedPages = inspectedPages + inspection.skip) {
                 // while we haven't finished parsing through the current chunk, look for users in repo
                 try {
                     let deleted = await urlStore.verifyDeleted(repo)
@@ -84,8 +106,8 @@ class RepoInspector {
             queueService.updateUrlUserProgress(repo, type, 1)
 
         }
-        // after all data has been added to the queue, activate the queue interval
-        
+        // after all data has been added to the queue, update inspector settings on queue and activate the queue interval
+        queueService.settings = urlData.settings;
         queueService.run(repo);
     }
 

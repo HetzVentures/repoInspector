@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from sqlmodel import Field, SQLModel
 from enum import Enum
-
+import json
 class EnumValue(Enum):
     """
     Generic enumeration which will return a value and not an enumeration object 
@@ -22,13 +22,25 @@ class Repository(SQLModel, table=True):
     __tablename__ = "repository"
     id: Optional[int] = Field(nullable=False, primary_key=True)
     name: str = Field(index=True)
+    settings: Optional[str]
     created: datetime = datetime.now()
+    stargazers_count: int
+    forks_count: int
 
 
 class RepositoryResponse(BaseModel):
     """Repository serializer exposed on the API"""
     id: int
     name: str
+    settings: Optional[str]
+    stargazers_count: int
+    forks_count: int
+
+    def __init__(self, *args, **kwargs):
+        settings = kwargs.pop("settings", None)
+        if isinstance(settings, str):
+            kwargs["settings"] = json.loads(settings)
+        super().__init__(*args, **kwargs)
 
     class Config:
         orm_mode = True
@@ -37,6 +49,15 @@ class RepositoryResponse(BaseModel):
 class RepositoryCreate(BaseModel):
     """Repository serializer for creating model"""
     name: str
+    settings: Optional[str]
+    stargazers_count: int
+    forks_count: int
+
+    def __init__(self, *args, **kwargs):
+        settings = kwargs.pop("settings", None)
+        if isinstance(settings, dict):
+            kwargs["settings"] = json.dumps(settings)
+        super().__init__(*args, **kwargs)
 
 
 class RepositoryUser(SQLModel, table=True):

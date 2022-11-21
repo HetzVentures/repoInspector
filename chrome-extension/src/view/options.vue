@@ -5,6 +5,13 @@
           <div v-if="error" class="alert alert-danger float-bottom" role="alert">{{error}}</div>
         </Transition>
           <div class="header-margin"></div>
+          <hgroup>
+              <h2>Repo Inspector</h2>
+              <h3>By the team at Hetz</h3>
+          </hgroup>
+          <kbd aria-busy="true" v-if="currentRepo">
+                Closing this page will stop the inspection
+          </kbd>
           <template v-for="urlKey of keys(urlStoreData)">
             <DownloadCard v-if="urlKey === currentRepo"
                       v-bind:key="urlKey"
@@ -77,9 +84,12 @@ export default {
         // every 5 seconds
         this.urlStoreData = await urlStore.all();
         this.currentRepo = await queueService.currentRepo();
-        const newRepo = await urlStore.newRepo();
+    },
+    async refreshNewRepo() {
+      const newRepo = await urlStore.newRepo();
         // only start parsing if we are working on a new repo
         if (newRepo) {
+          await urlStore.clearNewRepo();
           repoInspector.inspectAssets(newRepo);
         }
     },
@@ -96,12 +106,13 @@ export default {
       },
   },
     mounted() {
-      setTimeout(()=>{
-        queueService.continueFromSave();
-      })
+      queueService.continueFromSave();
       setInterval(()=> {
         this.refreshStore();
       }, 5000)
+      setInterval(()=> {
+        this.refreshNewRepo();
+      }, 10000)
     }
 }
 

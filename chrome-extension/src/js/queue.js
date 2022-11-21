@@ -1,10 +1,11 @@
 import { initOctokit } from '@/js/octokit.js';
-import { urlStore, userStore } from '@/js/store.js';
+import { urlStore, userStore, settingsStore } from '@/js/store.js';
 import { api } from '@/js/api'
 import { initToken, timeout } from './helpers';
 import { auth } from '@/js/authentication'
 
 const LOCATION_REQUEST_THROTTLE = 1000;
+const REQUEST_THROTTLE_NO_LOCATION = 300;
 const STORAGE_WRITE_THROTTLE = 100;
 const SYNC_THROTTLE = 5;
 const NOMINATIM_LOCATION_API_Q = "https://nominatim.openstreetmap.org/search.php?format=jsonv2&addressdetails=1&q=";
@@ -47,7 +48,8 @@ class QueueService {
         // progress of collecting the user urls for an asset (like stargazers or forks).
         // this data will be key valued by the repo: urlUserProgress = {<repoUrl>: {forks: bool, stargazers: bool}}
         // see inspectAssets and run functions for usage
-        this.urlUserProgress = {}
+        this.urlUserProgress = {};
+        this.settings = settingsStore.settings;
       }
 
 
@@ -75,7 +77,8 @@ class QueueService {
             tailIndex: this.queue.tailIndex,
             userDb: userStore.userDb,
             currentRepoUrl: this.currentRepoUrl,
-            urlUserProgress: this.urlUserProgress
+            urlUserProgress: this.urlUserProgress,
+            settings: this.settings
         }
         chrome.storage.local.set({ QUEUE_STATE })
     }
@@ -90,6 +93,7 @@ class QueueService {
                     this.queue.tailIndex = QUEUE_STATE.tailIndex;
                     this.currentRepoUrl = QUEUE_STATE.currentRepoUrl;
                     this.urlUserProgress = QUEUE_STATE.urlUserProgress;
+                    this.settings =  QUEUE_STATE.settings;
                     userStore.userDb = QUEUE_STATE.userDb;
                     resolve(true)
                 }
@@ -109,14 +113,21 @@ class QueueService {
         // the popover is not in the same scope as the background job, so we save data to storage for front end display
         const urlData = await urlStore.get(repo);
         urlData.progress = this.urlUserProgress[repo];
-        await urlStore.set(repo, urlData)
+        // prevent race condition of saved state after delete
+        let deleted = await urlStore.verifyDeleted(repo)
+        if (!deleted) {
+            await urlStore.set(repo, urlData)
+        }
     }
 
     async _storeQueueProgress(repo) {
         // the popover is not in the same scope as the background job, so we save data to storage for front end display
         const urlData = await urlStore.get(repo);
         urlData.queueProgress = {current: this.queue.headIndex, max: this.queue.tailIndex}
-        urlStore.set(repo, urlData);
+        let deleted = await urlStore.verifyDeleted(repo)
+        if (!deleted) {
+            await urlStore.set(repo, urlData)
+        }
     }
     
     async initUrlUserProgress(repo) {
@@ -150,7 +161,7 @@ class QueueService {
 
     async storeUserData(userData, type, userUrl) {
         // get location data from the github location str
-        if (userData.location) {
+        if (userData.location && this.settings.location) {
             try {
                 let locationData = await this.getLocation(userData.location);
                 userData.country = locationData[0]?.address?.country;
@@ -190,6 +201,7 @@ class QueueService {
         let deleted = await urlStore.verifyDeleted(this.currentRepoUrl)
         if (deleted) {
             this.deactivateInterval()
+            this.queue = new Queue();
             return
         }
         if (this.queue.length) {
@@ -245,7 +257,11 @@ class QueueService {
         }
 
         if (!this.interval) {
-            this.interval = setInterval(() => {this.runGetUser()}, LOCATION_REQUEST_THROTTLE);
+            let throttle = REQUEST_THROTTLE_NO_LOCATION;
+            if (this.settings.location) {
+                throttle = LOCATION_REQUEST_THROTTLE
+            }
+            this.interval = setInterval(() => {this.runGetUser()}, throttle);
         }
       }
 

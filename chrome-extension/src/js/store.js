@@ -102,7 +102,7 @@ export class UrlStore {
         })
     }
 
-    async createUrl(url, stargazers_count, forks, name) {
+    async createUrl(url, stargazers_count, forks, name, settings) {
         // set to store data for a new repo
         await this.clearDelete(url);
         const urlData = await urlStore.get(this.repoUrl);
@@ -114,6 +114,8 @@ export class UrlStore {
         urlData.progress = {forks: 0, stargazers: 0}
         urlData.queueProgress = {current: 0, max: 1}
         urlData.name = name
+        // get snapshot of inspection settings
+        urlData.settings = settings;
         this.setUrlQueue(url);
         return this.set(url, urlData)
     }
@@ -136,14 +138,17 @@ export class UrlStore {
             chrome.storage.local.get(async ({ NEW_REPO }) => {
                 if (NEW_REPO) {
                     const repo = NEW_REPO;
-                    NEW_REPO = false;
-                    await chrome.storage.local.set({ NEW_REPO })
                     // there is a new repo, now set the status to false
                     resolve(repo)
                 }
                 resolve(false)
             })
           });
+    }
+
+    async clearNewRepo() {
+        const NEW_REPO = false;
+        await chrome.storage.local.set({ NEW_REPO })
     }
 
     clearDelete(url) {
@@ -166,9 +171,9 @@ export class UrlStore {
                 if (!URL_QUEUE.includes(url)) {
                     URL_QUEUE.push(url)
                     await chrome.storage.local.set({ URL_QUEUE })
-                    const NEW_REPO = url
-                    await chrome.storage.local.set({ NEW_REPO })
                 }
+                const NEW_REPO = url
+                await chrome.storage.local.set({ NEW_REPO })
                 resolve()
             })
         })
@@ -248,3 +253,35 @@ export class UrlStore {
 }
 
 export const urlStore = new UrlStore();
+
+
+
+export class SettingsStore {
+
+    constructor() {
+        // settings model
+        this.settings = {
+            stars: true,
+            forks: false,
+            sample: true,
+            location: true
+        }
+
+        chrome.storage.local.get(async ({ SETTINGS }) => {
+            if (!SETTINGS) {
+                SETTINGS = this.settings
+                chrome.storage.local.set({ SETTINGS })
+            }
+        })
+      }
+
+    load() {
+        return chrome.storage.local.get(['SETTINGS'])
+    }
+
+    set(SETTINGS) {
+        return chrome.storage.local.set({ SETTINGS })
+    }
+}
+
+export const settingsStore = new SettingsStore();

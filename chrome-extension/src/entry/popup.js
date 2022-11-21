@@ -5,7 +5,7 @@ import '@picocss/pico'
 import '../assets/scss/alerts.scss'
 import '../assets/scss/transition.scss'
 
-import { urlStore } from '@/js/store'
+import { urlStore, settingsStore } from '@/js/store'
 import { initToken, initUrl } from '@/js/helpers';
 import { queueService } from '@/js/queue'
 
@@ -15,6 +15,7 @@ export let urlList;
 export let urlStoreData;
 export let urlQueue;
 export let currentRepo;
+export let settings;
 
 (async ()=> {
     // initialize storage data before loading the app
@@ -24,7 +25,9 @@ export let currentRepo;
     urlStoreData = await urlStore.all();
     urlQueue = await urlStore.getUrlQueue();
     currentRepo = await queueService.currentRepo();
-
+    const { SETTINGS } = await settingsStore.load();
+    settings = SETTINGS;
+    console.log(settings)
     const app = createApp(App);
     app.mount('#app');
   })();

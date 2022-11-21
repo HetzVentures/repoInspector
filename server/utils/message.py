@@ -142,12 +142,28 @@ class MessageCreator:
         active_users = session.query(RepositoryUser.id).where(RepositoryUser.repository_id == repo_id, 
                                     RepositoryUser.active_user.is_(True)).count()
 
-        message_text = f'Repository name: {self.repo.name}\n\n'
-        message_text = message_text + f'Total number of profiles: {total_users}\n\n'
+        message_text = f'Hi,<br><br>Here is your report for repository https://github.com/{self.repo.name}<br><br>'
+        message_text = message_text + "<i>Thanks for using repoInspector! Give us a <a href='https://github.com/HetzVentures/repoInspector'>Star</a></i><br><br>"
+
+        settings = json.loads(self.repo.settings)
+        def setting_status(v):
+            return '✓' if v else '-'
+            
+        message_text = message_text + f"Settings: \
+            {setting_status(settings['stars'])} Stars \
+            {setting_status(settings['forks'])} Forks \
+            {setting_status(settings['location'])} Location \
+            {setting_status(settings['sample'])} Sample<br><br>"
+
+        message_text = message_text + f'Total number of profiles inspected: {total_users}<br><br>'
+
+        message_text = message_text + f'Repository Stars: {self.repo.stargazers_count}<br>'
+        message_text = message_text + f'Repository Forks: {self.repo.forks_count}<br><br>'
+
         in_organizations_text = f'Organization: {organizations_percent} % ' \
-                                f'({organizations_total} profile(s))\n'
+                                f'({organizations_total} profile(s))<br>'
         message_text = message_text + in_organizations_text
-        email_text = f'Email users: {users_with_email_percent} % ({users_with_email}profile(s)) \n'
+        email_text = f'Email users: {users_with_email_percent} % ({users_with_email}profile(s)) <br>'
         message_text = message_text + email_text
 
         org_message_text = ""
@@ -156,22 +172,22 @@ class MessageCreator:
             if organization.count > 3:
                 organization_percent = "%.2f" % (organization.count / (total_users) * 100)
                 org_message_text = org_message_text + f'     {organization.company}: {organization_percent} % ' \
-                                              f'({organization.count} profile(s))\n'
+                                              f'({organization.count} profile(s))<br>'
 
         if org_message_text:
-            message_text += f'\nOrg breakdown:\n' + org_message_text
+            message_text += f'<br>Org breakdown:<br>' + org_message_text
 
         active_users_text = f'Active users: {"%.2f" % (active_users / (total_users) * 100)} % ({active_users} ' \
-                            f'profile(s))\n'
-        message_text = message_text + '\n' + active_users_text
+                            f'profile(s))<br>'
+        message_text = message_text + '<br>' + active_users_text
         real_users_text = f'Real users: {"%.2f" % (real_users / (total_users) * 100)} % ({real_users} ' \
-                          f'profile(s))\n'
-        message_text = message_text + '\n' + real_users_text
-        message_text += f'\nGeo breakdown:\n'
+                          f'profile(s))<br>'
+        message_text = message_text + '<br>' + real_users_text
+        message_text += f'<br>Geo breakdown:<br>'
 
         for location in country_summary:
             if location.country:
                 location_percent = "%.2f" % (location.count / total_users * 100)
-                message_text = message_text + f'     {location.country}: {location_percent} % ({location.count} profile(s))\n'
+                message_text = message_text + f'     {location.country}: {location_percent} % ({location.count} profile(s))<br>'
 
         return message_text

@@ -9,7 +9,11 @@
             <li><strong><a class="text" v-bind:href="repoUrl" target="_blank">{{ repoData?.name }}</a></strong></li>
         </ul>
         </nav>
-        {{ repoData?.url }}
+        <b>Settings: </b>
+        {{ typeStatus(repoData.settings.stars) }} Stars 
+        {{ typeStatus(repoData.settings.forks) }} Forks
+        {{ typeStatus(repoData.settings.location) }} Location
+        {{ typeStatus(repoData.settings.sample) }} Sample
     </article>
 </template>
 
@@ -19,6 +23,9 @@ export default {
   props: ['repoData', 'repoUrl', 'currentRepo'],
   emits: ['remove'],
   methods: {
+    typeStatus(v) {
+          return v ? '✓' : '-'
+      },
         remove() {
             console.log(this.repoUrl)
             this.$emit('remove', this.repoUrl);

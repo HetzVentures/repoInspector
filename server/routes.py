@@ -24,7 +24,7 @@ def test(repo_id, user_id: uuid.UUID, session: Session = ActiveSession):
     email_sender.send_message(
         subject=f"Repository summary for {repo_id}",
         message=message_text,
-        recipients_emails=[email_user.email],
+        recipient=email_user,
         file_path=archive_path,
     )
     msg_creator.clear_temp()
@@ -51,7 +51,7 @@ def process_repository(forks: list, stargazers: list, user_id: uuid.UUID, reposi
     email_sender.send_message(
         subject=f"Repository summary for {repository.name}",
         message=message_text,
-        recipients_emails=[email_user.email],
+        recipient=email_user,
         file_path=archive_path,
     )
     msg_creator.clear_temp()
