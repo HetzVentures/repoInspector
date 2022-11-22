@@ -25,9 +25,7 @@ class RepoInspector {
         else {
             this.currentRepo = repo;
         }
-        if (!userStore.isActiveRepo(repo)) {
-            userStore.newDb(repo)
-        }
+        userStore.newDb(repo)
 
 
         // Define the amount of pages to skip when collecting users. This is used when user is scrapping large repo

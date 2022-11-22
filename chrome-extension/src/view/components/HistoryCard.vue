@@ -14,6 +14,19 @@
         {{ typeStatus(repoData.settings?.forks) }} Forks
         {{ typeStatus(repoData.settings?.location) }} Location
         {{ typeStatus(repoData.settings?.sample) }} Sample
+        <footer>
+        <details>
+            <summary>
+            Last Inspected: {{dateTime(repoData.inspectionTime)}}
+            </summary>
+            <li>
+            Stars: {{ repoData.stargazers_count }}
+            </li>
+            <li>
+            Forks: {{ repoData.forks_count }}
+            </li>
+        </details>
+        </footer>
     </article>
 </template>
 
@@ -30,6 +43,10 @@ export default {
             console.log(this.repoUrl)
             this.$emit('remove', this.repoUrl);
         },
+        dateTime(date) {
+          const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+          return new Date(date).toLocaleDateString("en-US", options)
+        }
     }
 }
 </script>

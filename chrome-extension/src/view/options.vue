@@ -5,10 +5,10 @@
           <div v-if="error" class="alert alert-danger float-bottom" role="alert">{{error}}</div>
         </Transition>
           <div class="header-margin"></div>
-          <hgroup>
+          <div class="headings">
               <h2>Repo Inspector</h2>
               <h3>By the team at Hetz</h3>
-          </hgroup>
+          </div>
           <kbd aria-busy="true" v-if="currentRepo">
                 Closing this page will stop the inspection
           </kbd>
@@ -106,7 +106,17 @@ export default {
       },
   },
     mounted() {
-      queueService.continueFromSave();
+      (async ()=> {
+        // if we stopped in the middle of inspecting a repos users, continue from where we saved
+        const loadState = await queueService.loadQueueState();
+        if (loadState) {
+          queueService.continueFromSave()
+        }
+        // if we stopped in the middle of collecting user urls, start again
+        else if (this.currentRepo) {
+          repoInspector.inspectAssets(this.currentRepo);
+        }
+      })()
       setInterval(()=> {
         this.refreshStore();
       }, 5000)

@@ -83,7 +83,7 @@ class QueueService {
         chrome.storage.local.set({ QUEUE_STATE })
     }
 
-    _loadQueueState() {
+    loadQueueState() {
         // load queue state for when service worker resets
         return new Promise((resolve) => {
             chrome.storage.local.get(async ({ QUEUE_STATE }) => {
@@ -148,7 +148,7 @@ class QueueService {
         // To limit writing to the storage too often (it can crash the extension) we only write to the storage once every STORAGE_WRITE_THROTTLE
         if (this.queue.length <= 1 || this.queue.length % SYNC_THROTTLE === 0) {
             this._storeQueueProgress(this.currentRepoUrl);
-        if (this.queue.length <= 1 || this.queue.length % STORAGE_WRITE_THROTTLE === 0)
+        if (this.queue.length <= 1 || this.queue.length % STORAGE_WRITE_THROTTLE === 0 || this.queue.tailIndex === 0)
             this._saveQueueState();
         }
     }
@@ -243,6 +243,7 @@ class QueueService {
             urlData.sentStatus = error
         }
 
+        // save a subset of the url data
         urlStore.saveUrl(this.currentRepoUrl, urlData);
 
         // remove repo from inspection queue
@@ -277,10 +278,7 @@ class QueueService {
 
       async continueFromSave() {
         if (!this.interval) {
-            const loadState = await this._loadQueueState();
-            if (loadState) {
-                this.run(this.currentRepoUrl);
-            }
+            this.run(this.currentRepoUrl);
         }
       }
 }

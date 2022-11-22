@@ -129,7 +129,8 @@ export class UrlStore {
             progress: urlData.progress,
             queueProgress: urlData.queueProgress,
             name: urlData.name,
-            settings: urlData.settings
+            settings: urlData.settings,
+            inspectionTime: new Date().getTime()
         }
         return this.set(url, data)
     }

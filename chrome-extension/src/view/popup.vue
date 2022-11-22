@@ -129,6 +129,16 @@
   import { timeout } from '@/js/helpers'
   import { settingsStore } from '@/js/store'
 
+  const getOwnTabs = () => {
+  return Promise.all(
+    chrome.extension.getViews({type: 'tab'})
+      .map(view =>
+        new Promise(resolve =>
+          view.chrome.tabs.getCurrent(tab =>
+            resolve(Object.assign(tab, {url: view.location.href}))))));
+}
+
+
   export default {
       components: { DownloadCard },
       name: 'App',
@@ -238,6 +248,14 @@
       }
       },
       async mounted() {
+        // if current repo is being downloaded but download page has been shut down open it up
+        if (this.currentRepo) {
+          const tab = await getOwnTabs();
+          if (!tab.length) {
+            chrome.runtime.openOptionsPage()
+          }
+        }
+        
         setInterval(()=> {
           this.refreshStore();
         }, 5000)
@@ -253,9 +271,6 @@
       
   }
 
-  window.addEventListener("message", (event) => {
-    console.log(event)
-  }, false);
 
   </script>
   
