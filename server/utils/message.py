@@ -156,7 +156,7 @@ class MessageCreator:
             {setting_status(settings['location'])} Location \
             {setting_status(settings['sample'])} Sample<br><br>"
         if settings.get('sample'):
-            message_text = message_text + f"<b>Sample percent:</b> {settings['samplePercent']}%"
+            message_text = message_text + f"<b>Sample percent:</b> {settings['samplePercent']}%<br><br>"
 
         message_text = message_text + f'<b>Total number of profiles inspected:</b> {total_users}<br><br>'
 
