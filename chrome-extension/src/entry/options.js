@@ -34,10 +34,7 @@ export let history;
   })();
 
   // prevent users from closing download page by mistake
-  const preventClose = function (e) {
-    chrome.runtime.sendMessage({
-      msg: "notifyBeforeClose"
-    })
+  const preventClose = (e) => {
     e.preventDefault();
     e.returnValue = '';
     return true

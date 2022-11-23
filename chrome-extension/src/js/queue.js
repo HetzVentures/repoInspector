@@ -161,7 +161,7 @@ class QueueService {
 
     async storeUserData(userData, type, userUrl) {
         // get location data from the github location str
-        if (userData.location && this.settings.location) {
+        if (userData.location && this.settings?.location) {
             try {
                 let locationData = await this.getLocation(userData.location);
                 userData.country = locationData[0]?.address?.country;
@@ -259,7 +259,7 @@ class QueueService {
 
         if (!this.interval) {
             let throttle = REQUEST_THROTTLE_NO_LOCATION;
-            if (this.settings.location) {
+            if (this.settings?.location) {
                 throttle = LOCATION_REQUEST_THROTTLE
             }
             this.interval = setInterval(() => {this.runGetUser()}, throttle);

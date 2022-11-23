@@ -188,11 +188,11 @@
                 this.showError("You must enter a repo to inspect!");
                 return;                
               }
-              if (!this.settings.forks && !this.settings.stars) {
+              if (!this.settings?.forks && !this.settings?.stars) {
                 this.showError("You must select if you want forks, stars or both (but not none)");
                 return;                
               }
-              if (this.settings.sample && (0 >= settings.samplePercent || settings.samplePercent > 100)) {
+              if (this.settings?.sample && (0 >= settings.samplePercent || settings.samplePercent > 100)) {
                 this.showError("Please choose a sample percentage between 1 and 100");
                 return;                
               }

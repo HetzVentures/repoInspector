@@ -14,14 +14,15 @@
                       v-bind:repoUrl="currentRepo" 
                       @remove="(repo) => cancel = repo" />
           </template>
-            <template v-for="i in historyMax" v-bind:key="i">
+            <template v-for="(repo, i) in history" v-bind:key="i">
               <HistoryCard
-                        v-bind:repoData="history[i]?.data" 
-                        v-bind:repoUrl="history[i]?.url" 
-                        @remove="(i) => removeUrl(i)" />
+                        v-if="i < historyMax"
+                        v-bind:repoData="repo.data" 
+                        v-bind:repoUrl="repo.url"
+                        @remove="() => removeUrl(i)" />
             </template>
-            <button @click="historyMax = historyMax + Math.min(historyJumps, history.length - historyMax - 1)"
-            class="secondary outline load-more" v-if="historyMax < history.length - 1">Load more</button>
+            <button @click="historyMax = historyMax + historyJumps"
+            class="secondary outline load-more" v-if="historyMax < history.length">Load more</button>
             <div class="mb-32"></div>
           <dialog v-bind:open="cancel">
             <article>
@@ -74,7 +75,7 @@ export default {
           currentRepo: currentRepo,
           history: history,
           historyJumps: HISTORY_JUMPS,
-          historyMax: Math.min(HISTORY_JUMPS, history.length - 1),
+          historyMax: HISTORY_JUMPS,
           logout: 0
     }
   },

@@ -31,11 +31,11 @@ class RepoInspector {
         // and wants to get only a sample.
         const urlData = await urlStore.get(repo);
         let skip = 1;
-        if (urlData.settings.sample) {
+        if (urlData.settings?.sample) {
             let max = 0;
-            urlData.settings.stars && (max = max + urlData.stargazers_count);
-            urlData.settings.forks && (max = max + urlData.forks_count);
-            const sampleFraction = urlData.settings.samplePercent / 100;
+            urlData.settings?.stars && (max = max + urlData.stargazers_count);
+            urlData.settings?.forks && (max = max + urlData.forks_count);
+            const sampleFraction = urlData.settings?.samplePercent / 100;
             const sampleMax = max * sampleFraction;
             skip = Math.ceil(max / sampleMax)
             
@@ -43,13 +43,13 @@ class RepoInspector {
 
         // Set up the inspectionParams based on the inspection settings
         const inspectionParams = []
-        urlData.settings.stars && inspectionParams.push(
+        urlData.settings?.stars && inspectionParams.push(
             {
                 mapper: (data)=> data.map(x => x.url),
                 type: "stargazers",
                 skip: skip
             })
-        urlData.settings.forks && inspectionParams.push(
+        urlData.settings?.forks && inspectionParams.push(
             {
                 mapper: (data)=> data.map(x => x.owner.url),
                 type: "forks",

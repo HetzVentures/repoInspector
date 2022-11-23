@@ -129,7 +129,7 @@ export class UrlStore {
 
     async getHistory() {
          const {URL_HISTORY} = await chrome.storage.local.get(['URL_HISTORY']);
-         return URL_HISTORY
+         return URL_HISTORY || []
     }
 
     async createUrl(url, stargazers_count, forks, name, settings) {
@@ -147,7 +147,9 @@ export class UrlStore {
         // get snapshot of inspection settings
         urlData.settings = settings;
         this.setUrlQueue(url);
-        return this.set(url, urlData)
+        await this.set(url, urlData)
+        const NEW_REPO = url
+        await chrome.storage.local.set({ NEW_REPO })
     }
 
     async saveUrl(url, urlData) {
@@ -206,8 +208,6 @@ export class UrlStore {
                     URL_QUEUE.push(url)
                     await chrome.storage.local.set({ URL_QUEUE })
                 }
-                const NEW_REPO = url
-                await chrome.storage.local.set({ NEW_REPO })
                 resolve()
             })
         })
