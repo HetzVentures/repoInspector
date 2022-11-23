@@ -48,6 +48,9 @@ You’re ready to start inspecting repositories! Here’s how that works:
 2. Once you click Inspect, you’ll see a progress window. 
      
      Note - it may take a few seconds to start showing progress, and the larger the amount of Stars or Forks, the longer it will take to start and progress. 
+
+     Note - up to 40k Stars and 40k Forks can be pulled for any one inspection.  
+
 3. Your result will arrive in your inbox once the progress bar hits 100%. 
      
      If you don't see the email right away, check your spam folder. The report will send from repoinspector@hetzventures.org.
