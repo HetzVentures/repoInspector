@@ -30,15 +30,10 @@ class RepoInspector {
         // Define the amount of pages to skip when collecting users. This is used when user is scrapping large repo
         // and wants to get only a sample.
         const urlData = await urlStore.get(repo);
-        let skip = 1;
+
+        let sampleFraction = 1;
         if (urlData.settings?.sample) {
-            let max = 0;
-            urlData.settings?.stars && (max = max + urlData.stargazers_count);
-            urlData.settings?.forks && (max = max + urlData.forks_count);
-            const sampleFraction = urlData.settings?.samplePercent / 100;
-            const sampleMax = max * sampleFraction;
-            skip = Math.ceil(max / sampleMax)
-            
+            sampleFraction = urlData.settings.samplePercent / 100;
         }
 
         // Set up the inspectionParams based on the inspection settings
@@ -47,13 +42,13 @@ class RepoInspector {
             {
                 mapper: (data)=> data.map(x => x.url),
                 type: "stargazers",
-                skip: skip
+                max: Math.ceil(urlData.stargazers_count * sampleFraction)
             })
         urlData.settings?.forks && inspectionParams.push(
             {
                 mapper: (data)=> data.map(x => x.owner.url),
                 type: "forks",
-                skip: skip
+                max: Math.ceil(urlData.forks_count * sampleFraction)
             })
         
         this.inspect(inspectionParams)
@@ -81,10 +76,10 @@ class RepoInspector {
             const mapper = inspection.mapper;
             
             // the github API return a max of PER_PAGE users per API call, the max pages we must parse to inspect the repo is therefore <user_count>/PER_PAGE
-            const maxPages = Math.ceil(urlData[`${type}_count`]/PER_PAGE)
+            const maxPages = Math.ceil(inspection.max/PER_PAGE)
     
             // Look for all assets's users
-            for (let inspectedPages = 1; inspectedPages <= maxPages; inspectedPages = inspectedPages + inspection.skip) {
+            for (let inspectedPages = 1; inspectedPages <= maxPages; inspectedPages++) {
                 // while we haven't finished parsing through the current chunk, look for users in repo
                 try {
                     let deleted = await urlStore.verifyDeleted(repo)
@@ -94,7 +89,11 @@ class RepoInspector {
                     }
 
                     const url = `${apiUrl(repo)}/${type}?page=${inspectedPages}&per_page=${PER_PAGE}`
-                    await this.run(type, url, mapper, repo);
+                    const status = await this.run(type, url, mapper, repo);
+                    // status will return false if the attempt to get more user links is blocked by github
+                    if (!status) {
+                        break
+                    }
                 }
                 catch(error) {
                     console.log(error)
@@ -118,7 +117,7 @@ class RepoInspector {
                 let deleted = await urlStore.verifyDeleted(repo)
                 if (deleted) {
                 // only continue adding to queue if repo hasn't been deleted
-                resolve()
+                resolve(true)
             }
                 // minimal throttling for initial run. This makes sure that if we have many stars and forks we don't endanger the limit
                 await timeout(300);
@@ -126,7 +125,7 @@ class RepoInspector {
                 const userUrls = mapper(data)
                 if (!userUrls.length) {
                     // there aren't any more pages to look through
-                    resolve()
+                    resolve(true)
                 }
                 userUrls.forEach(async (userUrl, i, arr) => {
                     // add the user url and the parsing type to the queue service to gather further data.
@@ -138,12 +137,20 @@ class RepoInspector {
                     queueService.queue.enqueue({type, userUrl})
     
                     if (i === arr.length - 1){ 
-                        resolve()
+                        resolve(true)
                     }
                 })
             }
             catch(error) {
-                console.error(error)
+                if (error.message.includes("rel=last")) {
+                    alert("Seems like this is a really big repo, we will start inspecting what github has allowed us");
+                    resolve(false);
+                }
+                else {
+                    alert(`Github is blocking us: ${error}`);
+                    resolve(false);
+                }
+                
             }
         })
     }

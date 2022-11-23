@@ -17,8 +17,13 @@
         <footer>
           <details>
             <summary>
-            Progress: {{ progress(repoData.queueProgress) }} 
-            Estimated Time: {{ timeRemaining(repoData.queueProgress) }}
+              <template v-if="progress(repoData.queueProgress)">
+                Progress: {{ progress(repoData.queueProgress) }}                 
+                Estimated Time: {{ timeRemaining(repoData.queueProgress) }}
+              </template>
+              <template v-else>
+                Note: The more stars and forks the repo has, the longer it will take to start. Don't worry if it hasn't started yet, it should be a few seconds to a few minutes to start progressing. 
+              </template>
             </summary>
             <li v-if="repoData?.queueProgress?.current">
             Scanned {{repoData?.queueProgress?.current}} of {{repoData?.queueProgress?.max}} users

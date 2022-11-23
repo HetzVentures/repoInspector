@@ -129,6 +129,9 @@ export default {
       setInterval(()=> {
         this.refreshNewRepo();
       }, 5000);
+      // set notification to show once window is closed
+      const NOTIFICATION_STATE = true;
+      chrome.storage.local.set({ NOTIFICATION_STATE });
     }
 }
 

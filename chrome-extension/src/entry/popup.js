@@ -16,6 +16,7 @@ export let urlStoreData;
 export let urlQueue;
 export let currentRepo;
 export let settings;
+export let history;
 
 (async ()=> {
     // initialize storage data before loading the app
@@ -25,6 +26,7 @@ export let settings;
     urlStoreData = await urlStore.all();
     urlQueue = await urlStore.getUrlQueue();
     currentRepo = await queueService.currentRepo();
+    history = await urlStore.getHistory();
     const { SETTINGS } = await settingsStore.load();
     settings = SETTINGS;
     console.log(settings)

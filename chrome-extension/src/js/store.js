@@ -111,6 +111,9 @@ export class UrlStore {
                 }
                 URL_HISTORY.unshift({url: url, data: value});
                 chrome.storage.local.set({ URL_HISTORY })
+
+                const FINISHED_REPO = url;
+                chrome.storage.local.set({ FINISHED_REPO })
                 resolve()
             })
         })
