@@ -18,6 +18,7 @@ export let urlList;
 export let urlStoreData;
 export let urlQueue;
 export let currentRepo;
+export let history;
 
 (async ()=> {
     // initialize storage data before loading the app
@@ -26,6 +27,7 @@ export let currentRepo;
     urlStoreData = await urlStore.all();
     urlQueue = await urlStore.getUrlQueue();
     currentRepo = await queueService.currentRepo();
+    history = await urlStore.getHistory();
 
     const app = createApp(App);
     app.mount('#app');
@@ -33,6 +35,9 @@ export let currentRepo;
 
   // prevent users from closing download page by mistake
   const preventClose = function (e) {
+    chrome.runtime.sendMessage({
+      msg: "notifyBeforeClose"
+    })
     e.preventDefault();
     e.returnValue = '';
     return true

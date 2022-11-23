@@ -10,10 +10,10 @@
         </ul>
         </nav>
         <b>Settings: </b>
-        {{ typeStatus(repoData.settings.stars) }} Stars 
-        {{ typeStatus(repoData.settings.forks) }} Forks
-        {{ typeStatus(repoData.settings.location) }} Location
-        {{ typeStatus(repoData.settings.sample) }} Sample
+        {{ typeStatus(repoData.settings?.stars) }} Stars 
+        {{ typeStatus(repoData.settings?.forks) }} Forks
+        {{ typeStatus(repoData.settings?.location) }} Location
+        {{ typeStatus(repoData.settings?.sample) }} Sample {{ repoData.settings?.samplePercent ? repoData.settings?.samplePercent + '%' : '' }}
         <footer>
           <details>
             <summary>
@@ -30,9 +30,14 @@
             Forks: {{ repoData?.forks_count }}
             </li>
         </details>
-          <progress v-if="repoData?.queueProgress"
-        v-bind:value="repoData?.queueProgress?.current"
-        v-bind:max="repoData?.queueProgress?.max"></progress>
+        <div class="progress-wrapper">
+            <a v-on:click="remove()" href="#">
+              <svg class="stop" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" width="19" height="19"><path d="M.5 7.5a7 7 0 1114 0 7 7 0 01-14 0z" stroke="currentColor"></path><path d="M9.5 5.5h-4v4h4v-4z" stroke="currentColor"></path></svg>
+            </a>
+            <progress v-if="repoData?.queueProgress"
+          v-bind:value="repoData?.queueProgress?.current"
+          v-bind:max="repoData?.queueProgress?.max"></progress>
+        </div>
         </footer>
     </article>
 </template>
@@ -40,7 +45,7 @@
 <script>
 
 export default {
-  props: ['repoData', 'repoUrl', 'currentRepo'],
+  props: ['repoData', 'repoUrl'],
   emits: ['remove'],
   methods: {
         remove() {
@@ -54,7 +59,7 @@ export default {
         return 0
       },
       typeStatus(v) {
-          return v ? '✓' : '-'
+          return v ? '✓' : '✗'
       },
       timeRemaining(queueProgress) {
         const ESTIMATED_SECONDS_PER_CALL = 1.2;
@@ -117,5 +122,12 @@ export default {
 .close:after {
   transform: rotate(-45deg);
 }
-
+.stop {
+  margin-right: 10px;
+  position: relative;
+  bottom: 6px;
+}
+.progress-wrapper {
+  display: flex;
+}
 </style>

@@ -6,7 +6,10 @@
     "action": {
         "default_popup": "popup.html"
     },
-    "permissions": ["storage", "unlimitedStorage", "activeTab"],
+    "background": {
+    	"service_worker": "/background.js"
+    },
+    "permissions": ["storage", "unlimitedStorage", "activeTab", "notifications", "alarms", "tabs"],
     "options_page": "options.html",
     "icons": {
         "16": "images/icon16.png",

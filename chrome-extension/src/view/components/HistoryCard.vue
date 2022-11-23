@@ -13,11 +13,11 @@
         {{ typeStatus(repoData.settings?.stars) }} Stars 
         {{ typeStatus(repoData.settings?.forks) }} Forks
         {{ typeStatus(repoData.settings?.location) }} Location
-        {{ typeStatus(repoData.settings?.sample) }} Sample
+        {{ typeStatus(repoData.settings?.sample) }} Sample {{ repoData.settings?.samplePercent ? repoData.settings?.samplePercent + '%' : '' }}
         <footer>
         <details>
             <summary>
-            Last Inspected: {{dateTime(repoData.inspectionTime)}}
+            {{dateTime(repoData.inspectionTime)}}
             </summary>
             <li>
             Stars: {{ repoData.stargazers_count }}
@@ -33,11 +33,11 @@
 <script>
 
 export default {
-  props: ['repoData', 'repoUrl', 'currentRepo'],
+  props: ['repoData', 'repoUrl'],
   emits: ['remove'],
   methods: {
     typeStatus(v) {
-          return v ? '✓' : '-'
+          return v ? '✓' : '✗'
       },
         remove() {
             console.log(this.repoUrl)
@@ -45,7 +45,8 @@ export default {
         },
         dateTime(date) {
           const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-          return new Date(date).toLocaleDateString("en-US", options)
+          const d =  new Date(date)
+          return d.toLocaleDateString("en-US", options) + ' ' + d.toLocaleTimeString('en-US')
         }
     }
 }

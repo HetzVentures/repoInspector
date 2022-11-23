@@ -142,28 +142,31 @@ class MessageCreator:
         active_users = session.query(RepositoryUser.id).where(RepositoryUser.repository_id == repo_id, 
                                     RepositoryUser.active_user.is_(True)).count()
 
-        message_text = f'Hi,<br><br>Here is your report for repository https://github.com/{self.repo.name}<br><br>'
+        message_text = '<img src="https://camo.githubusercontent.com/e27aa76d6c7d04084328d93aedcd75649044305e7669eade7cce21d4c2362706/68747470733a2f2f75706c6f6164732d73736c2e776562666c6f772e636f6d2f3633313565393330643263666236383237616561323262322f3633376131633434323931336639373337313366366337365f7265706f496e73706563746f722532306865616465722e676966">'
+        message_text = message_text + f'<br><br>Hi,<br><br>Below (and attached) is your report for repository https://github.com/{self.repo.name}<br><br>'
         message_text = message_text + "<i>Thanks for using repoInspector! Give us a <a href='https://github.com/HetzVentures/repoInspector'>Star</a></i><br><br>"
 
         settings = json.loads(self.repo.settings)
         def setting_status(v):
-            return '✓' if v else '-'
+            return '✓' if v else '✗'
             
-        message_text = message_text + f"Settings: \
+        message_text = message_text + f"<b>Settings:</b> \
             {setting_status(settings['stars'])} Stars \
             {setting_status(settings['forks'])} Forks \
             {setting_status(settings['location'])} Location \
             {setting_status(settings['sample'])} Sample<br><br>"
+        if settings.get('sample'):
+            message_text = message_text + f"<b>Sample percent:</b> {settings['samplePercent']}%"
 
-        message_text = message_text + f'Total number of profiles inspected: {total_users}<br><br>'
+        message_text = message_text + f'<b>Total number of profiles inspected:</b> {total_users}<br><br>'
 
-        message_text = message_text + f'Repository Stars: {self.repo.stargazers_count}<br>'
-        message_text = message_text + f'Repository Forks: {self.repo.forks_count}<br><br>'
+        message_text = message_text + f'<b>Repository Stars:</b> {self.repo.stargazers_count}<br>'
+        message_text = message_text + f'<b>Repository Forks:</b> {self.repo.forks_count}<br><br>'
 
-        in_organizations_text = f'Organization: {organizations_percent} % ' \
+        in_organizations_text = f'<b>Organization:</b> {organizations_percent} % ' \
                                 f'({organizations_total} profile(s))<br>'
         message_text = message_text + in_organizations_text
-        email_text = f'Email users: {users_with_email_percent} % ({users_with_email}profile(s)) <br>'
+        email_text = f'<b>Email users:</b> {users_with_email_percent} % ({users_with_email}profile(s)) <br>'
         message_text = message_text + email_text
 
         org_message_text = ""
@@ -175,15 +178,15 @@ class MessageCreator:
                                               f'({organization.count} profile(s))<br>'
 
         if org_message_text:
-            message_text += f'<br>Org breakdown:<br>' + org_message_text
+            message_text += f'<br><b>Org breakdown:</b><br>' + org_message_text
 
-        active_users_text = f'Active users: {"%.2f" % (active_users / (total_users) * 100)} % ({active_users} ' \
+        active_users_text = f'<b>Active users:</b> {"%.2f" % (active_users / (total_users) * 100)} % ({active_users} ' \
                             f'profile(s))<br>'
         message_text = message_text + '<br>' + active_users_text
-        real_users_text = f'Real users: {"%.2f" % (real_users / (total_users) * 100)} % ({real_users} ' \
+        real_users_text = f'<b>Real users:</b> {"%.2f" % (real_users / (total_users) * 100)} % ({real_users} ' \
                           f'profile(s))<br>'
         message_text = message_text + '<br>' + real_users_text
-        message_text += f'<br>Geo breakdown:<br>'
+        message_text += f'<br><b>Geo breakdown:</b><br>'
 
         for location in country_summary:
             if location.country:

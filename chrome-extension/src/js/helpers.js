@@ -59,3 +59,13 @@ export const popupCenter = ({url, title, w, h}) => {
   if (window.focus) newWindow.focus();
 return newWindow
 }
+
+  // check if download tab is open
+  export const getOwnTabs = () => {
+    return Promise.all(
+      chrome.extension.getViews({type: 'tab'})
+        .map(view =>
+          new Promise(resolve =>
+            view.chrome.tabs.getCurrent(tab =>
+              resolve(Object.assign(tab, {url: view.location.href}))))));
+  }

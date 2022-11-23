@@ -4,35 +4,30 @@
         <Transition name="bounce">
           <div v-if="error" class="alert alert-danger float-bottom" role="alert">{{error}}</div>
         </Transition>
-          <div class="header-margin"></div>
-          <div class="headings">
-              <h2>Repo Inspector</h2>
-              <h3>By the team at Hetz</h3>
-          </div>
-          <kbd aria-busy="true" v-if="currentRepo">
+          <img src="images/repo-banner.gif">
+          <kbd class="header-margin" aria-busy="true" v-if="currentRepo">
                 Closing this page will stop the inspection
           </kbd>
-          <template v-for="urlKey of keys(urlStoreData)">
-            <DownloadCard v-if="urlKey === currentRepo"
-                      v-bind:key="urlKey"
-                      v-bind:repoData="urlStoreData[urlKey]" 
-                      v-bind:repoUrl="urlKey" 
-                      v-bind:currentRepo="currentRepo"
+          <template v-if="currentRepo && urlStoreData[currentRepo]">
+            <DownloadCard
+                      v-bind:repoData="urlStoreData[currentRepo]" 
+                      v-bind:repoUrl="currentRepo" 
                       @remove="(repo) => cancel = repo" />
           </template>
-            <template v-for="urlKey of keys(urlStoreData)">
-              <HistoryCard v-if="urlKey !== currentRepo"
-                        v-bind:key="urlKey"
-                        v-bind:repoData="urlStoreData[urlKey]" 
-                        v-bind:repoUrl="urlKey" 
-                        v-bind:currentRepo="currentRepo"
-                        @remove="(repo) => cancel = repo" />
+            <template v-for="i in historyMax" v-bind:key="i">
+              <HistoryCard
+                        v-bind:repoData="history[i]?.data" 
+                        v-bind:repoUrl="history[i]?.url" 
+                        @remove="(i) => removeUrl(i)" />
             </template>
+            <button @click="historyMax = historyMax + Math.min(historyJumps, history.length - historyMax - 1)"
+            class="secondary outline load-more" v-if="historyMax < history.length - 1">Load more</button>
+            <div class="mb-32"></div>
           <dialog v-bind:open="cancel">
             <article>
-              <h3>Delete Repo?</h3>
+              <h3>Stop Repo?</h3>
               <p>
-                Are you sure you want to remove repo {{ cancel }}?
+                Are you sure you want to stop inspecting repo {{ cancel }}?
               </p>
               <footer>
                     <button style="width: 40%" v-on:click="cancel = 0" role="button" class="secondary">Cancel</button>
@@ -50,10 +45,12 @@
 import { urlStore } from '@/js/store'
 import DownloadCard from './components/DownloadCard.vue'
 import HistoryCard from './components/HistoryCard.vue'
-import {token, urlList, urlStoreData, urlQueue, currentRepo} from '@/entry/options'
+import {token, urlList, urlStoreData, urlQueue, currentRepo, history} from '@/entry/options'
 import { auth } from '@/js/authentication'
 import { repoInspector } from "@/js/repoInspector";
 import { queueService } from '@/js/queue'
+
+const HISTORY_JUMPS = 10;
 
 export default {
   components: { DownloadCard, HistoryCard },
@@ -75,6 +72,9 @@ export default {
           loginPopup: null,
           currentUser: auth.currentUser,
           currentRepo: currentRepo,
+          history: history,
+          historyJumps: HISTORY_JUMPS,
+          historyMax: Math.min(HISTORY_JUMPS, history.length - 1),
           logout: 0
     }
   },
@@ -83,6 +83,7 @@ export default {
         // this function refreshes the UI as well as checks to see if a new repo needs to be parsed. It runs
         // every 5 seconds
         this.urlStoreData = await urlStore.all();
+        this.history = await urlStore.getHistory();
         this.currentRepo = await queueService.currentRepo();
     },
     async refreshNewRepo() {
@@ -104,6 +105,10 @@ export default {
         urlStore.delete(this.cancel).then(()=> {this.refreshStore()});
         this.cancel = 0;
       },
+      async removeUrl(i) {
+        await urlStore.removeHistory(i);
+        this.refreshStore();
+      },
   },
     mounted() {
       (async ()=> {
@@ -119,15 +124,25 @@ export default {
       })()
       setInterval(()=> {
         this.refreshStore();
-      }, 5000)
+      }, 5000);
       setInterval(()=> {
         this.refreshNewRepo();
-      }, 10000)
+      }, 5000);
     }
 }
 
 </script>
 
 <style>
-
+.header-margin {
+  margin-top: 12px;
+}
+.load-more {
+  max-width: 680px;
+  margin: auto;
+  margin-top: 32px;
+}
+.mb-32 {
+  margin-bottom: 32px;
+}
 </style>

@@ -102,6 +102,36 @@ export class UrlStore {
         })
     }
 
+    setHistory(url, value) {
+        // set data for url in URL_HISTORY
+        return new Promise((resolve) => {
+            chrome.storage.local.get(async ({ URL_HISTORY }) => {
+                if (!URL_HISTORY) {
+                    URL_HISTORY = []
+                }
+                URL_HISTORY.unshift({url: url, data: value});
+                chrome.storage.local.set({ URL_HISTORY })
+                resolve()
+            })
+        })
+    }
+
+    removeHistory(i) {
+        // remove data for url in URL_HISTORY
+        return new Promise((resolve) => {
+            chrome.storage.local.get(async ({ URL_HISTORY }) => {
+                URL_HISTORY.splice(i, 1);
+                chrome.storage.local.set({ URL_HISTORY })
+                resolve()
+            })
+        })
+    }
+
+    async getHistory() {
+         const {URL_HISTORY} = await chrome.storage.local.get(['URL_HISTORY']);
+         return URL_HISTORY
+    }
+
     async createUrl(url, stargazers_count, forks, name, settings) {
         // set to store data for a new repo
         await this.clearDelete(url);
@@ -132,7 +162,8 @@ export class UrlStore {
             settings: urlData.settings,
             inspectionTime: new Date().getTime()
         }
-        return this.set(url, data)
+        await this.remove(url);
+        return this.setHistory(url, data)
     }
 
     async newRepo() {
@@ -205,6 +236,17 @@ export class UrlStore {
         })
     }
 
+    remove(url) {
+        // eslint-disable-next-line no-async-promise-executor
+        return new Promise(async(resolve) => {
+        chrome.storage.local.get(async ({ URL_STORE }) => {
+                delete URL_STORE[url]
+                chrome.storage.local.set({ URL_STORE })
+                resolve()
+            })
+        })
+    }
+
     delete(url) {
         // remove all data for url from URL_STORE
         // eslint-disable-next-line no-async-promise-executor
@@ -219,11 +261,8 @@ export class UrlStore {
             });
 
             await this.deleteUrlQueue(url);
-            chrome.storage.local.get(async ({ URL_STORE }) => {
-                delete URL_STORE[url]
-                chrome.storage.local.set({ URL_STORE })
-                resolve()
-            })
+            await this.remove(url);
+            resolve();
         })
     }
 
@@ -266,8 +305,9 @@ export class SettingsStore {
         this.settings = {
             stars: true,
             forks: false,
-            sample: true,
-            location: true
+            sample: false,
+            samplePercent: 0,
+            location: true,
         }
 
         chrome.storage.local.get(async ({ SETTINGS }) => {

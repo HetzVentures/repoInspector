@@ -6,7 +6,6 @@ import { queueService } from '@/js/queue.js'
 // let running = {stargazers: false, forks: false};
 let octokit;
 const PER_PAGE = 100;
-const MAX_SAMPLE = 2000;
 
 initToken().then(token => octokit = initOctokit(token))
 
@@ -36,9 +35,9 @@ class RepoInspector {
             let max = 0;
             urlData.settings.stars && (max = max + urlData.stargazers_count);
             urlData.settings.forks && (max = max + urlData.forks_count);
-            if (max > MAX_SAMPLE) {
-                skip = Math.ceil(max / MAX_SAMPLE)
-            }
+            const sampleFraction = urlData.settings.samplePercent / 100;
+            const sampleMax = max * sampleFraction;
+            skip = Math.ceil(max / sampleMax)
             
         }
 
