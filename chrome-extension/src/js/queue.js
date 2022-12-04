@@ -196,8 +196,10 @@ class QueueService {
     }
 
       async run() {
+        this._saveQueueState();
+
         const downloader = await downloaderStore.get();
-        downloader.stage = STAGE.GETTING_USERS;
+        downloader.stage = STAGE.GETTING_USERS;        
         await downloaderStore.set(downloader);
         
         this.downloader = downloader;

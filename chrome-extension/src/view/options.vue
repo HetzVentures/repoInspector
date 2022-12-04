@@ -106,6 +106,10 @@ export default {
           if (loadState) {
             queueService.continueFromSave()
           }
+          else {
+            // if we started getting users, but didn't save the state, start again
+            repoInspector.inspectAssets(this.downloader);
+          }
         }
       })()
       setInterval(()=> {
