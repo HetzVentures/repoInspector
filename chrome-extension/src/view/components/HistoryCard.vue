@@ -6,7 +6,7 @@
         </div>
         <nav>
         <ul>
-            <li><strong><a class="text" v-bind:href="repoUrl" target="_blank">{{ repoData?.name }}</a></strong></li>
+            <li><strong><a class="text" v-bind:href="repoData.url" target="_blank">{{ repoData?.name }}</a></strong></li>
         </ul>
         </nav>
           <b>Settings: </b>
@@ -17,7 +17,7 @@
         <footer>
         <details>
             <summary>
-            {{dateTime(repoData.inspectionTime)}}
+            {{dateTime(repoData.date)}}
             </summary>
             <li>
             Stars: {{ repoData.stargazers_count }}
@@ -33,15 +33,14 @@
 <script>
 
 export default {
-  props: ['repoData', 'repoUrl'],
+  props: ['repoData'],
   emits: ['remove'],
   methods: {
     typeStatus(v) {
           return v ? '✓' : '✗'
       },
         remove() {
-            console.log(this.repoUrl)
-            this.$emit('remove', this.repoUrl);
+            this.$emit('remove', {});
         },
         dateTime(date) {
           const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };

@@ -69,3 +69,14 @@ return newWindow
             view.chrome.tabs.getCurrent(tab =>
               resolve(Object.assign(tab, {url: view.location.href}))))));
   }
+
+  export const createName = (repo) => {
+    // remove any parts of url beyond repo name
+    let urlParts = repo.split("/");
+    return `${urlParts[3]}/${urlParts[4]}`
+  }
+
+  export const octokitRepoUrl = (repo) => {
+    // get repo name for octokit
+      return `/repos/${createName(repo)}`
+  }

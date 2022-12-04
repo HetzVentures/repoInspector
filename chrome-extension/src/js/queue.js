@@ -1,8 +1,11 @@
 import { initOctokit } from '@/js/octokit.js';
-import { urlStore, userStore, settingsStore } from '@/js/store.js';
+import { userStore } from '@/js/store/user';
 import { api } from '@/js/api'
 import { initToken, timeout } from './helpers';
 import { auth } from '@/js/authentication'
+import { DOWNLOADER_MODEL, STAGE } from './store/models';
+import { downloaderStore } from './store/downloader';
+import { historyStore } from './store/history';
 
 const LOCATION_REQUEST_THROTTLE = 1000;
 const REQUEST_THROTTLE_NO_LOCATION = 300;
@@ -43,31 +46,8 @@ class QueueService {
     constructor() {
         this.queue = new Queue();
         this.interval = null;
-        // repo currently in queue
-        this.currentRepoUrl = null;
-        // progress of collecting the user urls for an asset (like stargazers or forks).
-        // this data will be key valued by the repo: urlUserProgress = {<repoUrl>: {forks: bool, stargazers: bool}}
-        // see inspectAssets and run functions for usage
-        this.urlUserProgress = {};
-        this.settings = settingsStore.settings;
+        this.downloader = DOWNLOADER_MODEL;
       }
-
-
-      async currentRepo() {
-        // get the repo that is currently being inspected. This function manages the prospect of multiple
-        // calls to inspect multiple repos, and only allows one repo to be inspected at a time.
-        const urlQueue = await urlStore.getUrlQueue()
-        if (urlQueue && urlQueue.length) {
-            const peekRepoUrl = urlQueue[0];
-            if (this.currentRepoUrl && this.currentRepoUrl !== peekRepoUrl) {
-                // if the queue service is already running on a repo, don't start working on a new one
-                return null
-            }
-            else {
-                return peekRepoUrl;
-            }
-        }
-    }
 
     _saveQueueState() {
         // save queue state for when service worker resets
@@ -75,10 +55,8 @@ class QueueService {
             items: this.queue.items,
             headIndex: this.queue.headIndex,
             tailIndex: this.queue.tailIndex,
-            userDb: userStore.userDb,
-            currentRepoUrl: this.currentRepoUrl,
-            urlUserProgress: this.urlUserProgress,
-            settings: this.settings
+            downloader: this.downloader,
+            userDb: userStore.userDb
         }
         chrome.storage.local.set({ QUEUE_STATE })
     }
@@ -91,10 +69,8 @@ class QueueService {
                     this.queue.items = QUEUE_STATE.items;
                     this.queue.headIndex = QUEUE_STATE.headIndex;
                     this.queue.tailIndex = QUEUE_STATE.tailIndex;
-                    this.currentRepoUrl = QUEUE_STATE.currentRepoUrl;
-                    this.urlUserProgress = QUEUE_STATE.urlUserProgress;
-                    this.settings =  QUEUE_STATE.settings;
-                    userStore.userDb = QUEUE_STATE.userDb;
+                    this.downloader = QUEUE_STATE.downloader;
+                    userStore.userDb = QUEUE_STATE.userDb
                     resolve(true)
                 }
                 else {
@@ -107,39 +83,14 @@ class QueueService {
     _clearQueueState() {
         chrome.storage.local.remove(['QUEUE_STATE'])
     }
-    
 
-    async _storeUserUrlProgress(repo) {
+    async _storeQueueProgress() {
         // the popover is not in the same scope as the background job, so we save data to storage for front end display
-        const urlData = await urlStore.get(repo);
-        urlData.progress = this.urlUserProgress[repo];
-        // prevent race condition of saved state after delete
-        let deleted = await urlStore.verifyDeleted(repo)
-        if (!deleted) {
-            await urlStore.set(repo, urlData)
+        const downloader = await downloaderStore.get();
+        if (downloader.active) {
+            downloader.progress = {current: this.queue.headIndex, max: this.queue.tailIndex};
+            await downloaderStore.set(downloader);
         }
-    }
-
-    async _storeQueueProgress(repo) {
-        // the popover is not in the same scope as the background job, so we save data to storage for front end display
-        const urlData = await urlStore.get(repo);
-        urlData.queueProgress = {current: this.queue.headIndex, max: this.queue.tailIndex}
-        let deleted = await urlStore.verifyDeleted(repo)
-        if (!deleted) {
-            await urlStore.set(repo, urlData)
-        }
-    }
-    
-    async initUrlUserProgress(repo) {
-        // initialize progress of user url collection (the list of urls)
-        this.urlUserProgress[repo] = {stargazers: null, forks: null}
-        await this._storeUserUrlProgress(repo);
-    }
-
-    updateUrlUserProgress(repo, type, value) {
-        // update progress of user url collection (the list of urls)
-        this.urlUserProgress[repo][type] = value
-        this._storeUserUrlProgress(repo);
     }
 
     setQueueProgress() {
@@ -147,7 +98,7 @@ class QueueService {
         // In order to display progress on the client side we must write the progress to storage from the background job.
         // To limit writing to the storage too often (it can crash the extension) we only write to the storage once every STORAGE_WRITE_THROTTLE
         if (this.queue.length <= 1 || this.queue.length % SYNC_THROTTLE === 0) {
-            this._storeQueueProgress(this.currentRepoUrl);
+            this._storeQueueProgress();
         if (this.queue.length <= 1 || this.queue.length % STORAGE_WRITE_THROTTLE === 0 || this.queue.tailIndex === 0)
             this._saveQueueState();
         }
@@ -161,7 +112,7 @@ class QueueService {
 
     async storeUserData(userData, type, userUrl) {
         // get location data from the github location str
-        if (userData.location && this.settings?.location) {
+        if (userData.location && this.downloader.settings?.location) {
             try {
                 let locationData = await this.getLocation(userData.location);
                 userData.country = locationData[0]?.address?.country;
@@ -198,68 +149,62 @@ class QueueService {
 
     async runGetUser() {
         // only continue if repo hasn't been deleted
-        let deleted = await urlStore.verifyDeleted(this.currentRepoUrl)
-        if (deleted) {
+        this.downloader = await downloaderStore.get();
+        if (!this.downloader.active) {
             this.deactivateInterval()
             this.queue = new Queue();
             return
         }
         if (this.queue.length) {
-        // if there are items in the queue, fetch them
-        let currentQuery = this.queue.dequeue();
-        this.getUser(currentQuery.type, currentQuery.userUrl)
+            // if there are items in the queue, fetch them
+            let currentQuery = this.queue.dequeue();
+            this.getUser(currentQuery.type, currentQuery.userUrl)
         }
         else {
             this.deactivateInterval();
             // allow any other request to finish
-            timeout(2000);
-            this._finishInspection();      
-
-            // if the queue is done and we have collected all the user urls
-            // if (this.urlUserProgress[this.currentRepoUrl].stargazers && this.urlUserProgress[this.currentRepoUrl].forks) {
-            //     this._finishInspection();      
-            // }
+            timeout(10000);
+            // eslint-disable-next-line
+            this._finishInspection();
         }
     }
 
     async _finishInspection() {
         // on finish inspection we deactivate the interval and send the data to the server for packaging and emailing it.
         this.deactivateInterval()
-        const urlData = await urlStore.get(this.currentRepoUrl);
-        urlData.done = true;
+        const downloader = await downloaderStore.get();
 
-        const userData = userStore.getAll()
+        const userData = userStore.userDb
         let postData = {
-            repository: urlData,
+            repository: downloader,
             forks: Object.values(userData.forks),
             stargazers: Object.values(userData.stargazers)
         }
         try {
-            await api.post(`repository/?user_id=${auth.currentUser.uuid}`, postData)
-            urlData.sentStatus = "success"
+            await api.post(`repository/?user_id=${auth.currentUser.uuid}`, postData);
+            downloader.stage = STAGE.DONE;
         }
         catch(error) {
-            console.log(error)
-            urlData.sentStatus = error
+            alert(error);
+            downloader.stage = STAGE.ERROR;
         }
 
-        // save a subset of the url data
-        urlStore.saveUrl(this.currentRepoUrl, urlData);
-
-        // remove repo from inspection queue
-        await urlStore.deleteUrlQueue(this.currentRepoUrl)        
+        // save data to history
+        await historyStore.set(downloader);
+        userStore.refresh();
+        await downloaderStore.reset();
     }
 
-      run(currentRepoUrl) {
-        this.currentRepoUrl = currentRepoUrl;
-        if (!this.urlUserProgress[currentRepoUrl]) {
-            // initialize urlUserProgress for this repo
-            this.initUrlUserProgress(currentRepoUrl)
-        }
-
+      async run() {
+        const downloader = await downloaderStore.get();
+        downloader.stage = STAGE.GETTING_USERS;
+        await downloaderStore.set(downloader);
+        
+        this.downloader = downloader;
+        
         if (!this.interval) {
             let throttle = REQUEST_THROTTLE_NO_LOCATION;
-            if (this.settings?.location) {
+            if (downloader.settings.location) {
                 throttle = LOCATION_REQUEST_THROTTLE
             }
             this.interval = setInterval(() => {this.runGetUser()}, throttle);
@@ -278,7 +223,7 @@ class QueueService {
 
       async continueFromSave() {
         if (!this.interval) {
-            this.run(this.currentRepoUrl);
+            this.run();
         }
       }
 }

@@ -1,10 +1,10 @@
-import { queueService } from '@/js/queue'
+import { downloaderStore } from '@/js/store/downloader';
 
 const checkDownloadPage = async() => {
     chrome.tabs.query({"url": "chrome-extension://gpbbcpjccbhdjnjkpbmkbdhhlocpfbne/options.html"}).then(async(d) => {
     if (!d.length) {
-        const currentRepo = await queueService.currentRepo();
-        if (currentRepo) {
+        const downloader = await downloaderStore.get();
+        if (downloader.active) {
             let { NOTIFICATION_STATE } = await chrome.storage.local.get(['NOTIFICATION_STATE']);
             if (NOTIFICATION_STATE) {
                 NOTIFICATION_STATE = false

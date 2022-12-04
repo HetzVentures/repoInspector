@@ -1,7 +1,7 @@
-import { apiUrl, initToken, timeout } from '@/js/helpers.js';
+import { initToken, timeout } from '@/js/helpers.js';
 import { initOctokit } from '@/js/octokit.js';
-import { userStore, urlStore } from '@/js/store.js';
 import { queueService } from '@/js/queue.js'
+import { downloaderStore } from './store/downloader';
 
 // let running = {stargazers: false, forks: false};
 let octokit;
@@ -15,40 +15,20 @@ class RepoInspector {
         this.currentRepo = null;
     }
 
-    async inspectAssets(repo) {
-        // set the mapper function for the returned GET request from octokit. Sometimes the user link will be nested
-        // like in this case where the object "owner" contains the users url
-        if (!repo) {
-            return
-        }
-        else {
-            this.currentRepo = repo;
-        }
-        userStore.newDb(repo)
-
-
-        // Define the amount of pages to skip when collecting users. This is used when user is scrapping large repo
-        // and wants to get only a sample.
-        const urlData = await urlStore.get(repo);
-
-        let sampleFraction = 1;
-        if (urlData.settings?.sample) {
-            sampleFraction = urlData.settings.samplePercent / 100;
-        }
-
+    async inspectAssets(downloader) {
         // Set up the inspectionParams based on the inspection settings
         const inspectionParams = []
-        urlData.settings?.stars && inspectionParams.push(
+        downloader.settings?.stars && inspectionParams.push(
             {
                 mapper: (data)=> data.map(x => x.url),
                 type: "stargazers",
-                max: Math.ceil(urlData.stargazers_count * sampleFraction)
+                max: downloader.stargazers_count
             })
-        urlData.settings?.forks && inspectionParams.push(
+        downloader.settings?.forks && inspectionParams.push(
             {
                 mapper: (data)=> data.map(x => x.owner.url),
                 type: "forks",
-                max: Math.ceil(urlData.forks_count * sampleFraction)
+                max: downloader.forks_count
             })
         
         this.inspect(inspectionParams)
@@ -64,12 +44,6 @@ class RepoInspector {
         // All data regarding a particular repo are stored in a JS object and not in the local storage. This means that if chrome is
         // restarted, all data collected will be lost.
 
-        const repo = this.currentRepo;
-        const urlData = await urlStore.get(repo);
-
-        // initialize data collection progress
-        await queueService.initUrlUserProgress(repo);
-
         for (let inspection of inspectionParams) {
             
             const type = inspection.type;
@@ -77,19 +51,18 @@ class RepoInspector {
             
             // the github API return a max of PER_PAGE users per API call, the max pages we must parse to inspect the repo is therefore <user_count>/PER_PAGE
             const maxPages = Math.ceil(inspection.max/PER_PAGE)
-    
             // Look for all assets's users
             for (let inspectedPages = 1; inspectedPages <= maxPages; inspectedPages++) {
                 // while we haven't finished parsing through the current chunk, look for users in repo
                 try {
-                    let deleted = await urlStore.verifyDeleted(repo)
-                    if (deleted) {
+                    let downloader = await downloaderStore.get();
+                    if (!downloader.active) {
                         // only continue if repo hasn't been deleted
                         return
                     }
 
-                    const url = `${apiUrl(repo)}/${type}?page=${inspectedPages}&per_page=${PER_PAGE}`
-                    const status = await this.run(type, url, mapper, repo);
+                    const url = `${downloader.octokitUrl}/${type}?page=${inspectedPages}&per_page=${PER_PAGE}`
+                    const status = await this.run(type, url, mapper);
                     // status will return false if the attempt to get more user links is blocked by github
                     if (!status) {
                         break
@@ -99,23 +72,20 @@ class RepoInspector {
                     console.log(error)
                 }
             }
-            queueService.updateUrlUserProgress(repo, type, 1)
-
         }
         // after all data has been added to the queue, update inspector settings on queue and activate the queue interval
-        queueService.settings = urlData.settings;
-        queueService.run(repo);
+        queueService.run();
     }
 
     
-    async run(type, url, mapper, repo) {
+    async run(type, url, mapper) {
         // TODO run over inputted url and store the data. At the end of a inspection look over all failed URLs and retry them
         // eslint-disable-next-line no-async-promise-executor
         return new Promise(async (resolve) => {
             // const users = []
             try {
-                let deleted = await urlStore.verifyDeleted(repo)
-                if (deleted) {
+                let downloader = await downloaderStore.get();
+                if (!downloader.active) {
                 // only continue adding to queue if repo hasn't been deleted
                 resolve(true)
             }
