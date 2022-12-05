@@ -4,6 +4,7 @@ import App from '../view/popup.vue'
 import '@picocss/pico'
 import '../assets/scss/alerts.scss'
 import '../assets/scss/transition.scss'
+import '../assets/scss/custom.scss'
 
 import { initToken, initUrl } from '@/js/helpers';
 import { downloaderStore } from '@/js/store/downloader'

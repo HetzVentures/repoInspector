@@ -5,7 +5,7 @@
         <Transition name="bounce">
           <div v-if="error" class="alert alert-danger float-bottom" role="alert">{{error}}</div>
         </Transition>
-          <img class="header-margin" src="images/repo-banner.gif">
+          <img class="header-margin" src="images/popup-header.gif">
           <div class="header-margin"></div>
           <template v-if="!token">
 
@@ -41,7 +41,7 @@
               <input v-bind:placeholder="downloader.active ? 'Scanning repo...' : 'Repo URL'" type="text" v-bind:disabled="downloader.active" v-model="repoUrl" name="repoUrl">
               
                 <template v-if="downloader.active">
-                  <DownloadCard
+                  <DownloadCard class="mb-32"
                       v-bind:downloader="downloader"
                       @remove="() => cancel = downloader.url" />
                 </template>
@@ -292,6 +292,9 @@
   }
   .mt-32 {
     margin-top: 32px
+  }
+  .mb-32 {
+    margin-bottom: 32px
   }
   .percent-picker {
     margin-top: 12px;

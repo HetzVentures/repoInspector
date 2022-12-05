@@ -7,6 +7,8 @@ import { initToken } from '@/js/helpers';
 import '@picocss/pico'
 import '../assets/scss/alerts.scss'
 import '../assets/scss/transition.scss'
+import '../assets/scss/custom.scss'
+
 import { downloaderStore } from '@/js/store/downloader';
 
 export let token;

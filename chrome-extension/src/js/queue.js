@@ -120,7 +120,7 @@ class QueueService {
                 userData.lon = locationData[0]?.lon;
             }
             catch(error) {
-                console.error(error)
+                console.log(error)
             }
         }
 
