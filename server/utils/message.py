@@ -142,7 +142,7 @@ class MessageCreator:
         active_users = session.query(RepositoryUser.id).where(RepositoryUser.repository_id == repo_id, 
                                     RepositoryUser.active_user.is_(True)).count()
 
-        message_text = '<img src="https://camo.githubusercontent.com/e27aa76d6c7d04084328d93aedcd75649044305e7669eade7cce21d4c2362706/68747470733a2f2f75706c6f6164732d73736c2e776562666c6f772e636f6d2f3633313565393330643263666236383237616561323262322f3633376131633434323931336639373337313366366337365f7265706f496e73706563746f722532306865616465722e676966">'
+        message_text = '<img src="https://www.hetzventures.org/static/email-header.gif">'
         message_text = message_text + f'<br><br>Hi,<br><br>Below (and attached) is your report for repository https://github.com/{self.repo.name}<br><br>'
         message_text = message_text + "<i>Thanks for using repoInspector! Give us a <a href='https://github.com/HetzVentures/repoInspector'>Star</a></i><br><br>"
 
