@@ -12,7 +12,6 @@
           <b>Settings: </b>
         {{ typeStatus(repoData.settings?.stars) }} Stars 
         {{ typeStatus(repoData.settings?.forks) }} Forks
-        {{ typeStatus(repoData.settings?.location) }} Location
         {{ typeStatus(repoData.settings?.sample) }} Sample {{ repoData.settings?.samplePercent ? repoData.settings?.samplePercent + '%' : '' }}
         <footer>
         <details>

@@ -153,7 +153,6 @@ class MessageCreator:
         message_text = message_text + f"<b>Settings:</b> \
             {setting_status(settings['stars'])} Stars \
             {setting_status(settings['forks'])} Forks \
-            {setting_status(settings['location'])} Location \
             {setting_status(settings['sample'])} Sample<br><br>"
         if settings.get('sample'):
             message_text = message_text + f"<b>Sample percent:</b> {settings['samplePercent']}%<br><br>"

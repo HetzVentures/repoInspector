@@ -12,7 +12,6 @@
         <b>Settings: </b>
         {{ typeStatus(downloader.settings?.stars) }} Stars 
         {{ typeStatus(downloader.settings?.forks) }} Forks
-        {{ typeStatus(downloader.settings?.location) }} Location
         {{ typeStatus(downloader.settings?.sample) }} Sample {{ downloader.settings?.samplePercent ? downloader.settings?.samplePercent + '%' : '' }}
         <footer>
           <details>

@@ -12,6 +12,11 @@ export class HistoryStore {
         })
     }
 
+    async reset() {
+        const URL_HISTORY = HISTORY_MODEL;
+        await chrome.storage.local.set({ URL_HISTORY });
+    }
+
 
     set(value) {
         // set data for url in URL_HISTORY

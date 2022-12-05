@@ -5,12 +5,12 @@
         <Transition name="bounce">
           <div v-if="error" class="alert alert-danger float-bottom" role="alert">{{error}}</div>
         </Transition>
+          <img class="header-margin" src="images/repo-banner.gif">
           <div class="header-margin"></div>
           <template v-if="!token">
 
               <article>
-                <header>Hi!</header>
-                Welcome to repoInspector!<br>
+                <header>Welcome to repoInspector!</header>
                 repoInspector is the tool for extracting Github repo data using the open GitHub API.
                 To begin, we'll need a GitHub access token from your GitHub Developer Settings.
                 For instructions, click below. 
@@ -39,8 +39,6 @@
           </template>
           <template v-else>
               <input v-bind:placeholder="downloader.active ? 'Scanning repo...' : 'Repo URL'" type="text" v-bind:disabled="downloader.active" v-model="repoUrl" name="repoUrl">
-              <button v-bind:aria-busy="!!downloader.active" v-bind:disabled="downloader.active" v-on:click="runInspect">Inspect</button>
-              <button v-on:click="openDownloads()" class="outline">Downloads Page</button>
               
                 <template v-if="downloader.active">
                   <DownloadCard
@@ -83,12 +81,14 @@
                       Lost? Review instructions <a target="_blank" href="https://github.com/HetzVentures/repoInspector">here</a>
                   </footer>
               </article>
+              <button v-bind:aria-busy="!!downloader.active" v-bind:disabled="downloader.active" v-on:click="runInspect">Inspect</button>
+              <button v-on:click="openDownloads()" class="outline">Inspection History</button>
               <button @click="logout = 1" class="secondary outline mt-32">Log out</button>
 
           </template>  
           <dialog v-bind:open="cancel">
             <article>
-              <h3>Stop Repo?</h3>
+              <h3>Stop inspecting this repo?</h3>
               <p>
                 Are you sure you want to stop inspecting repo {{ cancel }}?
               </p>
@@ -134,6 +134,8 @@
   import { auth } from '@/js/authentication'
   import { timeout, getOwnTabs, createName, octokitRepoUrl } from '@/js/helpers'
   import { downloaderStore } from '@/js/store/downloader'
+  import { historyStore } from '@/js/store/history'
+  
 
   export default {
       components: { DownloadCard },
@@ -236,6 +238,7 @@
       },
       async runLogout() {
         await downloaderStore.reset();
+        await historyStore.reset();
         auth.logout();
         await timeout(500);
         window.close();

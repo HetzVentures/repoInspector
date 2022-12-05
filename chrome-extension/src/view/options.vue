@@ -24,7 +24,7 @@
             <div class="mb-32"></div>
           <dialog v-bind:open="cancel">
             <article>
-              <h3>Stop Repo?</h3>
+              <h3>Stop inspecting this repo?</h3>
               <p>
                 Are you sure you want to stop inspecting repo {{ cancel }}?
               </p>
