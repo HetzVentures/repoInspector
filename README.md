@@ -40,6 +40,8 @@ This one’s designed to be simple to use as a Chrome extension, for startup fou
 6. After saving the token, you will be asked to log in with Gmail so we can email you repo data as you request it.
 
 ## Using repoInspector
+<img width="600" src="https://uploads-ssl.webflow.com/6315e930d2cfb6827aea22b2/6390fbae89bf4f461c5c41b5_repoInspector%20screenshots%20for%20Chrome.gif"> 
+
 You’re ready to start inspecting repositories! Here’s how that works: 
 
 1. In your browser, go to the Github page for a repository you’re curious about, open the Chrome extension and click Inspect. 
