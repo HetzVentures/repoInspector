@@ -3,7 +3,7 @@ import { userStore } from '@/js/store/user';
 import { api } from '@/js/api'
 import { initToken, timeout } from './helpers';
 import { auth } from '@/js/authentication'
-import { DOWNLOADER_MODEL, STAGE } from './store/models';
+import { DOWNLOADER_MODEL, STAGE, Queue } from './store/models';
 import { downloaderStore } from './store/downloader';
 import { historyStore } from './store/history';
 
@@ -17,32 +17,7 @@ let octokit;
 initToken().then(token => octokit = initOctokit(token))
 
 
-class Queue {
-    constructor() {
-      this.items = {};
-      this.headIndex = 0;
-      this.tailIndex = 0;
-    }
-    enqueue(item) {
-      this.items[this.tailIndex] = item;
-      this.tailIndex++;
-    }
-    dequeue() {
-      const item = this.items[this.headIndex];
-      delete this.items[this.headIndex];
-      this.headIndex++;
-      return item;
-    }
-    peek() {
-      return this.items[this.headIndex];
-    }
-    get length() {
-      return this.tailIndex - this.headIndex;
-    }
-}
-
-
-class QueueService {
+class UserUrlQueue {
     constructor() {
         this.queue = new Queue();
         this.interval = null;
@@ -181,8 +156,9 @@ class QueueService {
             stargazers: Object.values(userData.stargazers)
         }
         try {
-            await api.post(`repository/?user_id=${auth.currentUser.uuid}`, postData);
+            const data = await api.post(`repository/?user_id=${auth.currentUser.uuid}`, postData);
             downloader.stage = STAGE.DONE;
+            downloader.id = data.id;
         }
         catch(error) {
             alert(error);
@@ -230,4 +206,4 @@ class QueueService {
       }
 }
 
-export const queueService = new QueueService()
+export const userUrlQueue = new UserUrlQueue()

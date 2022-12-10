@@ -9,10 +9,17 @@
             <li><strong><a class="text" v-bind:href="repoData.url" target="_blank">{{ repoData?.name }}</a></strong></li>
         </ul>
         </nav>
-          <b>Settings: </b>
-        {{ typeStatus(repoData.settings?.stars) }} Stars 
-        {{ typeStatus(repoData.settings?.forks) }} Forks
-        {{ typeStatus(repoData.settings?.sample) }} Sample {{ repoData.settings?.samplePercent ? repoData.settings?.samplePercent + '%' : '' }}
+        <div class="grid">
+          <div>
+            <b>Settings: </b>
+          {{ typeStatus(repoData.settings?.stars) }} Stars 
+          {{ typeStatus(repoData.settings?.forks) }} Forks
+          {{ typeStatus(repoData.settings?.sample) }} Sample {{ repoData.settings?.samplePercent ? repoData.settings?.samplePercent + '%' : '' }}
+          </div>
+          <div>
+            <button v-if="repoData.id" @click="resendEmail(repoData.id)" class="secondary outline small-button pull-right">Resend</button>
+          </div>
+        </div>
         <footer>
         <details>
             <summary>
@@ -30,10 +37,17 @@
 </template>
 
 <script>
+import { auth } from '@/js/authentication'
+import { api } from '@/js/api'
 
 export default {
   props: ['repoData'],
-  emits: ['remove'],
+  emits: ['remove', 'resend'],
+  data() {
+    return {
+      resendLoading: false
+    }
+  },
   methods: {
     typeStatus(v) {
           return v ? '✓' : '✗'
@@ -45,12 +59,32 @@ export default {
           const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
           const d =  new Date(date)
           return d.toLocaleDateString("en-US", options) + ' ' + d.toLocaleTimeString('en-US')
+        },
+        resendEmail(repoId) {
+          const user = auth.currentUser;
+          this.resendLoading = true;
+          api.get(`resend/${repoId}?user_id=${user.uuid}`).then(() => {
+            this.resendLoading = false;
+            this.$emit('resend', true);
+          }, (error) => {
+              this.resendLoading = true;
+              this.$emit('resend', false);
+              console.log(error);
+          });
         }
     }
 }
 </script>
 
 <style>
+.pull-right {
+  float: right;
+}
+.small-button {
+  width: 70px;
+  font-size: 12px;
+  padding: 6px;
+}
 .text {
   display: block;
   overflow: hidden;

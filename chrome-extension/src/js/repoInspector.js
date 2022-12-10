@@ -1,6 +1,6 @@
 import { initToken, timeout } from '@/js/helpers.js';
 import { initOctokit } from '@/js/octokit.js';
-import { queueService } from '@/js/queue.js'
+import { userUrlQueue } from '@/js/userUrlQueue.js'
 import { downloaderStore } from './store/downloader';
 
 // let running = {stargazers: false, forks: false};
@@ -74,7 +74,7 @@ class RepoInspector {
             }
         }
         // after all data has been added to the queue, update inspector settings on queue and activate the queue interval
-        queueService.run();
+        userUrlQueue.run();
     }
 
     
@@ -104,7 +104,7 @@ class RepoInspector {
                     // queries simultaneously. Instead we run the queries directly through the queue in a single thread with throttling
                     // to account for API needs.
 
-                    queueService.queue.enqueue({type, userUrl})
+                    userUrlQueue.queue.enqueue({type, userUrl})
     
                     if (i === arr.length - 1){ 
                         resolve(true)

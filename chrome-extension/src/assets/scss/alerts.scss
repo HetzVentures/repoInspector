@@ -19,9 +19,12 @@ $red-900: #b71c1c !default;
   margin-right: 25px;
   margin-top: 25px;
   bottom: 0;
+  right: 0;
 }
 
 .alert {
+  z-index: 1000;
+  max-width: 400px;
   $iconsize: calc(var(--font-size) *  1.5); // 24px / 30px if $enable-responsive-spacings
   margin-bottom: var(--spacing); // some default space below alert element
   padding: var(--form-element-spacing-vertical) var(--form-element-spacing-horizontal); // same as forms .input

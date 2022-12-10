@@ -1,8 +1,11 @@
 <template>
       <div class="main_app">
         <main class="container">
-        <Transition name="bounce">
+        <Transition name="slide-fade">
           <div v-if="error" class="alert alert-danger float-bottom" role="alert">{{error}}</div>
+        </Transition>
+        <Transition name="bounce">
+          <div v-if="message" class="alert alert-success float-bottom" role="alert">{{message}}</div>
         </Transition>
           <img src="images/repo-banner.gif">
           <kbd class="header-margin" aria-busy="true" v-if="downloader.active">
@@ -17,7 +20,8 @@
               <HistoryCard
                         v-if="i < historyMax"
                         v-bind:repoData="repo" 
-                        @remove="() => removeUrl(i)" />
+                        @remove="() => removeUrl(i)"
+                        @resend="(result) => showResult(result)" />
             </template>
             <button @click="historyMax = historyMax + historyJumps"
             class="secondary outline load-more" v-if="historyMax < history.length">Load more</button>
@@ -43,7 +47,7 @@ import DownloadCard from './components/DownloadCard.vue'
 import HistoryCard from './components/HistoryCard.vue'
 import {token, history, downloader} from '@/entry/options'
 import { repoInspector } from "@/js/repoInspector";
-import { queueService } from '@/js/queue'
+import { userUrlQueue } from '@/js/userUrlQueue'
 import { downloaderStore } from '@/js/store/downloader'
 import { STAGE } from '@/js/store/models'
 import { historyStore } from '@/js/store/history';
@@ -61,6 +65,7 @@ export default {
       downloader: downloader,
       cancel: 0,
       error: null,
+      message: null,
       history: history,
       historyJumps: HISTORY_JUMPS,
       historyMax: HISTORY_JUMPS,
@@ -76,7 +81,7 @@ export default {
         if (this.downloader.active && this.downloader.stage === STAGE.INITIATED) {
           
           // clean anything that may have been left over in the queue
-          queueService.deactivateInterval();
+          userUrlQueue.deactivateInterval();
           
           // start the download process
           this.downloader.stage = STAGE.GETTING_URLS;
@@ -93,6 +98,29 @@ export default {
         await historyStore.remove(i);
         this.refreshStore();
       },
+      showResult(result) {
+        // show result of a repo being resent
+        if (result) {
+          this.showError("Something went wrong. Please try again later.")
+        }
+        else {
+          this.showMessage("Repo resent successfully")
+        }
+      },
+      showError(error) {
+        // show error for 5 seconds
+        this.error = error;
+        setTimeout(()=> {
+          this.error = null;
+        }, 5000)
+      },
+      showMessage(message) {
+        // show message for 5 seconds
+        this.message = message;
+        setTimeout(()=> {
+          this.message = null;
+        }, 5000)
+      },
   },
     mounted() {
       (async ()=> {
@@ -102,9 +130,9 @@ export default {
         }
         // if we stopped in the middle of inspecting a repos users, continue from where we saved
         else if (downloader.stage === STAGE.GETTING_USERS) {
-          const loadState = await queueService.loadQueueState();
+          const loadState = await userUrlQueue.loadQueueState();
           if (loadState) {
-            queueService.continueFromSave()
+            userUrlQueue.continueFromSave()
           }
           else {
             // if we started getting users, but didn't save the state, start again
