@@ -4,7 +4,7 @@
         <Transition name="slide-fade">
           <div v-if="error" class="alert alert-danger float-bottom" role="alert">{{error}}</div>
         </Transition>
-        <Transition name="bounce">
+        <Transition name="slide-fade">
           <div v-if="message" class="alert alert-success float-bottom" role="alert">{{message}}</div>
         </Transition>
           <img src="images/repo-banner.gif">
@@ -51,6 +51,7 @@ import { userUrlQueue } from '@/js/userUrlQueue'
 import { downloaderStore } from '@/js/store/downloader'
 import { STAGE } from '@/js/store/models'
 import { historyStore } from '@/js/store/history';
+import { notificationStore } from '@/js/store/notification';
 
 const HISTORY_JUMPS = 10;
 
@@ -88,6 +89,8 @@ export default {
           await downloaderStore.set(this.downloader);
           repoInspector.inspectAssets(this.downloader);
         }
+        // check if the tab is focused for notifications
+        notificationStore.checkTabFocused(document, this.showMessage, this.showError)
     },
     async cancelUrl() {
         await downloaderStore.reset();
@@ -98,13 +101,16 @@ export default {
         await historyStore.remove(i);
         this.refreshStore();
       },
+      setError(error) {
+        this.error = error;
+      },
       showResult(result) {
         // show result of a repo being resent
         if (result) {
-          this.showError("Something went wrong. Please try again later.")
+          this.showMessage("Repo resent successfully")
         }
         else {
-          this.showMessage("Repo resent successfully")
+          this.showError("Something went wrong. Please try again later.")
         }
       },
       showError(error) {
@@ -147,6 +153,8 @@ export default {
       // set notification to show once window is closed
       const NOTIFICATION_STATE = true;
       chrome.storage.local.set({ NOTIFICATION_STATE });
+
+      notificationStore.initTabFocusListener(document, this.showMessage, this.showError);
     }
 }
 

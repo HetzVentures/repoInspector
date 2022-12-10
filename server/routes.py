@@ -31,7 +31,7 @@ def resend(repo_id, user_id: uuid.UUID, session: Session = ActiveSession):
     msg_creator = MessageCreator(session, repo_id)
     message_text, archive_path = msg_creator.create_message()
     email_sender.send_message(
-        subject=f"Repository summary for {repo_id}",
+        subject=f"Repository summary for {repository.name}",
         message=message_text,
         recipient=email_user,
         file_path=archive_path,

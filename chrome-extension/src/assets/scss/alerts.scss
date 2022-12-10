@@ -57,3 +57,9 @@ $red-900: #b71c1c !default;
   --icon: var(--icon-valid);
   --color: #{$green-800};
 }
+.error-pill {
+  background-color: #ffebee;
+  color: #b71c1c;
+  border-radius: 14px;
+  padding: 8px 12px 8px 12px;
+}

@@ -20,6 +20,7 @@
             <button v-bind:aria-busy="resendLoading" v-bind:disabled="resendLoading" 
             v-if="repoData.id" @click="resendEmail(repoData.id)" 
             class="secondary outline small-button pull-right">Resend</button>
+            <span v-else class="error-pill pull-right">Error</span>
           </div>
         </div>
         <footer>
@@ -65,9 +66,14 @@ export default {
         resendEmail(repoId) {
           const user = auth.currentUser;
           this.resendLoading = true;
-          api.get(`repository/${repoId}/resend/?user_id=${user.uuid}`).then(() => {
+          api.get(`repository/${repoId}/resend/?user_id=${user.uuid}`).then((r) => {
+            if (r === 'success') {
+              this.$emit('resend', true);
+            }
+            else {
+              this.$emit('resend', false);
+            }
             this.resendLoading = false;
-            this.$emit('resend', true);
           }, (error) => {
               this.resendLoading = true;
               this.$emit('resend', false);

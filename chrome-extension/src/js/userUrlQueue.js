@@ -6,6 +6,7 @@ import { auth } from '@/js/authentication'
 import { DOWNLOADER_MODEL, STAGE, Queue } from './store/models';
 import { downloaderStore } from './store/downloader';
 import { historyStore } from './store/history';
+import { notificationStore, NOTIFICATION_TYPES } from './store/notification';
 
 const LOCATION_REQUEST_THROTTLE = 1000;
 const REQUEST_THROTTLE_NO_LOCATION = 300;
@@ -159,6 +160,7 @@ class UserUrlQueue {
             const data = await api.post(`repository/?user_id=${auth.currentUser.uuid}`, postData);
             downloader.stage = STAGE.DONE;
             downloader.id = data.id;
+            notificationStore.set({type: NOTIFICATION_TYPES.SUCCESS, message: "Nice! Your repo data has been sent to your email."})
         }
         catch(error) {
             alert(error);
