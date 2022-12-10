@@ -15,7 +15,7 @@ import models
 
 repository_router = APIRouter()
 
-@repository_router.get("/resend/{repo_id}")
+@repository_router.get("/{repo_id}/resend/")
 def resend(repo_id, user_id: uuid.UUID, session: Session = ActiveSession):
     # resend email for repo_id
     email_user = session.query(models.EmailUser).where(models.EmailUser.uuid == user_id).first()

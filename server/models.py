@@ -26,7 +26,7 @@ class Repository(SQLModel, table=True):
     created: datetime = datetime.now()
     stargazers_count: int
     forks_count: int
-    email_user_id: int = Field(foreign_key="email_user.id")
+    email_user_id: Optional[int] = Field(foreign_key="email_user.id")
 
 
 class RepositoryResponse(BaseModel):

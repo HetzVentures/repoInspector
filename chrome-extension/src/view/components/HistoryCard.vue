@@ -17,7 +17,9 @@
           {{ typeStatus(repoData.settings?.sample) }} Sample {{ repoData.settings?.samplePercent ? repoData.settings?.samplePercent + '%' : '' }}
           </div>
           <div>
-            <button v-if="repoData.id" @click="resendEmail(repoData.id)" class="secondary outline small-button pull-right">Resend</button>
+            <button v-bind:aria-busy="resendLoading" v-bind:disabled="resendLoading" 
+            v-if="repoData.id" @click="resendEmail(repoData.id)" 
+            class="secondary outline small-button pull-right">Resend</button>
           </div>
         </div>
         <footer>
@@ -63,7 +65,7 @@ export default {
         resendEmail(repoId) {
           const user = auth.currentUser;
           this.resendLoading = true;
-          api.get(`resend/${repoId}?user_id=${user.uuid}`).then(() => {
+          api.get(`repository/${repoId}/resend/?user_id=${user.uuid}`).then(() => {
             this.resendLoading = false;
             this.$emit('resend', true);
           }, (error) => {
@@ -81,7 +83,7 @@ export default {
   float: right;
 }
 .small-button {
-  width: 70px;
+  width: 100px;
   font-size: 12px;
   padding: 6px;
 }
