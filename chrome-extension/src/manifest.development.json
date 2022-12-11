@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "repoInspector",
     "description": "Inspect repositories",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "action": {
         "default_popup": "popup.html"
     },
