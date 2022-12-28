@@ -14,6 +14,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+chrome-extension/src/js/env.js
+
 # C extensions
 *.so
 server/temp/*

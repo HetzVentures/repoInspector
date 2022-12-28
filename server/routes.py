@@ -111,6 +111,10 @@ async def get_email_user(email_user_uuid, session: Session = ActiveSession):
     email_user = session.query(models.EmailUser).where(models.EmailUser.uuid == email_user_uuid).first()
     return email_user
 
+@login_router.get("/error/")
+async def error():
+    return "sf" + 1
+
 
 @login_router.get("/{email_user_uuid}", response_class=HTMLResponse)
 def login(request: Request, email_user_uuid):
