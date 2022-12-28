@@ -12,6 +12,7 @@ from fastapi.exceptions import HTTPException
 from utils.message import MessageCreator
 from utils.sender import email_sender
 import models
+import os
 
 repository_router = APIRouter()
 
@@ -111,10 +112,6 @@ async def get_email_user(email_user_uuid, session: Session = ActiveSession):
     email_user = session.query(models.EmailUser).where(models.EmailUser.uuid == email_user_uuid).first()
     return email_user
 
-@login_router.get("/error/")
-async def error():
-    return "sf" + 1
-
 
 @login_router.get("/{email_user_uuid}", response_class=HTMLResponse)
 def login(request: Request, email_user_uuid):
@@ -122,7 +119,8 @@ def login(request: Request, email_user_uuid):
     return templates.TemplateResponse("login.html", {
         "request": request, 
         "data_client_id": settings.google.data_client_id,
-        "email_user_uuid": email_user_uuid
+        "email_user_uuid": email_user_uuid,
+        "rollbar_access_token": os.getenv("ROLLBAR_CLIENT_TOKEN"),
     })
 
 
