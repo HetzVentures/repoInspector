@@ -22,24 +22,17 @@
     "@vue/cli-plugin-eslint": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
     "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-vue": "^8.0.3",
+    "prettier": "^2.8.7",
+    "sass": "^1.60.0",
     "sass-loader": "^13.1.0",
-    "vue-cli-plugin-chrome-extension-cli": "~1.1.4"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true,
-      "webextensions": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {}
+    "vue-cli-plugin-chrome-extension-cli": "~1.1.4",
+    "vue-eslint-parser": "^9.1.1"
   },
   "browserslist": [
     "> 1%",
