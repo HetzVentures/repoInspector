@@ -1,0 +1,36 @@
+{
+    // Makes ESlint extension format code on save
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "vue"
+    ],
+    // Eslint-related rules
+    "eslint.enable": true,
+    "eslint.options": {
+        "overrideConfigFile": "/chrome-extension/.eslintrc"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll.eslint": true
+        }
+    },
+    // Add new line in the end of file
+    "files.insertFinalNewline": true,
+    // Trim trailing whitespace in the end of file
+    "files.trimFinalNewlines": true,
+    "prettier.eslintIntegration": true,
+    "prettier.tslintIntegration": true
+}

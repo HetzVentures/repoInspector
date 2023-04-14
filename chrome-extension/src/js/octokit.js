@@ -1,8 +1,6 @@
-const { Octokit } = require("@octokit/core");
+const { Octokit } = require('@octokit/core');
 
-let octokit;
-export function initOctokit(accessToken) {
-    // initialize octokit instance
-    octokit = new Octokit({ auth: accessToken });
-    return octokit
-}
+// Initialize octokit instance
+const initOctokit = (accessToken) => new Octokit({ auth: accessToken });
+
+export { initOctokit };
