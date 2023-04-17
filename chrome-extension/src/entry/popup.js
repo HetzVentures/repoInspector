@@ -13,17 +13,20 @@ import { historyStore } from '@/js/store/history';
 import settings from '@/js/env';
 import Rollbar from 'rollbar';
 
-export let token;
-export let url;
-export let history;
-export let downloader;
+export const initialData = {
+  token: null,
+  url: null,
+  history: null,
+  downloader: null,
+};
 
 (async () => {
   // initialize storage data before loading the app
-  token = await initToken();
-  url = await initUrl();
-  downloader = await downloaderStore.get();
-  history = await historyStore.get();
+  initialData.token = await initToken();
+  initialData.url = await initUrl();
+  initialData.downloader = await downloaderStore.get();
+  initialData.history = await historyStore.get();
+
   const app = createApp(App);
 
   // Set the Rollbar instance in the Vue prototype

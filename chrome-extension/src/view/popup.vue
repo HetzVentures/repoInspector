@@ -241,7 +241,7 @@
 
 <script>
 import { initOctokit } from '@/js/octokit';
-import { downloader, history, token, url } from '@/entry/popup';
+import { initialData } from '@/entry/popup';
 import { auth } from '@/js/authentication';
 import { createName, getOwnTabs, octokitRepoUrl, timeout } from '@/js/helpers';
 import { downloaderStore } from '@/js/store/downloader';
@@ -253,9 +253,11 @@ export default {
   components: { DownloadCard },
   data() {
     return {
-      token,
-      newToken: token,
-      repoUrl: url,
+      token: initialData.token,
+      newToken: initialData.token,
+      repoUrl: initialData.url,
+      history: initialData.history,
+      downloader: initialData.downloader,
       cancel: 0,
       error: null,
       loginPopup: null,
@@ -263,11 +265,11 @@ export default {
       showHistory: false,
       logout: 0,
       setupDelay: true,
-      history,
-      downloader,
     };
   },
   async mounted() {
+    console.log(this.token, this.history, this.downloader);
+
     // if current repo is being downloaded but download page has been shut down open it up
     if (this.downloader.active) {
       const tab = await getOwnTabs();

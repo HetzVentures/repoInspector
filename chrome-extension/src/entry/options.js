@@ -14,16 +14,17 @@ import { downloaderStore } from '@/js/store/downloader';
 import settings from '@/js/env';
 import Rollbar from 'rollbar';
 
-export let token;
-export let history;
-export let downloader;
+export const initialData = {
+  token: null,
+  history: null,
+  downloader: null,
+};
 
 (async () => {
-  // eslint-disable-next-line
   // initialize storage data before loading the app
-  token = await initToken();
-  history = await historyStore.get();
-  downloader = await downloaderStore.get();
+  initialData.token = await initToken();
+  initialData.history = await historyStore.get();
+  initialData.downloader = await downloaderStore.get();
 
   const app = createApp(App);
 
@@ -62,4 +63,5 @@ const preventClose = (e) => {
   e.returnValue = '';
   return true;
 };
+
 window.addEventListener('beforeunload', preventClose, true);

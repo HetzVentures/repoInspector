@@ -24,7 +24,7 @@ export const initUrl = () =>
   new Promise((resolve) => {
     chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       const { url } = tabs[0];
-      resolve(url.includes('https://github.com/') ? url : '');
+      resolve(url?.includes('https://github.com/') ? url : '');
     });
   });
 

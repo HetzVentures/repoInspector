@@ -65,7 +65,7 @@
 </template>
 
 <script>
-import { downloader, history, token } from '@/entry/options';
+import { initialData } from '@/entry/options';
 import { repoInspector } from '@/js/repoInspector';
 import { userUrlQueue } from '@/js/userUrlQueue';
 import { downloaderStore } from '@/js/store/downloader';
@@ -82,13 +82,13 @@ export default {
   components: { DownloadCard, HistoryCard },
   data() {
     return {
-      token,
-      newToken: token,
-      downloader,
+      token: initialData.token,
+      newToken: initialData.token,
+      history: initialData.history,
+      downloader: initialData.downloader,
       cancel: 0,
       error: null,
       message: null,
-      history,
       historyJumps: HISTORY_JUMPS,
       historyMax: HISTORY_JUMPS,
       logout: 0,
@@ -96,12 +96,12 @@ export default {
   },
   mounted() {
     (async () => {
-      if (downloader.stage === STAGE.GETTING_URLS) {
+      if (this.downloader.stage === STAGE.GETTING_URLS) {
         // if we stopped in the middle of collecting user urls, start again
         repoInspector.inspectAssets(this.downloader);
       }
       // if we stopped in the middle of inspecting a repos users, continue from where we saved
-      else if (downloader.stage === STAGE.GETTING_USERS) {
+      else if (this.downloader.stage === STAGE.GETTING_USERS) {
         const loadState = await userUrlQueue.loadQueueState();
         if (loadState) {
           userUrlQueue.continueFromSave();
