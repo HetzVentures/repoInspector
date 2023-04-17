@@ -80,8 +80,6 @@
                 "no-param-reassign": 0,
                 "max-classes-per-file": 0,
                 "no-alert": 0,
-                "no-promise-executor-return": 0,
-                "no-restricted-globals": 0,
                 "vue/require-prop-types": 0
             }
         }

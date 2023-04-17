@@ -29,7 +29,9 @@ export const initUrl = () =>
   });
 
 export const timeout = (ms) =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+  new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 export const popupCenter = ({ url, title, w, h }) => {
   // Fixes dual-screen position                             Most browsers      Firefox
@@ -39,11 +41,13 @@ export const popupCenter = ({ url, title, w, h }) => {
     window.screenTop !== undefined ? window.screenTop : window.screenY;
 
   const width =
-    window.innerWidth || document.documentElement.clientWidth || screen.width;
+    window.innerWidth ||
+    document.documentElement.clientWidth ||
+    window.screen.width;
   const height =
     window.innerHeight ||
     document.documentElement.clientHeight ||
-    screen.height;
+    window.screen.height;
 
   const systemZoom = width / window.screen.availWidth;
   const left = (width - w) / 2 / systemZoom + dualScreenLeft;
@@ -67,16 +71,14 @@ export const popupCenter = ({ url, title, w, h }) => {
 // check if download tab is open
 export const getOwnTabs = () =>
   Promise.all(
-    chrome.extension
-      .getViews({ type: 'tab' })
-      .map(
-        (view) =>
-          new Promise((resolve) =>
-            view.chrome.tabs.getCurrent((tab) =>
-              resolve(Object.assign(tab, { url: view.location.href })),
-            ),
-          ),
-      ),
+    chrome.extension.getViews({ type: 'tab' }).map(
+      (view) =>
+        new Promise((resolve) => {
+          view.chrome.tabs.getCurrent((tab) =>
+            resolve(Object.assign(tab, { url: view.location.href })),
+          );
+        }),
+    ),
   );
 
 export const createName = (repo) => {
