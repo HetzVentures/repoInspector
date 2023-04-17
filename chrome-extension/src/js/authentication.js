@@ -11,17 +11,19 @@ export class Authentication {
   constructor() {
     this.currentUser = {};
     chrome.storage.local.get(async ({ CURRENT_USER }) => {
+      let currentUser = CURRENT_USER;
+
       if (!CURRENT_USER) {
         // create user for this extension instance to send emails to,
         // at this point there is no data from the user aside from the uuid
         const data = await api.post('login/email_user/');
-        CURRENT_USER = data;
-        chrome.storage.local.set({ CURRENT_USER });
+        currentUser = data;
+        await chrome.storage.local.set({ CURRENT_USER: currentUser });
       } else if (CURRENT_USER.uuid && !CURRENT_USER.email) {
         // if we have created a user, make sure the login from google has worked and the email is updated
         const data = await api.get(`login/email_user/${CURRENT_USER.uuid}`);
-        CURRENT_USER = data;
-        await chrome.storage.local.set({ CURRENT_USER });
+        currentUser = data;
+        await chrome.storage.local.set({ CURRENT_USER: currentUser });
       }
       this.currentUser = CURRENT_USER;
     });

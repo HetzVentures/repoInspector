@@ -27,10 +27,7 @@ export class HistoryStore {
   get() {
     return new Promise((resolve) => {
       chrome.storage.local.get(async ({ URL_HISTORY }) => {
-        if (!URL_HISTORY) {
-          URL_HISTORY = [];
-        }
-        resolve(URL_HISTORY);
+        resolve(URL_HISTORY || []);
       });
     });
   }

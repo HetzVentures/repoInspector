@@ -61,8 +61,6 @@
                 // When there is only a single export from a module, prefer using default export over named export.
                 // I think we can export some objects withut default export, keping in mind that there will be more export sfrom this file in a future
                 "import/prefer-default-export": 0,
-                // We not always return a value from saga's
-                "consistent-return": 0,
                 // We want to enable i++ or i--
                 "no-plusplus": 0,
                 // May need for some internal variables like __REDUX_DEVTOOLS_EXTENSION__
@@ -75,11 +73,11 @@
                 // We may have some not-camelCase vars when we receive a response from API
                 "camelcase": 0,
                 "import/extensions": 0,
+                // We may have alerts on Chrome extension
+                "no-alert": 0,
                 // $FixMe: Temporary disable some rules causing errors
                 "class-methods-use-this": 0,
-                "no-param-reassign": 0,
                 "max-classes-per-file": 0,
-                "no-alert": 0,
                 "vue/require-prop-types": 0
             }
         }

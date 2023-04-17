@@ -10,8 +10,7 @@ export class NotificationStore {
   constructor() {
     chrome.storage.local.get(async ({ NOTIFICATION_STORE }) => {
       if (!NOTIFICATION_STORE) {
-        NOTIFICATION_STORE = NOTIFICATION_MODEL;
-        chrome.storage.local.set({ NOTIFICATION_STORE });
+        chrome.storage.local.set({ NOTIFICATION_STORE: NOTIFICATION_MODEL });
       }
     });
   }
@@ -30,10 +29,7 @@ export class NotificationStore {
   get() {
     return new Promise((resolve) => {
       chrome.storage.local.get(async ({ NOTIFICATION_STORE }) => {
-        if (!NOTIFICATION_STORE) {
-          NOTIFICATION_STORE = [];
-        }
-        resolve(NOTIFICATION_STORE);
+        resolve(NOTIFICATION_STORE || []);
       });
     });
   }

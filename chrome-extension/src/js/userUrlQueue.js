@@ -95,13 +95,16 @@ class UserUrlQueue {
   }
 
   async storeUserData(userData, type, userUrl) {
+    const resultData = {};
+
     // get location data from the github location str
     if (userData.location && this.downloader.settings?.location) {
       try {
         const locationData = await this.getLocation(userData.location);
-        userData.country = locationData[0]?.address?.country;
-        userData.lat = locationData[0]?.lat;
-        userData.lon = locationData[0]?.lon;
+
+        resultData.country = locationData[0]?.address?.country;
+        resultData.lat = locationData[0]?.lat;
+        resultData.lon = locationData[0]?.lon;
       } catch (error) {
         console.log(error);
       }
@@ -111,22 +114,22 @@ class UserUrlQueue {
     const { data } = await octokit.request(
       `GET ${userData.url}/events?per_page=100`,
     );
-    userData.event_count = data.length;
+    resultData.event_count = data.length;
 
     // define real user
-    userData.real_user = userData.event_count > 3 || userData.followers > 3;
+    resultData.real_user = userData.event_count > 3 || userData.followers > 3;
 
     // define active user
     const yearAgo = new Date(
       new Date().setFullYear(new Date().getFullYear() - 1),
     ).getTime();
-    userData.active_user =
+    resultData.active_user =
       data.length &&
       data[0]?.created_at &&
       new Date(data[0]?.created_at).getTime() > yearAgo;
 
     // save user data
-    userStore.set(type, userUrl, userData);
+    userStore.set(type, userUrl, { ...userData, ...resultData });
     this.setQueueProgress();
   }
 
