@@ -1,6 +1,6 @@
-import { initToken, timeout } from '@/js/helpers.js';
-import { initOctokit } from '@/js/octokit.js';
-import { userUrlQueue } from '@/js/userUrlQueue.js';
+import { asyncForEach, initToken, timeout } from './helpers';
+import { initOctokit } from './octokit';
+import { userUrlQueue } from './userUrlQueue';
 import { downloaderStore } from './store/downloader';
 
 // let running = {stargazers: false, forks: false};
@@ -49,12 +49,11 @@ class RepoInspector {
     // All data regarding a particular repo are stored in a JS object and not in the local storage. This means that if chrome is
     // restarted, all data collected will be lost.
 
-    for (const inspection of inspectionParams) {
-      const { type } = inspection;
-      const { mapper } = inspection;
+    await asyncForEach(inspectionParams, async (inspection) => {
+      const { type, max, mapper } = inspection;
 
       // the github API return a max of PER_PAGE users per API call, the max pages we must parse to inspect the repo is therefore <user_count>/PER_PAGE
-      const maxPages = Math.ceil(inspection.max / PER_PAGE);
+      const maxPages = Math.ceil(max / PER_PAGE);
       // Look for all assets's users
       for (
         let inspectedPages = 1;
@@ -72,6 +71,7 @@ class RepoInspector {
           const url = `${downloader.octokitUrl}/${type}?page=${inspectedPages}&per_page=${PER_PAGE}`;
           const status = await this.run(type, url, mapper);
           // status will return false if the attempt to get more user links is blocked by github
+
           if (!status) {
             break;
           }
@@ -79,7 +79,8 @@ class RepoInspector {
           console.log(error);
         }
       }
-    }
+    });
+
     // after all data has been added to the queue, update inspector settings on queue and activate the queue interval
     userUrlQueue.run();
   }

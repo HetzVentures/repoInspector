@@ -88,3 +88,9 @@ export const createName = (repo) => {
 export const octokitRepoUrl = (repo) =>
   // get repo name for octokit
   `/repos/${createName(repo)}`;
+
+export const asyncForEach = async (array, callback) => {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+};

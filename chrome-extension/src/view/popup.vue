@@ -268,8 +268,6 @@ export default {
     };
   },
   async mounted() {
-    console.log(this.token, this.history, this.downloader);
-
     // if current repo is being downloaded but download page has been shut down open it up
     if (this.downloader.active) {
       const tab = await getOwnTabs();

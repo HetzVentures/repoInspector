@@ -1,12 +1,12 @@
-import { initOctokit } from '@/js/octokit.js';
-import { userStore } from '@/js/store/user';
-import { api } from '@/js/api';
-import { auth } from '@/js/authentication';
+import { initOctokit } from './octokit';
+import { api } from './api';
+import { auth } from './authentication';
 import { initToken, timeout } from './helpers';
-import { DOWNLOADER_MODEL, Queue, STAGE } from './store/models';
 import { downloaderStore } from './store/downloader';
 import { historyStore } from './store/history';
+import { DOWNLOADER_MODEL, Queue, STAGE } from './store/models';
 import { NOTIFICATION_TYPES, notificationStore } from './store/notification';
+import { userStore } from './store/user';
 
 const LOCATION_REQUEST_THROTTLE = 1000;
 const REQUEST_THROTTLE_NO_LOCATION = 300;

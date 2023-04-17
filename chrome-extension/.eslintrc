@@ -79,7 +79,6 @@
                 "class-methods-use-this": 0,
                 "no-param-reassign": 0,
                 "max-classes-per-file": 0,
-                "no-restricted-syntax": 0,
                 "no-alert": 0,
                 "no-promise-executor-return": 0,
                 "no-restricted-globals": 0,

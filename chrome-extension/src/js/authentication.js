@@ -1,5 +1,5 @@
-import { api } from '@/js/api';
-import { popupCenter } from '@/js/helpers';
+import { popupCenter } from './helpers';
+import { api } from './api';
 
 export class Authentication {
   // Authentication is done via google oauth2 flow. As at the time of developing this extension google did not support login directly
