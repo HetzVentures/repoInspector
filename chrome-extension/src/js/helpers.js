@@ -45,8 +45,6 @@ export const popupCenter = ({ url, title, w, h }) => {
     document.documentElement.clientHeight ||
     screen.height;
 
-  console.log(width, height);
-
   const systemZoom = width / window.screen.availWidth;
   const left = (width - w) / 2 / systemZoom + dualScreenLeft;
   const top = (height - h) / 2 / systemZoom + dualScreenTop;
