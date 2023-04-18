@@ -77,7 +77,6 @@
                 "no-alert": 0,
                 // $FixMe: Temporary disable some rules causing errors
                 "class-methods-use-this": 0,
-                "max-classes-per-file": 0,
                 "vue/require-prop-types": 0
             }
         }

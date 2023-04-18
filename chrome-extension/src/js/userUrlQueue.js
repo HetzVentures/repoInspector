@@ -170,13 +170,16 @@ class UserUrlQueue {
       forks: Object.values(userData.forks),
       stargazers: Object.values(userData.stargazers),
     };
+
     try {
       const data = await api.post(
         `repository/?user_id=${auth.currentUser.uuid}`,
         postData,
       );
+
       downloader.stage = STAGE.DONE;
       downloader.id = data.id;
+
       notificationStore.set({
         type: NOTIFICATION_TYPES.SUCCESS,
         message: 'Nice! Your repo data has been sent to your email.',

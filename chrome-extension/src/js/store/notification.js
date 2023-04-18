@@ -1,10 +1,9 @@
 import { NOTIFICATION_MODEL } from './models';
 
-export class NOTIFICATION_TYPES {
-  static SUCCESS = 'success';
-
-  static ERROR = 'error';
-}
+export const NOTIFICATION_TYPES = {
+  SUCCESS: 'success',
+  ERROR: 'error',
+};
 
 export class NotificationStore {
   constructor() {
