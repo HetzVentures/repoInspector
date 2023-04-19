@@ -1,3 +1,182 @@
+<script lang="ts">
+import { initOctokit } from '@/js/octokit';
+import { initialData } from '@/entry/popup';
+import { auth } from '@/js/authentication';
+import { createName, getOwnTabs, octokitRepoUrl, timeout } from '@/js/helpers';
+import { downloaderStore } from '@/js/store/downloader';
+import { historyStore } from '@/js/store/history';
+import DownloadCard from './components/DownloadCard.vue';
+
+interface PopupData {
+  token: null | void | string;
+  newToken: null | void | string;
+  repoUrl: null | string;
+  history: null | History;
+  downloader: null | Downloader;
+  cancel: 0 | string;
+  error: null | string;
+  loginPopup: null;
+  currentUser: CurrentUser;
+  showHistory: boolean;
+  logout: 0 | 1;
+  setupDelay: boolean;
+}
+
+export default {
+  name: 'App',
+  components: { DownloadCard },
+  data(): PopupData {
+    return {
+      token: initialData.token,
+      newToken: initialData.token,
+      repoUrl: initialData.url,
+      history: initialData.history,
+      downloader: initialData.downloader,
+      cancel: 0,
+      error: null,
+      loginPopup: null,
+      currentUser: auth.currentUser,
+      showHistory: false,
+      logout: 0,
+      setupDelay: true,
+    };
+  },
+  async mounted() {
+    // if current repo is being downloaded but download page has been shut down open it up
+    if (this.downloader?.active) {
+      const tab = await getOwnTabs();
+      if (!tab.length) {
+        chrome.runtime.openOptionsPage();
+      }
+    }
+
+    setInterval(() => {
+      this.refreshStore();
+    }, 5000);
+
+    this.currentUser = await auth.getStoredUser();
+
+    // check if current user has logged in
+    if (!this.currentUser?.email) {
+      setInterval(async () => {
+        this.currentUser = await auth.getStoredUser();
+      }, 2000);
+
+      setTimeout(() => {
+        // this is used to prevent the "login" button from being pressed twice during initial login
+        this.setupDelay = false;
+      }, 2000);
+    }
+  },
+  methods: {
+    saveToken() {
+      // save access token
+      const githubInspectorToken = this.newToken;
+      chrome.storage.local.set({ githubInspectorToken });
+      this.token = this.newToken;
+    },
+    setSettings(
+      k: 'stars' | 'forks' | 'location' | 'sample' | 'samplePercent',
+      v: any,
+    ) {
+      if (this.downloader?.settings) {
+        // @ts-ignore
+        this.downloader.settings[k] = v;
+        downloaderStore.set(this.downloader);
+      }
+    },
+    async runInspect() {
+      // collect initial data on repo and send message to background to start inspecting it.
+      try {
+        if (!this.repoUrl) {
+          this.showError('You must enter a repo to inspect!');
+          return;
+        }
+        if (
+          !this.downloader?.settings?.forks &&
+          !this.downloader?.settings?.stars
+        ) {
+          this.showError(
+            'You must select if you want forks, stars or both (but not none)',
+          );
+          return;
+        }
+        if (
+          this.downloader?.settings?.sample &&
+          (this.downloader?.settings.samplePercent <= 0 ||
+            this.downloader?.settings.samplePercent > 100)
+        ) {
+          this.showError('Please choose a sample percentage between 1 and 100');
+          return;
+        }
+        this.downloader.url = this.repoUrl;
+        this.downloader.octokitUrl = octokitRepoUrl(this.downloader.url);
+
+        const octokit = initOctokit(this.token);
+        let {
+          data: { stargazers_count, forks },
+        } = await octokit.request(`GET ${this.downloader.octokitUrl}`);
+
+        // set the data for inspection based on the settings
+        const { settings } = this.downloader;
+        if (settings.sample) {
+          forks = Math.ceil(forks * (settings.samplePercent / 100));
+          stargazers_count = Math.ceil(
+            stargazers_count * (settings.samplePercent / 100),
+          );
+        }
+        this.downloader.stargazers_count = settings.stars
+          ? stargazers_count
+          : 0;
+        this.downloader.forks_count = settings.forks ? forks : 0;
+        this.downloader.name = createName(this.downloader.url);
+        this.downloader.date = new Date().getTime();
+        this.downloader.active = true;
+        await downloaderStore.set(this.downloader);
+        chrome.runtime.openOptionsPage();
+      } catch (error: any) {
+        if (error.status === 401) {
+          this.showError('Token has expired!');
+        } else {
+          this.showError('Something went wrong');
+        }
+        console.error(error);
+      }
+    },
+    openDownloads() {
+      chrome.runtime.openOptionsPage();
+    },
+    async refreshStore() {
+      this.downloader = await downloaderStore.get();
+    },
+    keys(data: any) {
+      return Object.keys(data);
+    },
+    async cancelUrl() {
+      await downloaderStore.reset();
+      this.refreshStore();
+      this.cancel = 0;
+    },
+    showError(error: string) {
+      this.error = error;
+      setTimeout(() => {
+        this.error = null;
+      }, 5000);
+    },
+    openLogin() {
+      auth.loginWithGoogle();
+    },
+    async runLogout() {
+      await downloaderStore.reset();
+      await historyStore.reset();
+      auth.logout();
+      await timeout(500);
+      window.close();
+    },
+  },
+};
+</script>
+
 <template>
   <main class="container">
     <div id="app">
@@ -69,36 +248,37 @@
       <template v-else>
         <input
           v-model="repoUrl"
-          :placeholder="downloader.active ? 'Scanning repo...' : 'Repo URL'"
+          :placeholder="downloader?.active ? 'Scanning repo...' : 'Repo URL'"
           type="text"
-          :disabled="downloader.active"
+          :disabled="downloader?.active"
           name="repoUrl"
         />
 
-        <template v-if="downloader.active">
+        <template v-if="downloader?.active">
           <DownloadCard
             class="mb-32"
             :downloader="downloader"
-            @remove="() => (cancel = downloader.url)"
+            @remove="() => (cancel = downloader?.url || 0)"
           />
         </template>
-        <article v-if="!downloader.active && !history.length">
+        <article v-if="!downloader?.active && !history?.length">
           <header>Ready to inspect!</header>
           Paste the repo URL in the Inspect field. Choose whether you’d like the
           default data (Only Stars) or another option from the menu below. Then
           click Inspect.
         </article>
-        <article v-if="!downloader.active">
+        <article v-if="!downloader?.active">
           <header>Settings</header>
           <fieldset>
             <label for="stars">
               <input
+                v-if="downloader?.settings.stars"
                 id="stars"
                 v-model="downloader.settings.stars"
                 type="checkbox"
                 name="stars"
                 role="switch"
-                @change="setSettings('stars', downloader.settings.stars)"
+                @change="setSettings('stars', downloader?.settings.stars)"
               />
               Get users who have <b>starred</b> the repo
             </label>
@@ -106,12 +286,13 @@
           <fieldset>
             <label for="forks">
               <input
+                v-if="downloader?.settings.forks"
                 id="forks"
                 v-model="downloader.settings.forks"
                 type="checkbox"
                 name="forks"
                 role="switch"
-                @change="setSettings('forks', downloader.settings.forks)"
+                @change="setSettings('forks', downloader?.settings.forks)"
               />
               Get users who have <b>forked</b> the repo
             </label>
@@ -119,30 +300,31 @@
           <fieldset>
             <label for="sample">
               <input
+                v-if="downloader?.settings.sample"
                 id="sample"
                 v-model="downloader.settings.sample"
                 type="checkbox"
                 name="sample"
                 role="switch"
-                @change="setSettings('sample', downloader.settings.sample)"
+                @change="setSettings('sample', downloader?.settings.sample)"
               />
               Get a % sample of this repo
               <em data-tooltip="Recommended for large repos">(?)</em>
             </label>
             <input
-              v-if="downloader.settings.sample"
+              v-if="downloader?.settings.sample"
               v-model="downloader.settings.samplePercent"
               class="percent-picker"
               :aria-invalid="
-                0 >= downloader.settings.samplePercent ||
-                downloader.settings.samplePercent > 100
+                0 >= downloader?.settings.samplePercent ||
+                downloader?.settings.samplePercent > 100
               "
               type="number"
               min="1"
               max="100"
               placeholder="Sample percent"
               @change="
-                setSettings('samplePercent', downloader.settings.samplePercent)
+                setSettings('samplePercent', downloader?.settings.samplePercent)
               "
             />
           </fieldset>
@@ -169,8 +351,8 @@
           </footer>
         </article>
         <button
-          :aria-busy="!!downloader.active"
-          :disabled="downloader.active"
+          :aria-busy="!!downloader?.active"
+          :disabled="downloader?.active"
           @click="runInspect"
         >
           Inspect
@@ -182,7 +364,7 @@
           Log out
         </button>
       </template>
-      <dialog :open="cancel">
+      <dialog :open="!!cancel">
         <article>
           <h3>Stop inspecting this repo?</h3>
           <p>Are you sure you want to stop inspecting repo {{ cancel }}?</p>
@@ -201,10 +383,10 @@
           </footer>
         </article>
       </dialog>
-      <dialog :open="logout">
+      <dialog :open="!!logout">
         <article>
           <h3>Logout?</h3>
-          <template v-if="!downloader.active">
+          <template v-if="!downloader?.active">
             <p>Are you sure you want to log out? All data will be deleted</p>
             <footer>
               <button
@@ -238,164 +420,6 @@
     </div>
   </main>
 </template>
-
-<script>
-import { initOctokit } from '@/js/octokit';
-import { initialData } from '@/entry/popup';
-import { auth } from '@/js/authentication';
-import { createName, getOwnTabs, octokitRepoUrl, timeout } from '@/js/helpers';
-import { downloaderStore } from '@/js/store/downloader';
-import { historyStore } from '@/js/store/history';
-import DownloadCard from './components/DownloadCard.vue';
-
-export default {
-  name: 'App',
-  components: { DownloadCard },
-  data() {
-    return {
-      token: initialData.token,
-      newToken: initialData.token,
-      repoUrl: initialData.url,
-      history: initialData.history,
-      downloader: initialData.downloader,
-      cancel: 0,
-      error: null,
-      loginPopup: null,
-      currentUser: auth.currentUser,
-      showHistory: false,
-      logout: 0,
-      setupDelay: true,
-    };
-  },
-  async mounted() {
-    // if current repo is being downloaded but download page has been shut down open it up
-    if (this.downloader.active) {
-      const tab = await getOwnTabs();
-      if (!tab.length) {
-        chrome.runtime.openOptionsPage();
-      }
-    }
-
-    setInterval(() => {
-      this.refreshStore();
-    }, 5000);
-
-    this.currentUser = await auth.getStoredUser();
-
-    // check if current user has logged in
-    if (!this.currentUser?.email) {
-      setInterval(async () => {
-        this.currentUser = await auth.getStoredUser();
-      }, 2000);
-
-      setTimeout(() => {
-        // this is used to prevent the "login" button from being pressed twice during initial login
-        this.setupDelay = false;
-      }, 2000);
-    }
-  },
-  methods: {
-    saveToken() {
-      // save access token
-      const githubInspectorToken = this.newToken;
-      chrome.storage.local.set({ githubInspectorToken });
-      this.token = this.newToken;
-    },
-    setSettings(k, v) {
-      this.downloader.settings[k] = v;
-      downloaderStore.set(this.downloader);
-    },
-    async runInspect() {
-      // collect initial data on repo and send message to background to start inspecting it.
-      try {
-        if (!this.repoUrl) {
-          this.showError('You must enter a repo to inspect!');
-          return;
-        }
-        if (
-          !this.downloader.settings?.forks &&
-          !this.downloader.settings?.stars
-        ) {
-          this.showError(
-            'You must select if you want forks, stars or both (but not none)',
-          );
-          return;
-        }
-        if (
-          this.downloader.settings?.sample &&
-          (this.downloader.settings.samplePercent <= 0 ||
-            this.downloader.settings.samplePercent > 100)
-        ) {
-          this.showError('Please choose a sample percentage between 1 and 100');
-          return;
-        }
-        this.downloader.url = this.repoUrl;
-        this.downloader.octokitUrl = octokitRepoUrl(this.downloader.url);
-
-        const octokit = initOctokit(this.token);
-        let {
-          data: { stargazers_count, forks },
-        } = await octokit.request(`GET ${this.downloader.octokitUrl}`);
-
-        // set the data for inspection based on the settings
-        const { settings } = this.downloader;
-        if (settings.sample) {
-          forks = Math.ceil(forks * (settings.samplePercent / 100));
-          stargazers_count = Math.ceil(
-            stargazers_count * (settings.samplePercent / 100),
-          );
-        }
-        this.downloader.stargazers_count = settings.stars
-          ? stargazers_count
-          : 0;
-        this.downloader.forks_count = settings.forks ? forks : 0;
-        this.downloader.name = createName(this.downloader.url);
-        this.downloader.date = new Date().getTime();
-        this.downloader.active = true;
-        await downloaderStore.set(this.downloader);
-        chrome.runtime.openOptionsPage();
-      } catch (error) {
-        if (error.status === 401) {
-          this.showError('Token has expired!');
-        } else {
-          this.showError('Something went wrong');
-        }
-        console.error(error);
-      }
-    },
-    openDownloads() {
-      chrome.runtime.openOptionsPage();
-    },
-    async refreshStore() {
-      this.downloader = await downloaderStore.get();
-    },
-    keys(data) {
-      return Object.keys(data);
-    },
-    async cancelUrl() {
-      await downloaderStore.reset();
-      this.refreshStore();
-      this.cancel = 0;
-    },
-    showError(error) {
-      this.error = error;
-      setTimeout(() => {
-        this.error = null;
-      }, 5000);
-    },
-    openLogin() {
-      auth.loginWithGoogle();
-    },
-    async runLogout() {
-      await downloaderStore.reset();
-      await historyStore.reset();
-      auth.logout();
-      await timeout(500);
-      window.close();
-    },
-  },
-};
-</script>
 
 <style>
 html {

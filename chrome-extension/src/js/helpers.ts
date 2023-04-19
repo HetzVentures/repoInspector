@@ -1,4 +1,6 @@
-export const apiUrl = (url) => {
+/* eslint-disable no-unused-vars */
+
+export const apiUrl = (url: string) => {
   // create base API url from github url if it has more parts than the base url
   // (for instance, if it is https://github.com/octokit/core.js/issues instead of https://github.com/octokit/core.js)
   const urlParts = url.split('/');
@@ -7,7 +9,7 @@ export const apiUrl = (url) => {
 
 export const initToken = () =>
   // fetch github token from memory
-  new Promise((resolve) => {
+  new Promise<string | void>((resolve) => {
     chrome.storage.local.get(
       'githubInspectorToken',
       async ({ githubInspectorToken }) => {
@@ -21,19 +23,29 @@ export const initToken = () =>
 
 export const initUrl = () =>
   // get current tab url if it is a github repo
-  new Promise((resolve) => {
+  new Promise<string>((resolve) => {
     chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       const { url } = tabs[0];
       resolve(url?.includes('https://github.com/') ? url : '');
     });
   });
 
-export const timeout = (ms) =>
+export const timeout = (ms: number) =>
   new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 
-export const popupCenter = ({ url, title, w, h }) => {
+export const popupCenter = ({
+  url,
+  title,
+  w,
+  h,
+}: {
+  url: string;
+  title: string;
+  w: number;
+  h: number;
+}) => {
   // Fixes dual-screen position                             Most browsers      Firefox
   const dualScreenLeft =
     window.screenLeft !== undefined ? window.screenLeft : window.screenX;
@@ -81,17 +93,20 @@ export const getOwnTabs = () =>
     ),
   );
 
-export const createName = (repo) => {
+export const createName = (repo: string) => {
   // remove any parts of url beyond repo name
   const urlParts = repo.split('/');
   return `${urlParts[3]}/${urlParts[4]}`;
 };
 
-export const octokitRepoUrl = (repo) =>
+export const octokitRepoUrl = (repo: string) =>
   // get repo name for octokit
   `/repos/${createName(repo)}`;
 
-export const asyncForEach = async (array, callback) => {
+export const asyncForEach = async (
+  array: any[],
+  callback: (item: any, index: number, array: any[]) => Promise<void>,
+) => {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }

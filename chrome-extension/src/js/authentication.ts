@@ -8,8 +8,11 @@ export class Authentication {
   // This allows us to open a url for logging in with google which is associated to the same user who we just created. On the next time
   // the chrome extension will be opened, the user will be refreshed with the new data from google.
 
+  currentUser: CurrentUser;
+
   constructor() {
     this.currentUser = {};
+
     chrome.storage.local.get(async ({ CURRENT_USER }) => {
       let currentUser = CURRENT_USER;
 
@@ -25,12 +28,13 @@ export class Authentication {
         currentUser = data;
         await chrome.storage.local.set({ CURRENT_USER: currentUser });
       }
+
       this.currentUser = CURRENT_USER;
     });
   }
 
   getStoredUser() {
-    return new Promise((resolve) => {
+    return new Promise<CurrentUser>((resolve) => {
       chrome.storage.local.get(async ({ CURRENT_USER }) => {
         resolve(CURRENT_USER);
       });
@@ -48,9 +52,10 @@ export class Authentication {
       w: 100,
       h: 100,
     });
+
     // close popup once the login is complete
     const timer = setInterval(() => {
-      if (loginPopup.closed) {
+      if (loginPopup?.closed) {
         clearInterval(timer);
       }
     }, 1000);

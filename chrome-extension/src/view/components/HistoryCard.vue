@@ -1,3 +1,68 @@
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { auth } from '@/js/authentication';
+import { api } from '@/js/api';
+
+import type { PropType } from 'vue';
+
+export default defineComponent({
+  props: {
+    repoData: {
+      type: Object as PropType<Downloader>,
+      required: true,
+    },
+  },
+  emits: ['remove', 'resend'],
+  data() {
+    return {
+      resendLoading: false,
+    };
+  },
+  methods: {
+    typeStatus(v: boolean) {
+      return v ? '✓' : '✗';
+    },
+    remove() {
+      this.$emit('remove', {});
+    },
+    dateTime(date: string | number | Date) {
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      };
+
+      const d = new Date(date);
+      return `${d.toLocaleDateString('en-US', options)} ${d.toLocaleTimeString(
+        'en-US',
+      )}`;
+    },
+    resendEmail(repoId: string | null) {
+      const user = auth.currentUser;
+
+      this.resendLoading = true;
+
+      api.get(`repository/${repoId}/resend/?user_id=${user.uuid}`).then(
+        (r) => {
+          if (r === 'success') {
+            this.$emit('resend', true);
+          } else {
+            this.$emit('resend', false);
+          }
+          this.resendLoading = false;
+        },
+        (error) => {
+          this.resendLoading = true;
+          this.$emit('resend', false);
+          console.log(error);
+        },
+      );
+    },
+  },
+});
+</script>
+
 <template>
   <article class="history-window">
     <div class="close-wrap">
@@ -42,7 +107,7 @@
     <footer>
       <details>
         <summary>
-          {{ dateTime(repoData.date) }}
+          {{ repoData.date !== null && dateTime(repoData.date) }}
         </summary>
         <li>Stars: {{ repoData.stargazers_count }}</li>
         <li>Forks: {{ repoData.forks_count }}</li>
@@ -50,60 +115,6 @@
     </footer>
   </article>
 </template>
-
-<script>
-import { auth } from '@/js/authentication';
-import { api } from '@/js/api';
-
-export default {
-  props: ['repoData'],
-  emits: ['remove', 'resend'],
-  data() {
-    return {
-      resendLoading: false,
-    };
-  },
-  methods: {
-    typeStatus(v) {
-      return v ? '✓' : '✗';
-    },
-    remove() {
-      this.$emit('remove', {});
-    },
-    dateTime(date) {
-      const options = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      };
-      const d = new Date(date);
-      return `${d.toLocaleDateString('en-US', options)} ${d.toLocaleTimeString(
-        'en-US',
-      )}`;
-    },
-    resendEmail(repoId) {
-      const user = auth.currentUser;
-      this.resendLoading = true;
-      api.get(`repository/${repoId}/resend/?user_id=${user.uuid}`).then(
-        (r) => {
-          if (r === 'success') {
-            this.$emit('resend', true);
-          } else {
-            this.$emit('resend', false);
-          }
-          this.resendLoading = false;
-        },
-        (error) => {
-          this.resendLoading = true;
-          this.$emit('resend', false);
-          console.log(error);
-        },
-      );
-    },
-  },
-};
-</script>
 
 <style>
 .pull-right {

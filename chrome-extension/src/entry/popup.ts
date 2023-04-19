@@ -13,7 +13,14 @@ import { historyStore } from '@/js/store/history';
 import settings from '@/js/env';
 import Rollbar from 'rollbar';
 
-export const initialData = {
+interface InitialData {
+  token: null | void | string;
+  url: null | string;
+  history: null | History;
+  downloader: null | Downloader;
+}
+
+export const initialData: InitialData = {
   token: null,
   url: null,
   history: null,
@@ -49,7 +56,11 @@ export const initialData = {
   // just add `vm.$rollbar.error(err)` to the top of it.
   // If not, this simple example will preserve the app’s existing
   // behavior while also reporting uncaught errors to Rollbar.
-  app.config.globalProperties.errorHandler = (err, vm, info = null) => {
+  app.config.globalProperties.errorHandler = (
+    err: any,
+    vm: any,
+    info = null,
+  ) => {
     vm.$rollbar.error(err);
     console.log(err, info);
     throw err; // rethrow

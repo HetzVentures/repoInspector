@@ -1,4 +1,6 @@
 class Api {
+  urlBase: string;
+
   constructor() {
     this.urlBase = 'https://www.hetzventures.org/';
   }

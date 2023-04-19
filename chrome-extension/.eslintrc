@@ -7,18 +7,18 @@
     "extends": [
         "prettier"
     ],
-    "plugins": [
-        "prettier"
-    ],
     "overrides": [
         {
-            "files": "**/*.+(ts|tsx|js|jsx|vue)",
+            "files": "**/*.+(ts|tsx|vue)",
+            "excludedFiles": "**/*.+(js|jsx)",
             "parser": "vue-eslint-parser",
             "parserOptions": {
-                "parser": "@babel/eslint-parser",
-                "babelOptions": {
-                    "configFile": "./babel.config.js"
-                }
+                "parser": "@typescript-eslint/parser",
+                "project": "./tsconfig.json",
+                "sourceType": "module",
+                "extraFileExtensions": [
+                    ".vue"
+                ]
             },
             "extends": [
                 // 'eslint:recommended',
@@ -27,7 +27,8 @@
                 "prettier"
             ],
             "plugins": [
-                "prettier"
+                "prettier",
+                "@typescript-eslint"
             ],
             "rules": {
                 // Enable Prettier rules from .prettierrc.js
@@ -52,7 +53,7 @@
                         ]
                     }
                 ],
-                // (A -> B -> A) imports - may occure in ducks, sagas, etc
+                // (A -> B -> A) imports
                 "import/no-cycle": 0,
                 // Be able to declare variables even if you have the other vars with the same name in upper scope(useful for Redux action creators)
                 "no-shadow": 0,
@@ -77,7 +78,8 @@
                 "no-alert": 0,
                 // $FixMe: Temporary disable some rules causing errors
                 "class-methods-use-this": 0,
-                "vue/require-prop-types": 0
+                // https://github.com/vuejs/vue-eslint-parser/issues/99
+                "no-undef": 0
             }
         }
     ],

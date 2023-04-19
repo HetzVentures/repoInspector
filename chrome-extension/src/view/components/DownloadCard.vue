@@ -1,3 +1,51 @@
+<script lang="ts">
+import { defineComponent } from 'vue';
+
+import type { PropType } from 'vue';
+
+export default defineComponent({
+  props: {
+    downloader: {
+      type: Object as PropType<Downloader>,
+      required: true,
+    },
+  },
+  emits: ['remove'],
+  methods: {
+    remove() {
+      this.$emit('remove', {});
+    },
+    progress(progress: Progress) {
+      if (progress?.current && progress?.max) {
+        return `${((progress.current / progress.max) * 100).toFixed(0)}%`;
+      }
+
+      return 0;
+    },
+    typeStatus(v: boolean) {
+      return v ? '✓' : '✗';
+    },
+    timeRemaining(progress: Progress) {
+      const ESTIMATED_SECONDS_PER_CALL = 1.2;
+      if (progress?.current && progress?.max) {
+        const totalMinutes =
+          ((progress.max - progress.current) * ESTIMATED_SECONDS_PER_CALL) / 60;
+        if (totalMinutes > 1) {
+          return `${totalMinutes.toFixed(0)} Minutes`;
+        }
+        if (totalMinutes) {
+          return 'Less than 1 minute';
+        }
+        if (!totalMinutes) {
+          return 'Done';
+        }
+      }
+      return 'Not sure yet';
+    },
+  },
+});
+</script>
+
 <template>
   <article class="download-window">
     <div class="close-wrap">
@@ -69,44 +117,6 @@
     </footer>
   </article>
 </template>
-
-<script>
-export default {
-  props: ['downloader'],
-  emits: ['remove'],
-  methods: {
-    remove() {
-      this.$emit('remove', {});
-    },
-    progress(progress) {
-      if (progress?.current && progress?.max) {
-        return `${((progress.current / progress.max) * 100).toFixed(0)}%`;
-      }
-      return 0;
-    },
-    typeStatus(v) {
-      return v ? '✓' : '✗';
-    },
-    timeRemaining(progress) {
-      const ESTIMATED_SECONDS_PER_CALL = 1.2;
-      if (progress?.current && progress?.max) {
-        const totalMinutes =
-          ((progress.max - progress.current) * ESTIMATED_SECONDS_PER_CALL) / 60;
-        if (totalMinutes > 1) {
-          return `${totalMinutes.toFixed(0)} Minutes`;
-        }
-        if (totalMinutes) {
-          return 'Less than 1 minute';
-        }
-        if (!totalMinutes) {
-          return 'Done';
-        }
-      }
-      return 'Not sure yet';
-    },
-  },
-};
-</script>
 
 <style>
 .text {

@@ -13,13 +13,13 @@ class DownloaderStore {
     await chrome.storage.local.set({ DOWNLOADER: DOWNLOADER_MODEL });
   }
 
-  async set(DOWNLOADER) {
+  async set(DOWNLOADER: Downloader) {
     // set data for url in DOWNLOADER
     await chrome.storage.local.set({ DOWNLOADER });
   }
 
   get() {
-    return new Promise((resolve) => {
+    return new Promise<Downloader>((resolve) => {
       chrome.storage.local.get(async ({ DOWNLOADER }) => {
         resolve(DOWNLOADER);
       });

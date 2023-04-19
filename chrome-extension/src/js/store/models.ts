@@ -2,7 +2,7 @@ export const HISTORY_MODEL = [];
 
 export const NOTIFICATION_MODEL = [];
 
-export const DOWNLOADER_MODEL = {
+export const DOWNLOADER_MODEL: Downloader = {
   id: null,
   active: false,
   stage: 0,

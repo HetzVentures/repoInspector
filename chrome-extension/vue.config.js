@@ -26,7 +26,7 @@ chromeName.forEach((name) => {
 
 const isDevMode = process.env.NODE_ENV === 'development';
 
-module.exports = {
+const config = {
   pages,
   filenameHashing: false,
   chainWebpack: (config) => {
@@ -44,6 +44,10 @@ module.exports = {
         ],
       },
     ]);
+
+    config.module.rule('ts');
+    config.module.rule('ts').use('ts-loader');
+    config.module.rule('ts').use('cache-loader');
   },
   configureWebpack: {
     output: {
@@ -56,3 +60,5 @@ module.exports = {
     extract: false, // Make sure the css is the same
   },
 };
+
+module.exports = config;
