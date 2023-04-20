@@ -24,6 +24,7 @@
                 // 'eslint:recommended',
                 "plugin:vue/vue3-recommended",
                 "airbnb-base",
+                "airbnb-typescript/base'",
                 "prettier"
             ],
             "plugins": [
@@ -96,8 +97,6 @@
                 "extensions": [
                     ".ts",
                     ".tsx",
-                    ".js",
-                    ".jsx",
                     ".json",
                     ".vue"
                 ]

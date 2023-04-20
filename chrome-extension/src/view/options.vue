@@ -154,7 +154,7 @@ export default {
           {{ message }}
         </div>
       </Transition>
-      <img src="images/repo-banner.gif" />
+      <img src="/images/repo-banner.gif" />
       <kbd v-if="downloader?.active" class="header-margin" aria-busy="true">
         Closing this page will stop the inspection
       </kbd>

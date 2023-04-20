@@ -185,7 +185,7 @@ export default {
           {{ error }}
         </div>
       </Transition>
-      <img class="header-margin" src="images/popup-header.gif" />
+      <img class="header-margin" src="/images/popup-header.gif" />
       <div class="header-margin"></div>
       <template v-if="!token">
         <article>
@@ -267,12 +267,11 @@ export default {
           default data (Only Stars) or another option from the menu below. Then
           click Inspect.
         </article>
-        <article v-if="!downloader?.active">
+        <article v-if="downloader !== null && !downloader.active">
           <header>Settings</header>
           <fieldset>
             <label for="stars">
               <input
-                v-if="downloader?.settings.stars"
                 id="stars"
                 v-model="downloader.settings.stars"
                 type="checkbox"
@@ -286,7 +285,6 @@ export default {
           <fieldset>
             <label for="forks">
               <input
-                v-if="downloader?.settings.forks"
                 id="forks"
                 v-model="downloader.settings.forks"
                 type="checkbox"
@@ -300,7 +298,6 @@ export default {
           <fieldset>
             <label for="sample">
               <input
-                v-if="downloader?.settings.sample"
                 id="sample"
                 v-model="downloader.settings.sample"
                 type="checkbox"
