@@ -1,10 +1,11 @@
-import { asyncForEach, initToken, timeout } from './helpers';
-import { initOctokit } from './octokit';
-import { userUrlQueue } from './userUrlQueue';
-import { downloaderStore } from './store/downloader';
+import { asyncForEach, initToken, timeout } from "./helpers";
+import { initOctokit } from "./octokit";
+import { userUrlQueue } from "./userUrlQueue";
+import { downloaderStore } from "./store/downloader";
+import { Octokit } from "@octokit/core";
 
 // let running = {stargazers: false, forks: false};
-let octokit;
+let octokit: Octokit;
 const PER_PAGE = 100;
 
 initToken().then((token) => {
@@ -12,26 +13,26 @@ initToken().then((token) => {
 });
 
 class RepoInspector {
-  constructor() {
-    this.currentRepo = null;
-  }
+  // constructor() {
+  //   this.currentRepo = null;
+  // }
 
-  async inspectAssets(downloader) {
+  async inspectAssets(downloader: Downloader) {
     // Set up the inspectionParams based on the inspection settings
     const inspectionParams = [];
 
     if (downloader.settings?.stars) {
       inspectionParams.push({
-        mapper: (data) => data.map((x) => x.url),
-        type: 'stargazers',
+        mapper: (data: any[]) => data.map((x) => x.url),
+        type: "stargazers",
         max: downloader.stargazers_count,
       });
     }
 
     if (downloader.settings?.forks) {
       inspectionParams.push({
-        mapper: (data) => data.map((x) => x.owner.url),
-        type: 'forks',
+        mapper: (data: any[]) => data.map((x) => x.owner.url),
+        type: "forks",
         max: downloader.forks_count,
       });
     }
@@ -39,7 +40,13 @@ class RepoInspector {
     this.inspect(inspectionParams);
   }
 
-  async inspect(inspectionParams) {
+  async inspect(
+    inspectionParams: Array<{
+      type: string;
+      max: number;
+      mapper: Mapper;
+    }>
+  ) {
     // inspect function runs in the background and looks at all the users from "forks" and "stargazers" lists. For each
     // one of these categories, the octokit API will return PER_PAGE users. As the background job runs every minute, and both
     // "forks" and "stargazers" are run sequentially, this results in an initial set of API calls made to collect the users urls.
@@ -85,7 +92,7 @@ class RepoInspector {
     userUrlQueue.run();
   }
 
-  async run(type, url, mapper) {
+  async run(type: string, url: string, mapper: Mapper) {
     // TODO run over inputted url and store the data. At the end of a inspection look over all failed URLs and retry them
     // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve) => {
@@ -117,10 +124,10 @@ class RepoInspector {
             resolve(true);
           }
         });
-      } catch (error) {
-        if (error.message.includes('rel=last')) {
+      } catch (error: any) {
+        if (error.message.includes("rel=last")) {
           alert(
-            'Seems like this is a really big repo, we will start inspecting what github has allowed us',
+            "Seems like this is a really big repo, we will start inspecting what github has allowed us"
           );
           resolve(false);
         } else {

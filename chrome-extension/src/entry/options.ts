@@ -1,17 +1,17 @@
 import { createApp } from 'vue';
 import App from '@/view/options.vue';
 
-import { historyStore } from '@/js/store/history';
-import { initToken } from '@/js/helpers';
+import { historyStore } from '@/features/store/history';
+import { initToken } from '@/features/helpers';
 
 import '@picocss/pico';
 import '../assets/scss/alerts.scss';
 import '../assets/scss/transition.scss';
 import '../assets/scss/custom.scss';
 
-import { downloaderStore } from '@/js/store/downloader';
+import { downloaderStore } from '@/features/store/downloader';
 
-import settings from '@/js/env';
+import settings from '@/features/env';
 import Rollbar from 'rollbar';
 
 interface InitialData {

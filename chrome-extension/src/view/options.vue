@@ -1,11 +1,11 @@
 <script lang="ts">
 import { initialData } from '@/entry/options';
-import { repoInspector } from '@/js/repoInspector';
-import { userUrlQueue } from '@/js/userUrlQueue';
-import { downloaderStore } from '@/js/store/downloader';
-import { STAGE } from '@/js/store/models';
-import { historyStore } from '@/js/store/history';
-import { notificationStore } from '@/js/store/notification';
+import { repoInspector } from '@/features/repoInspector';
+import { userUrlQueue } from '@/features/userUrlQueue';
+import { downloaderStore } from '@/features/store/downloader';
+import { STAGE } from '@/features/store/models';
+import { historyStore } from '@/features/store/history';
+import { notificationStore } from '@/features/store/notification';
 import HistoryCard from './components/HistoryCard.vue';
 import DownloadCard from './components/DownloadCard.vue';
 

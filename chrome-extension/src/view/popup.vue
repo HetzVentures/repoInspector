@@ -1,10 +1,15 @@
 <script lang="ts">
-import { initOctokit } from '@/js/octokit';
+import { initOctokit } from '@/features/octokit';
 import { initialData } from '@/entry/popup';
-import { auth } from '@/js/authentication';
-import { createName, getOwnTabs, octokitRepoUrl, timeout } from '@/js/helpers';
-import { downloaderStore } from '@/js/store/downloader';
-import { historyStore } from '@/js/store/history';
+import { auth } from '@/features/authentication';
+import {
+  createName,
+  getOwnTabs,
+  octokitRepoUrl,
+  timeout,
+} from '@/features/helpers';
+import { downloaderStore } from '@/features/store/downloader';
+import { historyStore } from '@/features/store/history';
 import DownloadCard from './components/DownloadCard.vue';
 
 interface PopupData {

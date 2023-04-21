@@ -64,6 +64,7 @@ export const popupCenter = ({
   const systemZoom = width / window.screen.availWidth;
   const left = (width - w) / 2 / systemZoom + dualScreenLeft;
   const top = (height - h) / 2 / systemZoom + dualScreenTop;
+
   const newWindow = window.open(
     url,
     title,
@@ -76,7 +77,10 @@ export const popupCenter = ({
     `,
   );
 
-  if (window.focus) newWindow.focus();
+  if (newWindow && newWindow !== null) {
+    newWindow.focus();
+  }
+
   return newWindow;
 };
 
@@ -87,7 +91,7 @@ export const getOwnTabs = () =>
       (view) =>
         new Promise((resolve) => {
           view.chrome.tabs.getCurrent((tab) =>
-            resolve(Object.assign(tab, { url: view.location.href })),
+            resolve(Object.assign(tab || {}, { url: view.location.href })),
           );
         }),
     ),

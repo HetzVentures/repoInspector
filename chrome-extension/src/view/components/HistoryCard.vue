@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { auth } from '@/js/authentication';
-import { api } from '@/js/api';
+import { auth } from '@/features/authentication';
+import { api } from '@/features/api';
 
 import type { PropType } from 'vue';
 

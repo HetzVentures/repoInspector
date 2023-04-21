@@ -7,9 +7,9 @@ export const DOWNLOADER_MODEL: Downloader = {
   active: false,
   stage: 0,
   date: null,
-  url: '',
-  octokitUrl: '',
-  name: '',
+  url: "",
+  octokitUrl: "",
+  name: "",
   progress: {
     current: 0,
     max: 0,
@@ -30,7 +30,7 @@ export const USER_DB = {
   forks_urls: [],
   stargazers: {},
   stargazers_urls: [],
-  repo: '',
+  repo: "",
 };
 
 export const STAGE = {
@@ -42,13 +42,19 @@ export const STAGE = {
 };
 
 export class Queue {
+  items: {
+    [key: number]: any;
+  };
+  headIndex: number;
+  tailIndex: number;
+
   constructor() {
     this.items = {};
     this.headIndex = 0;
     this.tailIndex = 0;
   }
 
-  enqueue(item) {
+  enqueue(item: any) {
     this.items[this.tailIndex] = item;
     this.tailIndex++;
   }

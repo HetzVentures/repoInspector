@@ -6,11 +6,11 @@ import '../assets/scss/alerts.scss';
 import '../assets/scss/transition.scss';
 import '../assets/scss/custom.scss';
 
-import { initToken, initUrl } from '@/js/helpers';
-import { downloaderStore } from '@/js/store/downloader';
-import { historyStore } from '@/js/store/history';
+import { initToken, initUrl } from '@/features/helpers';
+import { downloaderStore } from '@/features/store/downloader';
+import { historyStore } from '@/features/store/history';
 
-import settings from '@/js/env';
+import settings from '@/features/env';
 import Rollbar from 'rollbar';
 
 interface InitialData {

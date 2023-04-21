@@ -1,19 +1,19 @@
 /* eslint-disable no-unused-vars */
 
-interface Progress {
+type Progress = {
   current: number;
   max: number;
-}
+};
 
-interface Settings {
+type Settings = {
   stars: boolean;
   forks: boolean;
   location: boolean;
   sample: boolean;
   samplePercent: number;
-}
+};
 
-interface Downloader {
+type Downloader = {
   id: null | string;
   active: boolean;
   stage: number;
@@ -25,7 +25,7 @@ interface Downloader {
   forks_count: number;
   octokitUrl: string;
   settings: Settings;
-}
+};
 
 type History = Downloader[];
 
@@ -33,3 +33,10 @@ type CurrentUser = {
   uuid?: string;
   email?: string;
 };
+
+type NotificationType = {
+  type: string;
+  message: string;
+};
+
+type Mapper = (data: any[]) => any[];

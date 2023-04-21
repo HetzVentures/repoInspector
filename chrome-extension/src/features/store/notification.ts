@@ -14,9 +14,9 @@ export class NotificationStore {
     });
   }
 
-  set(value) {
+  set(value: NotificationType) {
     // set data for url in NOTIFICATION_STORE
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       chrome.storage.local.get(async ({ NOTIFICATION_STORE }) => {
         NOTIFICATION_STORE.unshift(value);
         chrome.storage.local.set({ NOTIFICATION_STORE });
@@ -26,16 +26,16 @@ export class NotificationStore {
   }
 
   get() {
-    return new Promise((resolve) => {
+    return new Promise<NotificationType[]>((resolve) => {
       chrome.storage.local.get(async ({ NOTIFICATION_STORE }) => {
         resolve(NOTIFICATION_STORE || []);
       });
     });
   }
 
-  remove(i) {
+  remove(i: number) {
     // remove data for url in NOTIFICATION_STORE
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       chrome.storage.local.get(async ({ NOTIFICATION_STORE }) => {
         NOTIFICATION_STORE.splice(i, 1);
         chrome.storage.local.set({ NOTIFICATION_STORE });
@@ -44,10 +44,15 @@ export class NotificationStore {
     });
   }
 
-  async checkTabFocused(document, showMessage, showError) {
+  async checkTabFocused(
+    document: Document,
+    showMessage: (v: string) => void,
+    showError: (v: string) => void,
+  ) {
     // check if tab is focused and show notifications
     if (document.visibilityState === 'visible') {
       const notifications = await this.get();
+
       for (let i = 0; i < notifications.length; i++) {
         const notification = notifications[i];
         if (notification.type === NOTIFICATION_TYPES.ERROR) {
@@ -60,7 +65,11 @@ export class NotificationStore {
     }
   }
 
-  initTabFocusListener(document, showMessage, showError) {
+  initTabFocusListener(
+    document: Document,
+    showMessage: (v: string) => void,
+    showError: (v: string) => void,
+  ) {
     // check if tab is focused and show notifications
     const runCheckTabFocused = async () => {
       this.checkTabFocused(document, showMessage, showError);

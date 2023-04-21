@@ -1,4 +1,4 @@
-import { downloaderStore } from '@/js/store/downloader';
+import { downloaderStore } from '@/features/store/downloader';
 
 const checkDownloadPage = async () => {
   chrome.tabs
