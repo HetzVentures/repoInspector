@@ -1,18 +1,18 @@
-import { createApp } from 'vue';
-import App from '@/view/options.vue';
+import { createApp } from "vue";
+import App from "@/view/options.vue";
 
-import { historyStore } from '@/features/store/history';
-import { initToken } from '@/features/helpers';
+import { historyStore } from "@/features/store/history";
+import { initToken } from "@/features/helpers";
 
-import '@picocss/pico';
-import '../assets/scss/alerts.scss';
-import '../assets/scss/transition.scss';
-import '../assets/scss/custom.scss';
+import "@picocss/pico";
+import "../assets/scss/alerts.scss";
+import "../assets/scss/transition.scss";
+import "../assets/scss/custom.scss";
 
-import { downloaderStore } from '@/features/store/downloader';
+import { downloaderStore } from "@/features/store/downloader";
 
-import settings from '@/features/env';
-import Rollbar from 'rollbar';
+import settings from "@/features/env";
+import Rollbar from "rollbar";
 
 interface InitialData {
   token: null | void | string;
@@ -44,9 +44,9 @@ export const initialData: InitialData = {
     captureUnhandledRejections: true,
     payload: {
       // Track your events to a specific version of code for better visibility into version health
-      code_version: '1.0.0',
+      code_version: "1.0.0",
       // Add custom data to your events by adding custom key/value pairs like the one below
-      custom_data: 'foo',
+      custom_data: "foo",
     },
   });
 
@@ -57,21 +57,21 @@ export const initialData: InitialData = {
   app.config.globalProperties.errorHandler = (
     err: any,
     vm: any,
-    info = null,
+    info = null
   ) => {
     vm.$rollbar.error(err);
     console.log(err, info);
     throw err; // rethrow
   };
 
-  app.mount('#app');
+  app.mount("#app");
 })();
 
 // prevent users from closing download page by mistake
 const preventClose = (e: BeforeUnloadEvent) => {
   e.preventDefault();
-  e.returnValue = '';
+  e.returnValue = "";
   return true;
 };
 
-window.addEventListener('beforeunload', preventClose, true);
+window.addEventListener("beforeunload", preventClose, true);

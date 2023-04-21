@@ -1,8 +1,8 @@
+import { Octokit } from "@octokit/core";
 import { asyncForEach, initToken, timeout } from "./helpers";
 import { initOctokit } from "./octokit";
 import { userUrlQueue } from "./userUrlQueue";
 import { downloaderStore } from "./store/downloader";
-import { Octokit } from "@octokit/core";
 
 // let running = {stargazers: false, forks: false};
 let octokit: Octokit;

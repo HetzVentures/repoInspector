@@ -1,8 +1,8 @@
-import { NOTIFICATION_MODEL } from './models';
+import { NOTIFICATION_MODEL } from "./models";
 
 export const NOTIFICATION_TYPES = {
-  SUCCESS: 'success',
-  ERROR: 'error',
+  SUCCESS: "success",
+  ERROR: "error",
 };
 
 export class NotificationStore {
@@ -47,10 +47,10 @@ export class NotificationStore {
   async checkTabFocused(
     document: Document,
     showMessage: (v: string) => void,
-    showError: (v: string) => void,
+    showError: (v: string) => void
   ) {
     // check if tab is focused and show notifications
-    if (document.visibilityState === 'visible') {
+    if (document.visibilityState === "visible") {
       const notifications = await this.get();
 
       for (let i = 0; i < notifications.length; i++) {
@@ -68,14 +68,14 @@ export class NotificationStore {
   initTabFocusListener(
     document: Document,
     showMessage: (v: string) => void,
-    showError: (v: string) => void,
+    showError: (v: string) => void
   ) {
     // check if tab is focused and show notifications
     const runCheckTabFocused = async () => {
       this.checkTabFocused(document, showMessage, showError);
     };
     // init listener for tab focus
-    document.addEventListener('visibilitychange', runCheckTabFocused);
+    document.addEventListener("visibilitychange", runCheckTabFocused);
   }
 }
 

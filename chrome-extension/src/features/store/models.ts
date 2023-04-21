@@ -45,7 +45,9 @@ export class Queue {
   items: {
     [key: number]: any;
   };
+
   headIndex: number;
+
   tailIndex: number;
 
   constructor() {

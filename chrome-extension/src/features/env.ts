@@ -1,5 +1,5 @@
 const settings = {
-  rollbarAccessToken: '',
+  rollbarAccessToken: "",
 };
 
 export default settings;

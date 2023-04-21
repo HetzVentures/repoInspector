@@ -3,7 +3,7 @@
 export const apiUrl = (url: string) => {
   // create base API url from github url if it has more parts than the base url
   // (for instance, if it is https://github.com/octokit/core.js/issues instead of https://github.com/octokit/core.js)
-  const urlParts = url.split('/');
+  const urlParts = url.split("/");
   return `/repos/${urlParts[3]}/${urlParts[4]}`;
 };
 
@@ -11,13 +11,13 @@ export const initToken = () =>
   // fetch github token from memory
   new Promise<string | void>((resolve) => {
     chrome.storage.local.get(
-      'githubInspectorToken',
+      "githubInspectorToken",
       async ({ githubInspectorToken }) => {
         if (githubInspectorToken) {
           resolve(githubInspectorToken);
         }
         resolve();
-      },
+      }
     );
   });
 
@@ -26,7 +26,7 @@ export const initUrl = () =>
   new Promise<string>((resolve) => {
     chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       const { url } = tabs[0];
-      resolve(url?.includes('https://github.com/') ? url : '');
+      resolve(url?.includes("https://github.com/") ? url : "");
     });
   });
 
@@ -74,7 +74,7 @@ export const popupCenter = ({
     height=${h / systemZoom},
     top=${top},
     left=${left}
-    `,
+    `
   );
 
   if (newWindow && newWindow !== null) {
@@ -87,19 +87,19 @@ export const popupCenter = ({
 // check if download tab is open
 export const getOwnTabs = () =>
   Promise.all(
-    chrome.extension.getViews({ type: 'tab' }).map(
+    chrome.extension.getViews({ type: "tab" }).map(
       (view) =>
         new Promise((resolve) => {
           view.chrome.tabs.getCurrent((tab) =>
-            resolve(Object.assign(tab || {}, { url: view.location.href })),
+            resolve(Object.assign(tab || {}, { url: view.location.href }))
           );
-        }),
-    ),
+        })
+    )
   );
 
 export const createName = (repo: string) => {
   // remove any parts of url beyond repo name
-  const urlParts = repo.split('/');
+  const urlParts = repo.split("/");
   return `${urlParts[3]}/${urlParts[4]}`;
 };
 
@@ -109,7 +109,7 @@ export const octokitRepoUrl = (repo: string) =>
 
 export const asyncForEach = async (
   array: any[],
-  callback: (item: any, index: number, array: any[]) => Promise<void>,
+  callback: (item: any, index: number, array: any[]) => Promise<void>
 ) => {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);

@@ -1,5 +1,5 @@
-import { popupCenter } from './helpers';
-import { api } from './api';
+import { popupCenter } from "./helpers";
+import { api } from "./api";
 
 export class Authentication {
   // Authentication is done via google oauth2 flow. As at the time of developing this extension google did not support login directly
@@ -19,7 +19,7 @@ export class Authentication {
       if (!CURRENT_USER) {
         // create user for this extension instance to send emails to,
         // at this point there is no data from the user aside from the uuid
-        const data = await api.post('login/email_user/');
+        const data = await api.post("login/email_user/");
         currentUser = data;
         await chrome.storage.local.set({ CURRENT_USER: currentUser });
       } else if (CURRENT_USER.uuid && !CURRENT_USER.email) {
@@ -48,7 +48,7 @@ export class Authentication {
   loginWithGoogle() {
     const loginPopup = popupCenter({
       url: `${api.urlBase}login/${this.currentUser.uuid}`,
-      title: 'login',
+      title: "login",
       w: 100,
       h: 100,
     });

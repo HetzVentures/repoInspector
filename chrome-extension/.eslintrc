@@ -24,7 +24,7 @@
                 // 'eslint:recommended',
                 "plugin:vue/vue3-recommended",
                 "airbnb-base",
-                "airbnb-typescript/base'",
+                "airbnb-typescript/base",
                 "prettier"
             ],
             "plugins": [
@@ -80,7 +80,8 @@
                 // $FixMe: Temporary disable some rules causing errors
                 "class-methods-use-this": 0,
                 // https://github.com/vuejs/vue-eslint-parser/issues/99
-                "no-undef": 0
+                "no-undef": 0,
+                "@typescript-eslint/naming-convention": 0
             }
         }
     ],

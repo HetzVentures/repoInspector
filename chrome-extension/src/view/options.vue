@@ -1,13 +1,13 @@
 <script lang="ts">
-import { initialData } from '@/entry/options';
-import { repoInspector } from '@/features/repoInspector';
-import { userUrlQueue } from '@/features/userUrlQueue';
-import { downloaderStore } from '@/features/store/downloader';
-import { STAGE } from '@/features/store/models';
-import { historyStore } from '@/features/store/history';
-import { notificationStore } from '@/features/store/notification';
-import HistoryCard from './components/HistoryCard.vue';
-import DownloadCard from './components/DownloadCard.vue';
+import { initialData } from "@/entry/options";
+import { repoInspector } from "@/features/repoInspector";
+import { userUrlQueue } from "@/features/userUrlQueue";
+import { downloaderStore } from "@/features/store/downloader";
+import { STAGE } from "@/features/store/models";
+import { historyStore } from "@/features/store/history";
+import { notificationStore } from "@/features/store/notification";
+import HistoryCard from "./components/HistoryCard.vue";
+import DownloadCard from "./components/DownloadCard.vue";
 
 const HISTORY_JUMPS = 10;
 
@@ -25,7 +25,7 @@ interface OptionsData {
 }
 
 export default {
-  name: 'OptionsView',
+  name: "OptionsView",
   components: { DownloadCard, HistoryCard },
   data(): OptionsData {
     return {
@@ -69,7 +69,7 @@ export default {
     notificationStore.initTabFocusListener(
       document,
       this.showMessage,
-      this.showError,
+      this.showError
     );
   },
   methods: {
@@ -95,7 +95,7 @@ export default {
       notificationStore.checkTabFocused(
         document,
         this.showMessage,
-        this.showError,
+        this.showError
       );
     },
     async cancelUrl() {
@@ -113,9 +113,9 @@ export default {
     showResult(result: boolean) {
       // show result of a repo being resent
       if (result) {
-        this.showMessage('Repo resent successfully');
+        this.showMessage("Repo resent successfully");
       } else {
-        this.showError('Something went wrong. Please try again later.');
+        this.showError("Something went wrong. Please try again later.");
       }
     },
     showError(error: null | string) {

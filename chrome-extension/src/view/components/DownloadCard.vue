@@ -1,7 +1,7 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent } from "vue";
 
-import type { PropType } from 'vue';
+import type { PropType } from "vue";
 
 export default defineComponent({
   props: {
@@ -10,10 +10,10 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['remove'],
+  emits: ["remove"],
   methods: {
     remove() {
-      this.$emit('remove', {});
+      this.$emit("remove", {});
     },
     progress(progress: Progress) {
       if (progress?.current && progress?.max) {
@@ -23,7 +23,7 @@ export default defineComponent({
       return 0;
     },
     typeStatus(v: boolean) {
-      return v ? '✓' : '✗';
+      return v ? "✓" : "✗";
     },
     timeRemaining(progress: Progress) {
       const ESTIMATED_SECONDS_PER_CALL = 1.2;
@@ -34,13 +34,13 @@ export default defineComponent({
           return `${totalMinutes.toFixed(0)} Minutes`;
         }
         if (totalMinutes) {
-          return 'Less than 1 minute';
+          return "Less than 1 minute";
         }
         if (!totalMinutes) {
-          return 'Done';
+          return "Done";
         }
       }
-      return 'Not sure yet';
+      return "Not sure yet";
     },
   },
 });
@@ -68,8 +68,8 @@ export default defineComponent({
     {{ typeStatus(downloader.settings?.sample) }} Sample
     {{
       downloader.settings?.samplePercent
-        ? downloader.settings?.samplePercent + '%'
-        : ''
+        ? downloader.settings?.samplePercent + "%"
+        : ""
     }}
     <footer>
       <details>
@@ -149,7 +149,7 @@ export default defineComponent({
 .close:after {
   position: absolute;
   left: 15px;
-  content: ' ';
+  content: " ";
   height: 16px;
   width: 2px;
   background-color: #333;
