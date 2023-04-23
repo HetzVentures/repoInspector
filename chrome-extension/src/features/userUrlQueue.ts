@@ -2,7 +2,7 @@ import { Octokit } from "@octokit/core";
 import { initOctokit } from "./octokit";
 import { api } from "./api";
 import { auth } from "./authentication";
-import { initToken, timeout } from "./helpers";
+import { initToken, timeout } from "./utils";
 import { downloaderStore } from "./store/downloader";
 import { historyStore } from "./store/history";
 import { DOWNLOADER_MODEL, Queue, STAGE } from "./store/models";

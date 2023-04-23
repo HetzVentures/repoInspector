@@ -6,7 +6,7 @@ import "../assets/scss/alerts.scss";
 import "../assets/scss/transition.scss";
 import "../assets/scss/custom.scss";
 
-import { initToken, initUrl } from "@/features/helpers";
+import { initToken, initUrl } from "@/features/utils";
 import { downloaderStore } from "@/features/store/downloader";
 import { historyStore } from "@/features/store/history";
 
@@ -33,8 +33,6 @@ export const initialData: InitialData = {
   initialData.url = await initUrl();
   initialData.downloader = await downloaderStore.get();
   initialData.history = await historyStore.get();
-
-  console.log("history ::: ", initialData.history);
 
   const app = createApp(App);
 

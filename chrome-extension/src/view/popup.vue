@@ -2,14 +2,14 @@
 import { initOctokit } from "@/features/octokit";
 import { initialData } from "@/entry/popup";
 import { auth } from "@/features/authentication";
+import { downloaderStore } from "@/features/store/downloader";
+import { historyStore } from "@/features/store/history";
 import {
   createName,
   getOwnTabs,
   octokitRepoUrl,
   timeout,
-} from "@/features/helpers";
-import { downloaderStore } from "@/features/store/downloader";
-import { historyStore } from "@/features/store/history";
+} from "@/features/utils";
 import DownloadCard from "./components/DownloadCard.vue";
 
 interface PopupData {

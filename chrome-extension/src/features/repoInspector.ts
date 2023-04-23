@@ -1,5 +1,5 @@
 import { Octokit } from "@octokit/core";
-import { asyncForEach, initToken, timeout } from "./helpers";
+import { asyncForEach, initToken, timeout } from "./utils";
 import { initOctokit } from "./octokit";
 import { userUrlQueue } from "./userUrlQueue";
 import { downloaderStore } from "./store/downloader";

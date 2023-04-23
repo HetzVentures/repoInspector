@@ -2,7 +2,7 @@ import { createApp } from "vue";
 import App from "@/view/options.vue";
 
 import { historyStore } from "@/features/store/history";
-import { initToken } from "@/features/helpers";
+import { initToken } from "@/features/utils";
 
 import "@picocss/pico";
 import "../assets/scss/alerts.scss";

@@ -1,4 +1,4 @@
-import { popupCenter } from "./helpers";
+import { popupCenter } from "./utils";
 import { api } from "./api";
 
 export class Authentication {
