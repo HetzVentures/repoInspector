@@ -18,12 +18,12 @@ class DownloaderStore {
     await chrome.storage.local.set({ DOWNLOADER });
   }
 
-  get() {
-    return new Promise<Downloader>((resolve) => {
-      chrome.storage.local.get(async ({ DOWNLOADER }) => {
-        resolve(DOWNLOADER);
-      });
-    });
+  async get(): Promise<Downloader> {
+    const { DOWNLOADER } = (await chrome.storage.local.get()) as {
+      DOWNLOADER: Downloader;
+    };
+
+    return DOWNLOADER;
   }
 }
 

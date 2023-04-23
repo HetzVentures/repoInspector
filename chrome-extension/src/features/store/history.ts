@@ -13,34 +13,27 @@ export class HistoryStore {
     await chrome.storage.local.set({ URL_HISTORY: HISTORY_MODEL });
   }
 
-  set(value: Downloader) {
-    // set data for url in URL_HISTORY
-    return new Promise<void>((resolve) => {
-      chrome.storage.local.get(async ({ URL_HISTORY }) => {
-        URL_HISTORY.unshift(value);
-        chrome.storage.local.set({ URL_HISTORY });
-        resolve();
-      });
-    });
+  async get(): Promise<HistoryType> {
+    const { URL_HISTORY = [] } = (await chrome.storage.local.get()) as {
+      URL_HISTORY: HistoryType;
+    };
+
+    return URL_HISTORY;
   }
 
-  get() {
-    return new Promise<History>((resolve) => {
-      chrome.storage.local.get(async ({ URL_HISTORY }) => {
-        resolve(URL_HISTORY || []);
-      });
-    });
+  async set(value: Downloader) {
+    const URL_HISTORY = await this.get();
+
+    await chrome.storage.local.set({ URL_HISTORY: [value, ...URL_HISTORY] });
   }
 
-  remove(i: number) {
+  async remove(i: number) {
     // remove data for url in URL_HISTORY
-    return new Promise<void>((resolve) => {
-      chrome.storage.local.get(async ({ URL_HISTORY }) => {
-        URL_HISTORY.splice(i, 1);
-        chrome.storage.local.set({ URL_HISTORY });
-        resolve();
-      });
-    });
+    const URL_HISTORY = await this.get();
+
+    URL_HISTORY.splice(i, 1);
+
+    await chrome.storage.local.set({ URL_HISTORY });
   }
 }
 

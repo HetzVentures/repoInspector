@@ -16,7 +16,7 @@ interface PopupData {
   token: null | void | string;
   newToken: null | void | string;
   repoUrl: null | string;
-  history: null | History;
+  history: null | HistoryType;
   downloader: null | Downloader;
   cancel: 0 | string;
   error: null | string;

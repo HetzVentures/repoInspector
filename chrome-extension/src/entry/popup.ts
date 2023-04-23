@@ -16,7 +16,7 @@ import Rollbar from "rollbar";
 interface InitialData {
   token: null | void | string;
   url: null | string;
-  history: null | History;
+  history: null | HistoryType;
   downloader: null | Downloader;
 }
 
@@ -33,6 +33,8 @@ export const initialData: InitialData = {
   initialData.url = await initUrl();
   initialData.downloader = await downloaderStore.get();
   initialData.history = await historyStore.get();
+
+  console.log("history ::: ", initialData.history);
 
   const app = createApp(App);
 

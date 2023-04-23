@@ -27,7 +27,7 @@ type Downloader = {
   settings: Settings;
 };
 
-type History = Downloader[];
+type HistoryType = Downloader[];
 
 type CurrentUser = {
   uuid?: string;

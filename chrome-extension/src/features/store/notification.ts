@@ -14,34 +14,29 @@ export class NotificationStore {
     });
   }
 
-  set(value: NotificationType) {
-    // set data for url in NOTIFICATION_STORE
-    return new Promise<void>((resolve) => {
-      chrome.storage.local.get(async ({ NOTIFICATION_STORE }) => {
-        NOTIFICATION_STORE.unshift(value);
-        chrome.storage.local.set({ NOTIFICATION_STORE });
-        resolve();
-      });
+  async get(): Promise<NotificationType[]> {
+    const { NOTIFICATION_STORE = [] } = (await chrome.storage.local.get()) as {
+      NOTIFICATION_STORE: NotificationType[];
+    };
+
+    return NOTIFICATION_STORE;
+  }
+
+  async set(value: NotificationType) {
+    const NOTIFICATION_STORE = await this.get();
+
+    await chrome.storage.local.set({
+      NOTIFICATION_STORE: [value, ...NOTIFICATION_STORE],
     });
   }
 
-  get() {
-    return new Promise<NotificationType[]>((resolve) => {
-      chrome.storage.local.get(async ({ NOTIFICATION_STORE }) => {
-        resolve(NOTIFICATION_STORE || []);
-      });
-    });
-  }
-
-  remove(i: number) {
+  async remove(i: number) {
     // remove data for url in NOTIFICATION_STORE
-    return new Promise<void>((resolve) => {
-      chrome.storage.local.get(async ({ NOTIFICATION_STORE }) => {
-        NOTIFICATION_STORE.splice(i, 1);
-        chrome.storage.local.set({ NOTIFICATION_STORE });
-        resolve();
-      });
-    });
+    const NOTIFICATION_STORE = await this.get();
+
+    NOTIFICATION_STORE.splice(i, 1);
+
+    await chrome.storage.local.set({ NOTIFICATION_STORE });
   }
 
   async checkTabFocused(
@@ -55,12 +50,14 @@ export class NotificationStore {
 
       for (let i = 0; i < notifications.length; i++) {
         const notification = notifications[i];
+
         if (notification.type === NOTIFICATION_TYPES.ERROR) {
           showError(notification.message);
         } else if (notification.type === NOTIFICATION_TYPES.SUCCESS) {
           showMessage(notification.message);
         }
-        this.remove(i);
+
+        await this.remove(i);
       }
     }
   }

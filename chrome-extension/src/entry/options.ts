@@ -16,7 +16,7 @@ import Rollbar from "rollbar";
 
 interface InitialData {
   token: null | void | string;
-  history: null | History;
+  history: null | HistoryType;
   downloader: null | Downloader;
 }
 

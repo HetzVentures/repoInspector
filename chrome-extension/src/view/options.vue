@@ -14,7 +14,7 @@ const HISTORY_JUMPS = 10;
 interface OptionsData {
   token: null | void | string;
   newToken: null | void | string;
-  history: null | History;
+  history: null | HistoryType;
   downloader: null | Downloader;
   cancel: 0 | string;
   error: null | string;
