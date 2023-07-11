@@ -1,0 +1,5 @@
+node_modules/
+public/
+dist/
+src/assets/
+vite.config.js

@@ -1,0 +1,137 @@
+{
+    "env": {
+        "webextensions": true,
+        "es6": true,
+        "node": true
+    },
+    "extends": [
+        "prettier"
+    ],
+    "overrides": [
+        {
+            "files": "**/*.+(ts|tsx|vue)",
+            "excludedFiles": "**/*.+(js|jsx)",
+            "parser": "vue-eslint-parser",
+            "parserOptions": {
+                "parser": "@typescript-eslint/parser",
+                "project": "./tsconfig.json",
+                "sourceType": "module",
+                "extraFileExtensions": [
+                    ".vue"
+                ]
+            },
+            "extends": [
+                "eslint:recommended",
+                "plugin:vue/vue3-recommended",
+                "airbnb-base",
+                "airbnb-typescript/base",
+                "prettier"
+            ],
+            "plugins": [
+                "@typescript-eslint",
+                "prettier"
+            ],
+            "rules": {
+                // Enable Prettier rules from .prettierrc.js
+                "prettier/prettier": [
+                    "error",
+                    {
+                        "singleQuote": true,
+                        "trailingComma": "all"
+                    }
+                ],
+                // **********
+                // *** Plain JavaScript
+                // **********
+                // Sorting imported files
+                "sort-imports": [
+                    "error",
+                    {
+                        "ignoreCase": true,
+                        "ignoreDeclarationSort": true,
+                        "ignoreMemberSort": false,
+                        "memberSyntaxSortOrder": [
+                            "none",
+                            "all",
+                            "single",
+                            "multiple"
+                        ]
+                    }
+                ],
+                // (A -> B -> A) imports
+                "import/no-cycle": 0,
+                // Be able to declare variables even if you have the other vars with the same name in upper scope(useful for Redux action creators)
+                "no-shadow": 0,
+                // Disable console.log in code
+                "no-console": 0,
+                // When there is only a single export from a module, prefer using default export over named export.
+                // I think we can export some objects withut default export, keping in mind that there will be more export sfrom this file in a future
+                "import/prefer-default-export": 0,
+                // We want to enable i++ or i--
+                "no-plusplus": 0,
+                // May need for some internal variables like __REDUX_DEVTOOLS_EXTENSION__
+                "no-underscore-dangle": 0,
+                // Sometimes we may need it - like for asyncForEach function
+                "no-await-in-loop": 0,
+                // We may use dynamic require in Node.js
+                "import/no-dynamic-require": 0,
+                "global-require": 0,
+                // We may have some not-camelCase vars when we receive a response from API
+                "camelcase": 0,
+                "import/extensions": 0,
+                // We may have alerts on Chrome extension
+                "no-alert": 0,
+                // $FixMe: Temporary disable some rules causing errors
+                "class-methods-use-this": 0,
+                // https://github.com/vuejs/vue-eslint-parser/issues/99
+                "no-undef": 0,
+                "@typescript-eslint/naming-convention": 0,
+                // https://eslint.org/docs/latest/rules/newline-before-return
+                "newline-before-return": "error",
+                // https://eslint.org/docs/latest/rules/max-statements-per-line
+                "max-statements-per-line": [
+                    "error",
+                    {
+                        "max": 1
+                    }
+                ],
+                // https://eslint.org/docs/latest/rules/padding-line-between-statements
+                "padding-line-between-statements": [
+                    "error",
+                    {
+                        "blankLine": "always",
+                        "prev": "block-like",
+                        "next": "*"
+                    },
+                    {
+                        "blankLine": "always",
+                        "prev": "*",
+                        "next": "block-like"
+                    }
+                ]
+            }
+        }
+    ],
+    "settings": {
+        // Absolute paths
+        "import/resolver": {
+            "alias": {
+                "map": [
+                    [
+                        "@",
+                        "./src"
+                    ]
+                ],
+                "extensions": [
+                    ".ts",
+                    ".tsx",
+                    ".json",
+                    ".vue"
+                ]
+            },
+            "node": {
+                "paths": "."
+            }
+        }
+    }
+}
