@@ -21,20 +21,24 @@
                 ]
             },
             "extends": [
-                // 'eslint:recommended',
+                "eslint:recommended",
                 "plugin:vue/vue3-recommended",
                 "airbnb-base",
                 "airbnb-typescript/base",
                 "prettier"
             ],
             "plugins": [
-                "prettier",
-                "@typescript-eslint"
+                "@typescript-eslint",
+                "prettier"
             ],
             "rules": {
                 // Enable Prettier rules from .prettierrc.js
                 "prettier/prettier": [
-                    "error"
+                    "error",
+                    {
+                        "singleQuote": true,
+                        "trailingComma": "all"
+                    }
                 ],
                 // **********
                 // *** Plain JavaScript
@@ -81,7 +85,30 @@
                 "class-methods-use-this": 0,
                 // https://github.com/vuejs/vue-eslint-parser/issues/99
                 "no-undef": 0,
-                "@typescript-eslint/naming-convention": 0
+                "@typescript-eslint/naming-convention": 0,
+                // https://eslint.org/docs/latest/rules/newline-before-return
+                "newline-before-return": "error",
+                // https://eslint.org/docs/latest/rules/max-statements-per-line
+                "max-statements-per-line": [
+                    "error",
+                    {
+                        "max": 1
+                    }
+                ],
+                // https://eslint.org/docs/latest/rules/padding-line-between-statements
+                "padding-line-between-statements": [
+                    "error",
+                    {
+                        "blankLine": "always",
+                        "prev": "block-like",
+                        "next": "*"
+                    },
+                    {
+                        "blankLine": "always",
+                        "prev": "*",
+                        "next": "block-like"
+                    }
+                ]
             }
         }
     ],

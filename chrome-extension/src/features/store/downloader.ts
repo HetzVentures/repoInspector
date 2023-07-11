@@ -1,4 +1,4 @@
-import { DOWNLOADER_MODEL } from "./models";
+import { DOWNLOADER_MODEL } from './models';
 
 class DownloaderStore {
   constructor() {

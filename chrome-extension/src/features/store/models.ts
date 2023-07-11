@@ -7,9 +7,9 @@ export const DOWNLOADER_MODEL: Downloader = {
   active: false,
   stage: 0,
   date: null,
-  url: "",
-  octokitUrl: "",
-  name: "",
+  url: '',
+  octokitUrl: '',
+  name: '',
   progress: {
     current: 0,
     max: 0,
@@ -30,7 +30,7 @@ export const USER_DB = {
   forks_urls: [],
   stargazers: {},
   stargazers_urls: [],
-  repo: "",
+  repo: '',
 };
 
 export const STAGE = {
@@ -65,6 +65,7 @@ export class Queue {
     const item = this.items[this.headIndex];
     delete this.items[this.headIndex];
     this.headIndex++;
+
     return item;
   }
 

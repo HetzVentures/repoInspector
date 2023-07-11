@@ -1,16 +1,16 @@
 <script lang="ts">
-import { initOctokit } from "@/features/octokit";
-import { initialData } from "@/entry/popup";
-import { auth } from "@/features/authentication";
-import { downloaderStore } from "@/features/store/downloader";
-import { historyStore } from "@/features/store/history";
+import { initOctokit } from '@/features/octokit';
+import { initialData } from '@/entry/popup';
+import { auth } from '@/features/authentication';
+import { downloaderStore } from '@/features/store/downloader';
+import { historyStore } from '@/features/store/history';
 import {
   createName,
   getOwnTabs,
   octokitRepoUrl,
   timeout,
-} from "@/features/utils";
-import DownloadCard from "./components/DownloadCard.vue";
+} from '@/features/utils';
+import DownloadCard from './components/DownloadCard.vue';
 
 interface PopupData {
   token: null | void | string;
@@ -28,7 +28,7 @@ interface PopupData {
 }
 
 export default {
-  name: "App",
+  name: 'App',
   components: { DownloadCard },
   data(): PopupData {
     return {
@@ -50,6 +50,7 @@ export default {
     // if current repo is being downloaded but download page has been shut down open it up
     if (this.downloader?.active) {
       const tab = await getOwnTabs();
+
       if (!tab.length) {
         chrome.runtime.openOptionsPage();
       }
@@ -81,8 +82,8 @@ export default {
       this.token = this.newToken;
     },
     setSettings(
-      k: "stars" | "forks" | "location" | "sample" | "samplePercent",
-      v: any
+      k: 'stars' | 'forks' | 'location' | 'sample' | 'samplePercent',
+      v: any,
     ) {
       if (this.downloader?.settings) {
         // @ts-ignore
@@ -94,26 +95,32 @@ export default {
       // collect initial data on repo and send message to background to start inspecting it.
       try {
         if (!this.repoUrl) {
-          this.showError("You must enter a repo to inspect!");
+          this.showError('You must enter a repo to inspect!');
+
           return;
         }
+
         if (
           !this.downloader?.settings?.forks &&
           !this.downloader?.settings?.stars
         ) {
           this.showError(
-            "You must select if you want forks, stars or both (but not none)"
+            'You must select if you want forks, stars or both (but not none)',
           );
+
           return;
         }
+
         if (
           this.downloader?.settings?.sample &&
           (this.downloader?.settings.samplePercent <= 0 ||
             this.downloader?.settings.samplePercent > 100)
         ) {
-          this.showError("Please choose a sample percentage between 1 and 100");
+          this.showError('Please choose a sample percentage between 1 and 100');
+
           return;
         }
+
         this.downloader.url = this.repoUrl;
         this.downloader.octokitUrl = octokitRepoUrl(this.downloader.url);
 
@@ -124,12 +131,14 @@ export default {
 
         // set the data for inspection based on the settings
         const { settings } = this.downloader;
+
         if (settings.sample) {
           forks = Math.ceil(forks * (settings.samplePercent / 100));
           stargazers_count = Math.ceil(
-            stargazers_count * (settings.samplePercent / 100)
+            stargazers_count * (settings.samplePercent / 100),
           );
         }
+
         this.downloader.stargazers_count = settings.stars
           ? stargazers_count
           : 0;
@@ -141,10 +150,11 @@ export default {
         chrome.runtime.openOptionsPage();
       } catch (error: any) {
         if (error.status === 401) {
-          this.showError("Token has expired!");
+          this.showError('Token has expired!');
         } else {
-          this.showError("Something went wrong");
+          this.showError('Something went wrong');
         }
+
         console.error(error);
       }
     },

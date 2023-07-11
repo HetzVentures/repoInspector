@@ -1,4 +1,4 @@
-import { HISTORY_MODEL } from "./models";
+import { HISTORY_MODEL } from './models';
 
 export class HistoryStore {
   constructor() {

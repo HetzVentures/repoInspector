@@ -7,9 +7,7 @@
     },
     "eslint.validate": [
         "javascript",
-        "javascriptreact",
         "typescript",
-        "typescriptreact",
         "vue"
     ],
     // Eslint-related rules
@@ -30,7 +28,5 @@
     // Add new line in the end of file
     "files.insertFinalNewline": true,
     // Trim trailing whitespace in the end of file
-    "files.trimFinalNewlines": true,
-    "prettier.eslintIntegration": true,
-    "prettier.tslintIntegration": true
+    "files.trimFinalNewlines": true
 }

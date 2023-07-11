@@ -1,10 +1,9 @@
-import { Octokit } from "@octokit/core";
-import { asyncForEach, initToken, timeout } from "./utils";
-import { initOctokit } from "./octokit";
-import { userUrlQueue } from "./userUrlQueue";
-import { downloaderStore } from "./store/downloader";
+import { Octokit } from '@octokit/core';
+import { asyncForEach, initToken, timeout } from './utils';
+import { initOctokit } from './octokit';
+import { userUrlQueue } from './userUrlQueue';
+import { downloaderStore } from './store/downloader';
 
-// let running = {stargazers: false, forks: false};
 let octokit: Octokit;
 const PER_PAGE = 100;
 
@@ -13,10 +12,6 @@ initToken().then((token) => {
 });
 
 class RepoInspector {
-  // constructor() {
-  //   this.currentRepo = null;
-  // }
-
   async inspectAssets(downloader: Downloader) {
     // Set up the inspectionParams based on the inspection settings
     const inspectionParams = [];
@@ -24,7 +19,7 @@ class RepoInspector {
     if (downloader.settings?.stars) {
       inspectionParams.push({
         mapper: (data: any[]) => data.map((x) => x.url),
-        type: "stargazers",
+        type: 'stargazers',
         max: downloader.stargazers_count,
       });
     }
@@ -32,7 +27,7 @@ class RepoInspector {
     if (downloader.settings?.forks) {
       inspectionParams.push({
         mapper: (data: any[]) => data.map((x) => x.owner.url),
-        type: "forks",
+        type: 'forks',
         max: downloader.forks_count,
       });
     }
@@ -45,7 +40,7 @@ class RepoInspector {
       type: string;
       max: number;
       mapper: Mapper;
-    }>
+    }>,
   ) {
     // inspect function runs in the background and looks at all the users from "forks" and "stargazers" lists. For each
     // one of these categories, the octokit API will return PER_PAGE users. As the background job runs every minute, and both
@@ -61,6 +56,7 @@ class RepoInspector {
 
       // the github API return a max of PER_PAGE users per API call, the max pages we must parse to inspect the repo is therefore <user_count>/PER_PAGE
       const maxPages = Math.ceil(max / PER_PAGE);
+
       // Look for all assets's users
       for (
         let inspectedPages = 1;
@@ -70,6 +66,7 @@ class RepoInspector {
         // while we haven't finished parsing through the current chunk, look for users in repo
         try {
           const downloader = await downloaderStore.get();
+
           if (!downloader.active) {
             // only continue if repo hasn't been deleted
             return;
@@ -96,21 +93,24 @@ class RepoInspector {
     // TODO run over inputted url and store the data. At the end of a inspection look over all failed URLs and retry them
     // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve) => {
-      // const users = []
       try {
         const downloader = await downloaderStore.get();
+
         if (!downloader.active) {
           // only continue adding to queue if repo hasn't been deleted
           resolve(true);
         }
+
         // minimal throttling for initial run. This makes sure that if we have many stars and forks we don't endanger the limit
         await timeout(300);
         const { data } = await octokit.request(`GET ${url}`);
         const userUrls = mapper(data);
+
         if (!userUrls.length) {
           // there aren't any more pages to look through
           resolve(true);
         }
+
         userUrls.forEach(async (userUrl, i, arr) => {
           // add the user url and the parsing type to the queue service to gather further data.
           // we use a queue as fetching the data directly can hit rate limits on the API. We don't want to control
@@ -125,9 +125,9 @@ class RepoInspector {
           }
         });
       } catch (error: any) {
-        if (error.message.includes("rel=last")) {
+        if (error.message.includes('rel=last')) {
           alert(
-            "Seems like this is a really big repo, we will start inspecting what github has allowed us"
+            'Seems like this is a really big repo, we will start inspecting what github has allowed us',
           );
           resolve(false);
         } else {

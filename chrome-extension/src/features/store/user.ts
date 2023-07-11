@@ -1,4 +1,4 @@
-import { USER_DB } from "./models";
+import { USER_DB } from './models';
 
 class UserStore {
   // Global class which holds the collected data from repositories. Saving this data to the chrome storage results in errors and many

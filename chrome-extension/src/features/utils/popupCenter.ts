@@ -37,7 +37,7 @@ export const popupCenter = ({
       height=${h / systemZoom},
       top=${top},
       left=${left}
-      `
+      `,
   );
 
   if (newWindow && newWindow !== null) {

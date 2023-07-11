@@ -1,20 +1,20 @@
-import { Octokit } from "@octokit/core";
-import { initOctokit } from "./octokit";
-import { api } from "./api";
-import { auth } from "./authentication";
-import { initToken, timeout } from "./utils";
-import { downloaderStore } from "./store/downloader";
-import { historyStore } from "./store/history";
-import { DOWNLOADER_MODEL, Queue, STAGE } from "./store/models";
-import { NOTIFICATION_TYPES, notificationStore } from "./store/notification";
-import { userStore } from "./store/user";
+import { Octokit } from '@octokit/core';
+import { initOctokit } from './octokit';
+import { api } from './api';
+import { auth } from './authentication';
+import { initToken, timeout } from './utils';
+import { downloaderStore } from './store/downloader';
+import { historyStore } from './store/history';
+import { DOWNLOADER_MODEL, Queue, STAGE } from './store/models';
+import { NOTIFICATION_TYPES, notificationStore } from './store/notification';
+import { userStore } from './store/user';
 
 const LOCATION_REQUEST_THROTTLE = 1000;
 const REQUEST_THROTTLE_NO_LOCATION = 300;
 const STORAGE_WRITE_THROTTLE = 100;
 const SYNC_THROTTLE = 5;
 const NOMINATIM_LOCATION_API_Q =
-  "https://nominatim.openstreetmap.org/search.php?format=jsonv2&addressdetails=1&q=";
+  'https://nominatim.openstreetmap.org/search.php?format=jsonv2&addressdetails=1&q=';
 let octokit: Octokit;
 
 initToken().then((token) => {
@@ -65,7 +65,7 @@ class UserUrlQueue {
   }
 
   _clearQueueState() {
-    chrome.storage.local.remove(["QUEUE_STATE"]);
+    chrome.storage.local.remove(['QUEUE_STATE']);
   }
 
   async _storeQueueProgress() {
@@ -99,6 +99,7 @@ class UserUrlQueue {
   async getLocation(location: string) {
     // using a geocoding API, get location data for a given string
     const r = await fetch(`${NOMINATIM_LOCATION_API_Q}${location}`);
+
     return r.json();
   }
 
@@ -120,7 +121,7 @@ class UserUrlQueue {
 
     // get user event count
     const { data } = await octokit.request(
-      `GET ${userData.url}/events?per_page=100`
+      `GET ${userData.url}/events?per_page=100`,
     );
     resultData.event_count = data.length;
 
@@ -129,7 +130,7 @@ class UserUrlQueue {
 
     // define active user
     const yearAgo = new Date(
-      new Date().setFullYear(new Date().getFullYear() - 1)
+      new Date().setFullYear(new Date().getFullYear() - 1),
     ).getTime();
     resultData.active_user =
       data.length &&
@@ -149,11 +150,14 @@ class UserUrlQueue {
   async runGetUser() {
     // only continue if repo hasn't been deleted
     this.downloader = await downloaderStore.get();
+
     if (!this.downloader.active) {
       this.deactivateInterval();
       this.queue = new Queue();
+
       return;
     }
+
     if (this.queue.length) {
       // if there are items in the queue, fetch them
       const currentQuery = this.queue.dequeue();
@@ -182,7 +186,7 @@ class UserUrlQueue {
     try {
       const data = await api.post(
         `repository/?user_id=${auth.currentUser.uuid}`,
-        postData
+        postData,
       );
 
       downloader.stage = STAGE.DONE;
@@ -190,7 +194,7 @@ class UserUrlQueue {
 
       notificationStore.set({
         type: NOTIFICATION_TYPES.SUCCESS,
-        message: "Nice! Your repo data has been sent to your email.",
+        message: 'Nice! Your repo data has been sent to your email.',
       });
     } catch (error) {
       alert(error);
@@ -214,9 +218,11 @@ class UserUrlQueue {
 
     if (!this.interval) {
       let throttle = REQUEST_THROTTLE_NO_LOCATION;
+
       if (downloader.settings.location) {
         throttle = LOCATION_REQUEST_THROTTLE;
       }
+
       this.interval = setInterval(() => {
         this.runGetUser();
       }, throttle);
@@ -228,6 +234,7 @@ class UserUrlQueue {
     this.queue = new Queue();
 
     this._clearQueueState();
+
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;

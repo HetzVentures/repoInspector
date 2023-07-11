@@ -1,4 +1,4 @@
-import { createName } from "./createName";
+import { createName } from './createName';
 
 export const octokitRepoUrl = (repo: string) =>
   // get repo name for octokit

@@ -1,9 +1,9 @@
 <script lang="ts">
-import { defineComponent } from "vue";
-import { auth } from "@/features/authentication";
-import { api } from "@/features/api";
+import { defineComponent } from 'vue';
+import { auth } from '@/features/authentication';
+import { api } from '@/features/api';
 
-import type { PropType } from "vue";
+import type { PropType } from 'vue';
 
 export default defineComponent({
   props: {
@@ -12,7 +12,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ["remove", "resend"],
+  emits: ['remove', 'resend'],
   data() {
     return {
       resendLoading: false,
@@ -20,22 +20,23 @@ export default defineComponent({
   },
   methods: {
     typeStatus(v: boolean) {
-      return v ? "✓" : "✗";
+      return v ? '✓' : '✗';
     },
     remove() {
-      this.$emit("remove", {});
+      this.$emit('remove', {});
     },
     dateTime(date: string | number | Date) {
       const options: Intl.DateTimeFormatOptions = {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       };
 
       const d = new Date(date);
-      return `${d.toLocaleDateString("en-US", options)} ${d.toLocaleTimeString(
-        "en-US"
+
+      return `${d.toLocaleDateString('en-US', options)} ${d.toLocaleTimeString(
+        'en-US',
       )}`;
     },
     resendEmail(repoId: string | null) {
@@ -45,18 +46,19 @@ export default defineComponent({
 
       api.get(`repository/${repoId}/resend/?user_id=${user.uuid}`).then(
         (r) => {
-          if (r === "success") {
-            this.$emit("resend", true);
+          if (r === 'success') {
+            this.$emit('resend', true);
           } else {
-            this.$emit("resend", false);
+            this.$emit('resend', false);
           }
+
           this.resendLoading = false;
         },
         (error) => {
           this.resendLoading = true;
-          this.$emit("resend", false);
+          this.$emit('resend', false);
           console.log(error);
-        }
+        },
       );
     },
   },
@@ -87,8 +89,8 @@ export default defineComponent({
         {{ typeStatus(repoData.settings?.sample) }} Sample
         {{
           repoData.settings?.samplePercent
-            ? repoData.settings?.samplePercent + "%"
-            : ""
+            ? repoData.settings?.samplePercent + '%'
+            : ''
         }}
       </div>
       <div>
@@ -154,7 +156,7 @@ export default defineComponent({
 .close:after {
   position: absolute;
   left: 15px;
-  content: " ";
+  content: ' ';
   height: 16px;
   width: 2px;
   background-color: #333;

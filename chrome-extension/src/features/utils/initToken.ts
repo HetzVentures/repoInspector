@@ -2,12 +2,13 @@ export const initToken = () =>
   // fetch github token from memory
   new Promise<string | void>((resolve) => {
     chrome.storage.local.get(
-      "githubInspectorToken",
+      'githubInspectorToken',
       async ({ githubInspectorToken }) => {
         if (githubInspectorToken) {
           resolve(githubInspectorToken);
         }
+
         resolve();
-      }
+      },
     );
   });

@@ -1,4 +1,4 @@
-import { Octokit } from "@octokit/core";
+import { Octokit } from '@octokit/core';
 
 // Initialize octokit instance
 const initOctokit = (accessToken: null | void | string) =>
