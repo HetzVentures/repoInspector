@@ -15,6 +15,7 @@
   "dependencies": {
     "@octokit/core": "^4.2.0",
     "@picocss/pico": "github:picocss/pico",
+    "apexcharts": "^3.41.0",
     "core-js": "^3.8.3",
     "rollbar": "^2.26.0",
     "vue": "^3.2.13"

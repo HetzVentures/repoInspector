@@ -2,6 +2,8 @@ export const HISTORY_MODEL = [];
 
 export const NOTIFICATION_MODEL = [];
 
+export const USERS_QUERY_LIMIT = 20;
+
 export const DOWNLOADER_MODEL: Downloader = {
   id: null,
   active: false,
@@ -15,7 +17,13 @@ export const DOWNLOADER_MODEL: Downloader = {
     max: 0,
   },
   stargazers_count: 0,
+  stargazers_users: 0,
   forks_count: 0,
+  forks_users: 0,
+  issues_count: 0,
+  pull_requests_count: 0,
+  watchers_count: 0,
+  contributors_count: 0,
   settings: {
     stars: true,
     forks: false,
@@ -33,12 +41,21 @@ export const USER_DB = {
   repo: '',
 };
 
+export const INSPECT_DATA_DB = {
+  fork_users: [],
+  stargaze_users: [],
+  issues: [],
+  pull_requests: [],
+  stars_history: [],
+};
+
 export const STAGE = {
   INITIATED: 0,
-  GETTING_URLS: 1,
+  GETTING_ADDITIONAL_STATISTIC: 1,
   GETTING_USERS: 2,
   DONE: 3,
   ERROR: 4,
+  PAUSE: 5,
 };
 
 export class Queue {

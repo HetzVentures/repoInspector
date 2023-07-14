@@ -4,8 +4,10 @@ import { auth } from '@/features/authentication';
 import { api } from '@/features/api';
 
 import type { PropType } from 'vue';
+import StatisticChart from './StatisticChart.vue';
 
 export default defineComponent({
+  components: { StatisticChart },
   props: {
     repoData: {
       type: Object as PropType<Downloader>,
@@ -113,6 +115,34 @@ export default defineComponent({
         </summary>
         <li>Stars: {{ repoData.stargazers_count }}</li>
         <li>Forks: {{ repoData.forks_count }}</li>
+        <li v-if="typeof repoData?.issues_count !== 'undefined'">
+          Issues: {{ repoData?.issues_count }}
+        </li>
+        <li v-if="typeof repoData?.pull_requests_count !== 'undefined'">
+          Pull requests: {{ repoData?.pull_requests_count }}
+        </li>
+        <li v-if="typeof repoData?.contributors_count !== 'undefined'">
+          Contributors: {{ repoData?.contributors_count }}
+        </li>
+        <li v-if="typeof repoData?.watchers_count !== 'undefined'">
+          Watchers: {{ repoData?.watchers_count }}
+        </li>
+        <div v-if="repoData?.stars_history" class="chart-wrapper">
+          <StatisticChart
+            :chart-data="repoData?.stars_history"
+            :chart-title="'Stargazers statistic'"
+            :chart-type="'stars'"
+            :chart-id="repoData?.id"
+          />
+        </div>
+        <div v-if="repoData?.issues_statistic?.chartData" class="chart-wrapper">
+          <StatisticChart
+            :chart-data="repoData?.issues_statistic?.chartData"
+            :chart-title="'Issues statistic'"
+            :chart-type="'issues'"
+            :chart-id="repoData?.id"
+          />
+        </div>
       </details>
     </footer>
   </article>
@@ -166,5 +196,10 @@ export default defineComponent({
 }
 .close:after {
   transform: rotate(-45deg);
+}
+.chart-wrapper {
+  display: block;
+  height: 300px;
+  padding-top: 20px;
 }
 </style>

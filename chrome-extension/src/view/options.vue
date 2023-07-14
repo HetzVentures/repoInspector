@@ -43,12 +43,7 @@ export default {
   },
   mounted() {
     (async () => {
-      if (this.downloader?.stage === STAGE.GETTING_URLS) {
-        // if we stopped in the middle of collecting user urls, start again
-        repoInspector.inspectAssets(this.downloader);
-      }
-      // if we stopped in the middle of inspecting a repos users, continue from where we saved
-      else if (this.downloader?.stage === STAGE.GETTING_USERS) {
+      if (this.downloader?.stage === STAGE.GETTING_USERS) {
         const loadState = await userUrlQueue.loadQueueState();
 
         if (loadState) {
@@ -89,7 +84,7 @@ export default {
         userUrlQueue.deactivateInterval();
 
         // start the download process
-        this.downloader.stage = STAGE.GETTING_URLS;
+        this.downloader.stage = STAGE.GETTING_USERS;
         await downloaderStore.set(this.downloader);
         repoInspector.inspectAssets(this.downloader);
       }
