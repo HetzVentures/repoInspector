@@ -38,6 +38,7 @@ type Downloader = {
   settings: Settings;
   issues_statistic?: IssuesStatistic;
   stars_history?: StarHistoryByMonth;
+  prsMergedLTM?: number;
 };
 
 type HistoryType = Downloader[];
@@ -164,6 +165,7 @@ type ChartData = {
 type IssuesStatistic = {
   chartData: ChartData;
   health: number;
+  openedLTM?: number;
 };
 
 type PullRequestsResponse = {

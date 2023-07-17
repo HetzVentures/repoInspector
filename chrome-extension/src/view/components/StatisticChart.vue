@@ -1,7 +1,10 @@
 <script lang="ts">
-import ApexCharts from 'apexcharts';
+import VueApexCharts from 'vue3-apexcharts';
 
 export default {
+  components: {
+    apexchart: VueApexCharts,
+  },
   props: {
     chartData: {
       type: Object as PropType<StarHistoryByMonth>,
@@ -15,56 +18,14 @@ export default {
       type: String,
       required: true,
     },
-    chartId: {
-      type: Number,
-      required: true,
-    },
   },
-  mounted() {
-    this.renderChart();
-  },
-  methods: {
-    getChartId() {
-      return `${this.chartType}-${this.chartId}`;
-    },
-    renderChart() {
-      let chartSeries;
-
-      const allChartData = Object.values(this.chartData);
-      const dataForChart =
-        allChartData.length > 12 ? allChartData.slice(-12) : allChartData;
-
+  computed: {
+    chartOptions() {
       const allChartLabels = Object.keys(this.chartData);
       const chartLabels =
         allChartLabels.length > 12 ? allChartLabels.slice(-12) : allChartLabels;
 
-      if (this.chartType === 'stars') {
-        const starsHistory = dataForChart.map((v) => v.count);
-        chartSeries = [
-          {
-            name: 'Stars',
-            data: starsHistory,
-          },
-        ];
-      }
-
-      if (this.chartType === 'issues') {
-        const openedIssues = dataForChart.map(({ opened }) => opened);
-        const closedIssues = dataForChart.map(({ closed }) => closed);
-
-        chartSeries = [
-          {
-            name: 'Opened issues',
-            data: openedIssues,
-          },
-          {
-            name: 'Closed issues',
-            data: closedIssues,
-          },
-        ];
-      }
-
-      const chartOptions = {
+      return {
         chart: {
           height: 250,
           type: 'line',
@@ -80,7 +41,6 @@ export default {
             show: false,
           },
         },
-        series: chartSeries,
         colors: ['#77B6EA', '#545454'],
         dataLabels: {
           enabled: true,
@@ -116,12 +76,41 @@ export default {
           offsetX: -5,
         },
       };
+    },
+    chartSeries() {
+      let series;
 
-      const chart = new ApexCharts(
-        document.querySelector(`#${this.getChartId()}`),
-        chartOptions,
-      );
-      chart.render();
+      const allChartData = Object.values(this.chartData);
+      const dataForChart =
+        allChartData.length > 12 ? allChartData.slice(-12) : allChartData;
+
+      if (this.chartType === 'stars') {
+        const starsHistory = dataForChart.map((v) => v.count);
+        series = [
+          {
+            name: 'Stars',
+            data: starsHistory,
+          },
+        ];
+      }
+
+      if (this.chartType === 'issues') {
+        const openedIssues = dataForChart.map(({ opened }) => opened);
+        const closedIssues = dataForChart.map(({ closed }) => closed);
+
+        series = [
+          {
+            name: 'Opened issues',
+            data: openedIssues,
+          },
+          {
+            name: 'Closed issues',
+            data: closedIssues,
+          },
+        ];
+      }
+
+      return series;
     },
   },
 };
@@ -129,14 +118,11 @@ export default {
 
 <template>
   <div>
-    <div :id="getChartId()"></div>
+    <apexchart
+      type="line"
+      height="250"
+      :options="chartOptions"
+      :series="chartSeries"
+    />
   </div>
 </template>
-
-<style scoped>
-#chart {
-  width: 100%;
-  height: 300px;
-  overflow: hidden;
-}
-</style>

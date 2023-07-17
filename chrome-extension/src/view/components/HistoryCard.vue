@@ -2,6 +2,7 @@
 import { defineComponent } from 'vue';
 import { auth } from '@/features/authentication';
 import { api } from '@/features/api';
+import { getYearMonth } from '@/features/utils';
 
 import type { PropType } from 'vue';
 import StatisticChart from './StatisticChart.vue';
@@ -18,9 +19,35 @@ export default defineComponent({
   data() {
     return {
       resendLoading: false,
+      isDetailsOpen: false,
     };
   },
+  computed: {
+    starGrowthLastMonth() {
+      const yearMonth = getYearMonth(new Date());
+      const { stargazers_count, stars_history } = this.repoData;
+
+      if (!stargazers_count || !stars_history) return undefined;
+
+      if (!stars_history[yearMonth]) return 0;
+
+      return (
+        (stars_history[yearMonth].count / stargazers_count) *
+        100
+      ).toFixed(2);
+    },
+    starsPerFork() {
+      const { stargazers_count, forks_count } = this.repoData;
+
+      if (!stargazers_count || !forks_count) return undefined;
+
+      return (forks_count / stargazers_count).toFixed(2);
+    },
+  },
   methods: {
+    toggleDetails() {
+      this.isDetailsOpen = !this.isDetailsOpen;
+    },
     typeStatus(v: boolean) {
       return v ? '✓' : '✗';
     },
@@ -110,7 +137,7 @@ export default defineComponent({
     </div>
     <footer>
       <details>
-        <summary>
+        <summary @click="toggleDetails">
           {{ repoData.date !== null && dateTime(repoData.date) }}
         </summary>
         <li>Stars: {{ repoData.stargazers_count }}</li>
@@ -127,20 +154,42 @@ export default defineComponent({
         <li v-if="typeof repoData?.watchers_count !== 'undefined'">
           Watchers: {{ repoData?.watchers_count }}
         </li>
-        <div v-if="repoData?.stars_history" class="chart-wrapper">
+        <li v-if="typeof starGrowthLastMonth !== 'undefined'">
+          Stars added per month: {{ starGrowthLastMonth }}%
+        </li>
+        <li v-if="typeof starsPerFork !== 'undefined'">
+          Total forks / total stars: {{ starsPerFork }}
+        </li>
+        <li v-if="typeof repoData?.issues_statistic?.openedLTM !== 'undefined'">
+          Issues created in last 12 month:
+          {{ repoData?.issues_statistic?.openedLTM }}
+        </li>
+        <li v-if="typeof repoData?.issues_statistic?.health !== 'undefined'">
+          Health (% issues closed in LTM):
+          {{ repoData?.issues_statistic?.health }}
+        </li>
+        <li v-if="typeof repoData?.prsMergedLTM !== 'undefined'">
+          Pull requests merged LTM:
+          {{ repoData?.prsMergedLTM }}
+        </li>
+        <div
+          v-if="repoData?.stars_history && isDetailsOpen"
+          class="chart-wrapper"
+        >
           <StatisticChart
             :chart-data="repoData?.stars_history"
             :chart-title="'Stargazers statistic'"
             :chart-type="'stars'"
-            :chart-id="repoData?.id"
           />
         </div>
-        <div v-if="repoData?.issues_statistic?.chartData" class="chart-wrapper">
+        <div
+          v-if="repoData?.issues_statistic?.chartData && isDetailsOpen"
+          class="chart-wrapper"
+        >
           <StatisticChart
             :chart-data="repoData?.issues_statistic?.chartData"
             :chart-title="'Issues statistic'"
             :chart-type="'issues'"
-            :chart-id="repoData?.id"
           />
         </div>
       </details>

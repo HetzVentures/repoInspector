@@ -2,6 +2,7 @@ import { Octokit } from '@octokit/core';
 import {
   getIssuesStatistic,
   getOctokitRepoData,
+  getPullRequestStatistic,
   groupStarsHistoryByMonth,
   initToken,
   serializeUser,
@@ -31,7 +32,11 @@ initToken().then((token) => {
 
 class RepoInspector {
   async inspectAssets(downloader: Downloader) {
-    const { url } = downloader;
+    const { url, stage } = downloader;
+
+    // If there are no inspections running, do nothing.
+    if (stage === STAGE.NOT_STARTED) return;
+
     const { owner, name } = getOctokitRepoData(url);
 
     if (!owner || !name) {
@@ -310,9 +315,9 @@ class RepoInspector {
       console.log('error: ', error);
     }
 
-    const pull_requests = items.map(({ node }) => ({ ...node }));
+    const prsMergedLTM = getPullRequestStatistic(items);
 
-    inspectDataStore.set('pull_requests', pull_requests);
+    inspectDataStore.set('pull_requests_merged_LTM', prsMergedLTM);
 
     return { success: true };
   }
@@ -341,7 +346,7 @@ class RepoInspector {
       forks,
       stargazers,
       issues: inspectData.issues,
-      pull_requests: inspectData.pull_requests,
+      pull_requests_merged_LTM: inspectData.pull_requests_merged_LTM,
       stars_history: inspectData.stars_history,
     };
 
@@ -355,6 +360,7 @@ class RepoInspector {
       downloader.id = data.id;
       downloader.stars_history = inspectData.stars_history;
       downloader.issues_statistic = inspectData.issues;
+      downloader.prsMergedLTM = inspectData.pull_requests_merged_LTM;
 
       notificationStore.set({
         type: NOTIFICATION_TYPES.SUCCESS,

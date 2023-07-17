@@ -1,7 +1,7 @@
 export const pullRequestsQuery = `
 query pullRequestsList($owner: String!, $name: String!, $cursor: String = null){
   repository(owner: $owner, name: $name){
-    pullRequests(first: 100, after: $cursor, states: CLOSED, orderBy: {field: CREATED_AT, direction: DESC}) {
+    pullRequests(first: 100, after: $cursor, states: MERGED, orderBy: {field: CREATED_AT, direction: DESC}) {
       totalCount
       edges {
         node {

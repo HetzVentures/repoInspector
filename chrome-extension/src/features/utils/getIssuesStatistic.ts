@@ -1,3 +1,5 @@
+import { getYearMonth } from './getYearMonth';
+
 export const getIssuesStatistic = (issues: Issue[]) => {
   const currentDate = new Date();
   const twelveMonthsAgo = new Date().setFullYear(currentDate.getFullYear() - 1);
@@ -9,16 +11,8 @@ export const getIssuesStatistic = (issues: Issue[]) => {
   issues.forEach((item) => {
     const createdAt = new Date(item.node.createdAt);
     const closedAt = item.node.closedAt ? new Date(item.node.closedAt) : null;
-    const createdYearMonth = `${createdAt.getFullYear()}.${(
-      createdAt.getMonth() + 1
-    )
-      .toString()
-      .padStart(2, '0')}`;
-    const closedYearMonth = closedAt
-      ? `${closedAt.getFullYear()}.${(closedAt.getMonth() + 1)
-          .toString()
-          .padStart(2, '0')}`
-      : null;
+    const createdYearMonth = getYearMonth(createdAt);
+    const closedYearMonth = closedAt ? getYearMonth(closedAt) : null;
 
     if (!chartData[createdYearMonth]) {
       chartData[createdYearMonth] = {
@@ -58,5 +52,6 @@ export const getIssuesStatistic = (issues: Issue[]) => {
   return {
     chartData,
     health,
+    openedLTM: openedCount,
   };
 };

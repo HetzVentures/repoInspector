@@ -4,6 +4,7 @@ import { initialData } from '@/entry/popup';
 import { auth } from '@/features/authentication';
 import { downloaderStore } from '@/features/store/downloader';
 import { historyStore } from '@/features/store/history';
+import { STAGE, USERS_QUERY_LIMIT } from '@/features/store/models';
 import {
   createName,
   getOctokitRepoData,
@@ -11,7 +12,6 @@ import {
   octokitRepoUrl,
   timeout,
 } from '@/features/utils';
-import { USERS_QUERY_LIMIT } from '@/features/store/models';
 import { repositoryQuery } from '@/features/queries';
 import DownloadCard from './components/DownloadCard.vue';
 
@@ -50,6 +50,8 @@ export default {
     };
   },
   async mounted() {
+    // await downloaderStore.reset();
+
     // if current repo is being downloaded but download page has been shut down open it up
     if (this.downloader?.active) {
       const tab = await getOwnTabs();
@@ -189,6 +191,7 @@ export default {
         this.downloader.name = createName(this.downloader.url);
         this.downloader.date = new Date().getTime();
         this.downloader.active = true;
+        this.downloader.stage = STAGE.INITIATED;
         this.downloader.progress = {
           ...this.downloader.progress,
           max: maxRequests,

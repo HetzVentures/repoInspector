@@ -1,11 +1,11 @@
+import { getYearMonth } from './getYearMonth';
+
 export const groupStarsHistoryByMonth = (starHistory: StarHistory[]) => {
   const result: StarHistoryByMonth = {};
 
   starHistory.forEach((item) => {
     const date = new Date(item.starredAt);
-    const yearMonth = `${date.getFullYear()}.${(date.getMonth() + 1)
-      .toString()
-      .padStart(2, '0')}`;
+    const yearMonth = getYearMonth(date);
 
     if (!result[yearMonth]) {
       result[yearMonth] = {

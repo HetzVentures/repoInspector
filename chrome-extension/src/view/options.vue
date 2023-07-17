@@ -43,15 +43,8 @@ export default {
   },
   mounted() {
     (async () => {
-      if (this.downloader?.stage === STAGE.GETTING_USERS) {
-        const loadState = await userUrlQueue.loadQueueState();
-
-        if (loadState) {
-          userUrlQueue.continueFromSave();
-        } else {
-          // if we started getting users, but didn't save the state, start again
-          repoInspector.inspectAssets(this.downloader);
-        }
+      if (this.downloader?.stage === STAGE.INITIATED) {
+        repoInspector.inspectAssets(this.downloader);
       }
     })();
 

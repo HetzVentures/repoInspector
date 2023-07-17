@@ -50,12 +50,13 @@ export const INSPECT_DATA_DB = {
 };
 
 export const STAGE = {
-  INITIATED: 0,
-  GETTING_ADDITIONAL_STATISTIC: 1,
-  GETTING_USERS: 2,
-  DONE: 3,
-  ERROR: 4,
-  PAUSE: 5,
+  NOT_STARTED: 0,
+  INITIATED: 1,
+  GETTING_ADDITIONAL_STATISTIC: 2,
+  GETTING_USERS: 3,
+  DONE: 4,
+  ERROR: 5,
+  PAUSE: 6,
 };
 
 export class Queue {
