@@ -13,3 +13,4 @@ export { groupStarsHistoryByMonth } from './groupStarsHistoryByMonth';
 export { getIssuesStatistic } from './getIssuesStatistic';
 export { getPullRequestStatistic } from './getPullRequestStatistic';
 export { getYearMonth } from './getYearMonth';
+export { loadFromHistory } from './loadFromHistory';

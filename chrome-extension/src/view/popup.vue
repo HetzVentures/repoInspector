@@ -4,7 +4,11 @@ import { initialData } from '@/entry/popup';
 import { auth } from '@/features/authentication';
 import { downloaderStore } from '@/features/store/downloader';
 import { historyStore } from '@/features/store/history';
-import { STAGE, USERS_QUERY_LIMIT } from '@/features/store/models';
+import { STAGE } from '@/features/store/models';
+import {
+  MINIMUM_REQUEST_LIMIT_AMOUNT,
+  USERS_QUERY_LIMIT,
+} from '@/features/constants';
 import {
   createName,
   getOctokitRepoData,
@@ -50,8 +54,6 @@ export default {
     };
   },
   async mounted() {
-    // await downloaderStore.reset();
-
     // if current repo is being downloaded but download page has been shut down open it up
     if (this.downloader?.active) {
       const tab = await getOwnTabs();
@@ -144,6 +146,16 @@ export default {
           name,
         });
 
+        if (result.rateLimit.remaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
+          this.showError(
+            `Queries limit reached. Try after ${new Date(
+              result.rateLimit.resetAt,
+            ).toLocaleTimeString()}`,
+          );
+
+          return;
+        }
+
         const contributorsURL = `https://api.github.com/repos/${owner}/${name}/contributors`;
         const { data } = await octokit.request(`GET ${contributorsURL}`);
         const contributorsCount = data.length;
@@ -196,6 +208,7 @@ export default {
           ...this.downloader.progress,
           max: maxRequests,
         };
+
         await downloaderStore.set(this.downloader);
 
         chrome.runtime.openOptionsPage();

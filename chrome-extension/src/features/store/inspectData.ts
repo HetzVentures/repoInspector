@@ -5,7 +5,7 @@ class InspectDataStore {
   // writes, so all data will be stored in a global variable and sent to a server for further processing when it is all collected.
   // This class is primarily used by the background.js file. When the browser is shut down, this data is cleared. This means that if a repo
   // was not completely parsed, it will start from scratch.
-  inspectDataDb: any;
+  inspectDataDb: InspectData;
 
   constructor() {
     // variable holding all repo data currently being collected
@@ -17,9 +17,24 @@ class InspectDataStore {
     this.inspectDataDb = INSPECT_DATA_DB;
   }
 
-  set(type: string, value: any) {
+  set(
+    type: keyof InspectData,
+    value:
+      | DBUser[]
+      | IssuesStatistic
+      | number
+      | StarHistoryByMonth
+      | string
+      | Date,
+  ) {
     // set data to global variable by key value
+    // FIXME: fix types
+    // @ts-ignore
     this.inspectDataDb[type] = value;
+  }
+
+  load(data: InspectData) {
+    this.inspectDataDb = data;
   }
 }
 

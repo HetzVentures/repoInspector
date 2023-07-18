@@ -19,5 +19,10 @@ query stargazersList($owner: String!, $name: String!){
       totalCount
     }
   }
+  rateLimit {
+    cost
+    remaining
+    resetAt
+  }
 }
 `;

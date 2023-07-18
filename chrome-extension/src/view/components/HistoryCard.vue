@@ -2,9 +2,10 @@
 import { defineComponent } from 'vue';
 import { auth } from '@/features/authentication';
 import { api } from '@/features/api';
-import { getYearMonth } from '@/features/utils';
+import { getYearMonth, loadFromHistory } from '@/features/utils';
 
 import type { PropType } from 'vue';
+import { STAGE } from '@/features/store/models';
 import StatisticChart from './StatisticChart.vue';
 
 export default defineComponent({
@@ -20,9 +21,13 @@ export default defineComponent({
     return {
       resendLoading: false,
       isDetailsOpen: false,
+      isPauseBTNDisabled: true,
     };
   },
   computed: {
+    isPaused() {
+      return this.repoData.stage === STAGE.PAUSE;
+    },
     starGrowthLastMonth() {
       const yearMonth = getYearMonth(new Date());
       const { stargazers_count, stars_history } = this.repoData;
@@ -43,8 +48,38 @@ export default defineComponent({
 
       return (forks_count / stargazers_count).toFixed(2);
     },
+    restoreLimitDate() {
+      const { restoreLimitsDate } = this.repoData;
+
+      if (!restoreLimitsDate) return undefined;
+
+      const dateOfRestoreLimits = new Date(restoreLimitsDate);
+
+      return dateOfRestoreLimits.toLocaleTimeString();
+    },
+  },
+  mounted() {
+    if (!this.repoData.id)
+      if (this.repoData.stage === STAGE.PAUSE) {
+        setInterval(() => {
+          this._checkIsLimitsRestored();
+        }, 3000);
+      }
   },
   methods: {
+    _checkIsLimitsRestored() {
+      const now = new Date().getTime();
+
+      if (now >= new Date(this.repoData.restoreLimitsDate).getTime()) {
+        this.isPauseBTNDisabled = false;
+      }
+    },
+    async unpause() {
+      const downloader = { ...this.repoData };
+      const result = await loadFromHistory(downloader);
+
+      if (result.success) this.remove();
+    },
     toggleDetails() {
       this.isDetailsOpen = !this.isDetailsOpen;
     },
@@ -132,7 +167,30 @@ export default defineComponent({
         >
           Resend
         </button>
-        <span v-else class="error-pill pull-right">Error</span>
+        <div v-if="isPaused && !repoData.id" class="buttons-block">
+          <div class="paused-info">
+            <span>Paused until {{ restoreLimitDate }}</span>
+            <span
+              >Progress:
+              {{
+                (
+                  (repoData.progress.current / repoData.progress.max) *
+                  100
+                ).toFixed(0)
+              }}%</span
+            >
+          </div>
+          <button
+            :disabled="isPauseBTNDisabled"
+            class="secondary outline small-button pull-right"
+            @click="unpause()"
+          >
+            Continue
+          </button>
+        </div>
+        <span v-if="!repoData.id && !isPaused" class="error-pill pull-right"
+          >Error</span
+        >
       </div>
     </div>
     <footer>
@@ -173,7 +231,7 @@ export default defineComponent({
           {{ repoData?.prsMergedLTM }}
         </li>
         <div
-          v-if="repoData?.stars_history && isDetailsOpen"
+          v-if="repoData?.stars_history && isDetailsOpen && !isPaused"
           class="chart-wrapper"
         >
           <StatisticChart
@@ -183,7 +241,9 @@ export default defineComponent({
           />
         </div>
         <div
-          v-if="repoData?.issues_statistic?.chartData && isDetailsOpen"
+          v-if="
+            repoData?.issues_statistic?.chartData && isDetailsOpen && !isPaused
+          "
           class="chart-wrapper"
         >
           <StatisticChart
@@ -250,5 +310,16 @@ export default defineComponent({
   display: block;
   height: 300px;
   padding-top: 20px;
+}
+.paused-info {
+  display: flex;
+  flex-direction: column;
+}
+.buttons-block {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 24px;
 }
 </style>

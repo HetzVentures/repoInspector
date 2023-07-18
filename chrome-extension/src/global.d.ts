@@ -18,6 +18,8 @@ type RepoParams = {
   name: string;
 };
 
+type LastStage = 'stargazers' | 'forks' | 'additional';
+
 type Downloader = {
   id: null | string;
   active: boolean;
@@ -28,8 +30,10 @@ type Downloader = {
   progress: Progress;
   stargazers_count: number;
   stargazers_users: number;
+  stargazers_users_data?: DBUser[];
   forks_count: number;
   forks_users: number;
+  forks_users_data?: DBUser[];
   issues_count: number;
   pull_requests_count: number;
   watchers_count: number;
@@ -39,6 +43,9 @@ type Downloader = {
   issues_statistic?: IssuesStatistic;
   stars_history?: StarHistoryByMonth;
   prsMergedLTM?: number;
+  lastStage?: LastStage;
+  cursor?: string;
+  restoreLimitsDate?: Date;
 };
 
 type HistoryType = Downloader[];
@@ -90,6 +97,7 @@ type FollowerNode = {
 type RateLimit = {
   cost: number;
   remaining: number;
+  resetAt: Date;
 };
 
 type PageInfo = {
@@ -135,6 +143,30 @@ type GithubUser = {
   };
 };
 
+type DBUser = {
+  active_user: boolean;
+  bio: string;
+  blog: string;
+  company: string;
+  country: string;
+  created_at: Date;
+  email: string;
+  event_count: number;
+  followers: number;
+  following: number;
+  hireable: boolean;
+  lat: number | null;
+  location: string | null;
+  login: string;
+  lon: number | null;
+  name: string | null;
+  real_user: boolean;
+  site_admin: boolean;
+  twitter_username: string;
+  type: string;
+  updated_at: Date;
+};
+
 type IssuesResponse = {
   repository: {
     issues: {
@@ -163,8 +195,8 @@ type ChartData = {
 };
 
 type IssuesStatistic = {
-  chartData: ChartData;
-  health: number;
+  chartData?: ChartData;
+  health?: number;
   openedLTM?: number;
 };
 
@@ -211,4 +243,12 @@ type StarHistoryByMonth = {
     count: number;
     users: string[];
   };
+};
+
+type InspectData = {
+  fork_users: DBUser[];
+  issues: IssuesStatistic;
+  pull_requests_merged_LTM: number;
+  stargaze_users: DBUser[];
+  stars_history: StarHistoryByMonth;
 };

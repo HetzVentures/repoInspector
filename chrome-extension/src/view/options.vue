@@ -1,7 +1,6 @@
 <script lang="ts">
 import { initialData } from '@/entry/options';
 import { repoInspector } from '@/features/repoInspector';
-import { userUrlQueue } from '@/features/userUrlQueue';
 import { downloaderStore } from '@/features/store/downloader';
 import { STAGE } from '@/features/store/models';
 import { historyStore } from '@/features/store/history';
@@ -43,7 +42,10 @@ export default {
   },
   mounted() {
     (async () => {
-      if (this.downloader?.stage === STAGE.INITIATED) {
+      if (
+        this.downloader?.stage === STAGE.INITIATED ||
+        this.downloader.stage === STAGE.UNPAUSED
+      ) {
         repoInspector.inspectAssets(this.downloader);
       }
     })();
@@ -71,14 +73,10 @@ export default {
 
       if (
         this.downloader?.active &&
-        this.downloader.stage === STAGE.INITIATED
+        (this.downloader.stage === STAGE.INITIATED ||
+          this.downloader.stage === STAGE.UNPAUSED)
       ) {
-        // clean anything that may have been left over in the queue
-        userUrlQueue.deactivateInterval();
-
         // start the download process
-        this.downloader.stage = STAGE.GETTING_USERS;
-        await downloaderStore.set(this.downloader);
         repoInspector.inspectAssets(this.downloader);
       }
 
