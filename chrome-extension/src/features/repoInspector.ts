@@ -433,12 +433,14 @@ class RepoInspector {
       ({ login }: any) => login,
     );
     const postData = {
-      repository: downloader,
+      repository: {
+        ...downloader,
+        issues: inspectData.issues,
+        pull_requests_merged_LTM: inspectData.pull_requests_merged_LTM,
+        stars_history: inspectData.stars_history,
+      },
       forks,
       stargazers,
-      issues: inspectData.issues,
-      pull_requests_merged_LTM: inspectData.pull_requests_merged_LTM,
-      stars_history: inspectData.stars_history,
     };
 
     try {

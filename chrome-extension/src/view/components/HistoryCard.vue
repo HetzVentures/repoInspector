@@ -21,7 +21,7 @@ export default defineComponent({
     return {
       resendLoading: false,
       isDetailsOpen: false,
-      isPauseBTNDisabled: true,
+      isPauseBTNDisabled: false,
     };
   },
   computed: {
@@ -169,7 +169,9 @@ export default defineComponent({
         </button>
         <div v-if="isPaused && !repoData.id" class="buttons-block">
           <div class="paused-info">
-            <span>Paused until {{ restoreLimitDate }}</span>
+            <span v-if="isPauseBTNDisabled"
+              >Paused until {{ restoreLimitDate }}</span
+            >
             <span
               >Progress:
               {{

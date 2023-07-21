@@ -153,7 +153,7 @@ export default {
           @remove="() => (cancel = downloader?.url || '')"
         />
       </template>
-      <template v-for="(repo, i) in history" :key="i">
+      <template v-for="(repo, i) in history" :key="repo.id ?? i">
         <HistoryCard
           v-if="+i < historyMax"
           :repo-data="repo"
