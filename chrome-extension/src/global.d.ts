@@ -105,6 +105,8 @@ type PageInfo = {
   hasNextPage: boolean;
 };
 
+type UserResponse = StargazerUserResponse & ForkUserResponse;
+
 type ForkUserResponse = {
   repository: {
     forks: {

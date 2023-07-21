@@ -59,6 +59,8 @@ class RepoInspector {
     let isUnpaused = stage === STAGE.UNPAUSED;
     const isInitiated = stage === STAGE.INITIATED;
 
+    if (isInitiated) inspectDataStore.refresh();
+
     if (lastStage === 'additional' || isInitiated) {
       await downloaderStore.setStage(STAGE.GETTING_ADDITIONAL_STATISTIC);
       isUnpaused = false;
@@ -76,9 +78,10 @@ class RepoInspector {
     // if it is new inspection or if it was paused on stage getting stargazers
     if (!isUnpaused || lastStage === 'stargazers') {
       if (downloader.settings?.stars) {
-        await this.getStarredUsers(
+        await this.getUsers(
           owner,
           name,
+          'stargazers',
           USERS_QUERY_LIMIT,
           downloader.stargazers_users,
           downloader.stargazers_users_data ?? [],
@@ -87,9 +90,10 @@ class RepoInspector {
       }
 
       if (downloader.settings?.forks) {
-        await this.getForkUsers(
+        await this.getUsers(
           owner,
           name,
+          'forks',
           USERS_QUERY_LIMIT,
           downloader.forks_users,
         );
@@ -98,9 +102,10 @@ class RepoInspector {
 
     // only if it was paused on stage getting forkers
     if (isUnpaused && lastStage === 'forks' && downloader.settings?.forks) {
-      await this.getForkUsers(
+      await this.getUsers(
         owner,
         name,
+        'forks',
         USERS_QUERY_LIMIT,
         downloader.forks_users,
         downloader.forks_users_data,
@@ -113,9 +118,10 @@ class RepoInspector {
     }
   }
 
-  async getStarredUsers(
+  async getUsers(
     owner: string,
     name: string,
+    type: 'stargazers' | 'forks',
     limit: number,
     max: number,
     prev: DBUser[] = [],
@@ -126,99 +132,33 @@ class RepoInspector {
 
     let items: any[] = [...prev];
 
-    const stargazersQuery = getStargazersQuery(limit);
+    const query =
+      type === 'stargazers'
+        ? getStargazersQuery(limit)
+        : getForkersQuery(limit);
+
+    const inspectDataPropertyName =
+      type === 'stargazers' ? 'stargaze_users' : 'fork_users';
 
     try {
-      const resp: StargazerUserResponse = await octokit.graphql(
-        stargazersQuery,
-        {
-          owner,
-          name,
-          cursor,
-        },
-      );
-
-      const hasNextPage = resp?.repository?.stargazers?.pageInfo.hasNextPage;
-      const endCursor = resp?.repository?.stargazers?.pageInfo.endCursor;
-      const currentRequestItems = resp?.repository?.stargazers?.edges ?? [];
-      const requestRemaining = resp?.rateLimit.remaining;
-
-      // remove artifacts of graphQL response and normalize data
-      const normalizedCurrentRequestItems = await Promise.all(
-        currentRequestItems.map(async (item) => {
-          const mappedItem: GithubUser = { ...item.node };
-
-          if (!mappedItem.login) return {};
-
-          const serializedItem = serializeUser(mappedItem, octokit);
-
-          return serializedItem;
-        }),
-      );
-      items = [...items, ...normalizedCurrentRequestItems];
-
-      downloaderStore.increaseProgress();
-
-      // if query limits reached - pause inspection
-      if (requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
-        await inspectDataStore.set('stargaze_users', items as DBUser[]);
-        this._pauseInspection('stargazers', resp?.rateLimit.resetAt, endCursor);
-
-        return { success: false };
-      }
-
-      // if there are more data than we already receive - request for new portion of data
-      if (hasNextPage && items.length < max) {
-        return await this.getStarredUsers(
-          owner,
-          name,
-          USERS_QUERY_LIMIT,
-          max,
-          items,
-          endCursor,
-        );
-      }
-    } catch (error) {
-      await this._stopByError();
-    }
-
-    // save collected users to global store
-    inspectDataStore.set('stargaze_users', items as DBUser[]);
-
-    return { success: true };
-  }
-
-  async getForkUsers(
-    owner: string,
-    name: string,
-    limit: number,
-    max: number,
-    prev: any[] = [],
-    cursor: null | string = null,
-  ): Promise<{ success: boolean }> {
-    const downloader = await downloaderStore.get();
-    if (!downloader.active) return { success: false };
-
-    let items = [...prev];
-
-    const forkersQuery = getForkersQuery(limit);
-
-    try {
-      const resp: ForkUserResponse = await octokit.graphql(forkersQuery, {
+      const resp: UserResponse = await octokit.graphql(query, {
         owner,
         name,
         cursor,
       });
 
-      const hasNextPage = resp?.repository?.forks?.pageInfo.hasNextPage;
-      const endCursor = resp?.repository?.forks?.pageInfo.endCursor;
-      const currentRequestItems = resp?.repository?.forks?.edges ?? [];
+      const hasNextPage = resp?.repository[type].pageInfo.hasNextPage;
+      const endCursor = resp?.repository[type].pageInfo.endCursor;
+      const currentRequestItems = resp?.repository[type].edges ?? [];
       const requestRemaining = resp?.rateLimit.remaining;
 
       // remove artifacts of graphQL response and normalize data
       const normalizedCurrentRequestItems = await Promise.all(
         currentRequestItems.map(async (item) => {
-          const mappedItem: GithubUser = { ...item.node, ...item.node.owner };
+          const mappedItem: GithubUser =
+            type === 'stargazers'
+              ? { ...(item as StargazerUser).node }
+              : { ...(item as ForkUser).node.owner };
 
           if (!mappedItem.login) return {};
 
@@ -233,17 +173,18 @@ class RepoInspector {
 
       // if query limits reached - pause inspection
       if (requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
-        await inspectDataStore.set('fork_users', items);
-        this._pauseInspection('forks', resp?.rateLimit.resetAt, endCursor);
+        await inspectDataStore.set(inspectDataPropertyName, items as DBUser[]);
+        this._pauseInspection(type, resp?.rateLimit.resetAt, endCursor);
 
         return { success: false };
       }
 
       // if there are more data than we already receive - request for new portion of data
       if (hasNextPage && items.length < max) {
-        return await this.getForkUsers(
+        return await this.getUsers(
           owner,
           name,
+          type,
           USERS_QUERY_LIMIT,
           max,
           items,
@@ -255,7 +196,7 @@ class RepoInspector {
     }
 
     // save collected users to global store
-    inspectDataStore.set('fork_users', items);
+    inspectDataStore.set(inspectDataPropertyName, items as DBUser[]);
 
     return { success: true };
   }

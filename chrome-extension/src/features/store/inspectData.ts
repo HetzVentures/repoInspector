@@ -9,12 +9,12 @@ class InspectDataStore {
 
   constructor() {
     // variable holding all repo data currently being collected
-    this.inspectDataDb = INSPECT_DATA_DB;
+    this.inspectDataDb = { ...INSPECT_DATA_DB };
   }
 
   refresh() {
     // initialize this.inspectDataDb to an empty dataset
-    this.inspectDataDb = INSPECT_DATA_DB;
+    this.inspectDataDb = { ...INSPECT_DATA_DB };
   }
 
   set(
