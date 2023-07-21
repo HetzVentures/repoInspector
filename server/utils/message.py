@@ -9,6 +9,7 @@ import json
 import logging
 import zipfile
 from os.path import basename
+import urllib.parse
 
 class MessageCreator:
 
@@ -162,6 +163,25 @@ class MessageCreator:
         message_text = message_text + f'<b>Repository Stars:</b> {self.repo.stargazers_count}<br>'
         message_text = message_text + f'<b>Repository Forks:</b> {self.repo.forks_count}<br><br>'
 
+
+        message_text = message_text + f'<b>Issues:</b> {self.repo.issues_count}<br>'
+        message_text = message_text + f'<b>Pull requests:</b> {self.repo.pull_requests_count}<br>'
+        message_text = message_text + f'<b>Contributors:</b> {self.repo.contributors_count}<br>'
+        message_text = message_text + f'<b>Watchers:</b> {self.repo.watchers_count}<br>'
+
+        stars_per_month = 0
+        current_date = datetime.now().strftime("%Y.%m")
+        stars_history_dict = json.loads(self.repo.stars_history)
+
+        if current_date in stars_history_dict:
+            stars_per_month = round((stars_history_dict[current_date]["count"] / self.repo.stargazers_count) * 100, 2)
+
+        message_text = message_text + f'<b>Stars added per month:</b> {stars_per_month}%<br>'
+        message_text = message_text + f'<b>Total forks / total stars:</b> {round(self.repo.forks_count / self.repo.stargazers_count, 2)}<br>'
+        message_text = message_text + f'<b>Issues created in last 12 month:</b> {self.repo.issues_opened_ltm}<br>'
+        message_text = message_text + f'<b>Health (% issues closed in LTM):</b> {self.repo.health}<br>'
+        message_text = message_text + f'<b>Pull requests merged LTM:</b> {self.repo.pull_requests_merged_ltm}<br>'
+
         in_organizations_text = f'<b>Organization:</b> {organizations_percent} % ' \
                                 f'({organizations_total} profile(s))<br>'
         message_text = message_text + in_organizations_text
@@ -191,5 +211,59 @@ class MessageCreator:
             if location.country:
                 location_percent = "%.2f" % (location.count / total_users * 100)
                 message_text = message_text + f'     {location.country}: {location_percent} % ({location.count} profile(s))<br>'
+
+        # common limit for shown data in charts
+        data_limit = 12
+        # stargazers chart
+        stars_chart_labels = list(stars_history_dict.keys())
+        stars_chart_dataset = [item["count"] for item in stars_history_dict.values()]
+        stars_chart_data = {
+            "type": "line",
+            "data": {
+                "labels": stars_chart_labels[:data_limit][::-1],
+                "datasets": [
+                    {
+                        "label": "Stargazers history",
+                        "data": stars_chart_dataset[:data_limit][::-1]
+                    }
+                ]
+            }
+        }
+        stars_chart_data_str = json.dumps(stars_chart_data)
+        stars_chart_encoded_data = urllib.parse.quote(stars_chart_data_str)
+        stars_chart_data_url = f"https://quickchart.io/chart?width=800&height=350&devicePixelRatio=1&c={stars_chart_encoded_data}"
+        
+        stars_chart_data_string = json.dumps(stars_chart_data)
+
+        message_text = message_text + f'<img src="{stars_chart_data_url}" alt="Stargazers history"><br>'
+
+        # issues chart
+        issues_history_dict = json.loads(self.repo.issues_history)
+        issues_chart_labels = list(issues_history_dict.keys())
+        issues_chart_dataset_opened = [item["opened"] for item in issues_history_dict.values()]
+        issues_chart_dataset_closed = [item["closed"] for item in issues_history_dict.values()]
+        issues_chart_data = {
+            "type": "line",
+            "data": {
+                "labels": issues_chart_labels[:data_limit][::-1],
+                "datasets": [
+                    {
+                        "label": "Opened issues",
+                        "data": issues_chart_dataset_opened[:data_limit][::-1]
+                    },
+                    {
+                        "label": "Closed issues",
+                        "data": issues_chart_dataset_closed[:data_limit][::-1]
+                    }
+                ]
+            }
+        }
+        issues_chart_data_str = json.dumps(issues_chart_data)
+        issues_chart_encoded_data = urllib.parse.quote(issues_chart_data_str)
+        issues_chart_data_url = f"https://quickchart.io/chart?width=800&height=350&devicePixelRatio=1&c={issues_chart_encoded_data}"
+        
+        issues_chart_data_string = json.dumps(issues_chart_data)
+
+        message_text = message_text + f'<img src="{issues_chart_data_url}" alt="Issues history"><br>'
 
         return message_text
