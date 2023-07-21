@@ -5,9 +5,6 @@ query issuesList($owner: String!, $name: String!, $cursor: String = null){
       totalCount
       edges {
         starredAt
-        node {
-          login
-        }
       }
       pageInfo {
         endCursor

@@ -35,6 +35,7 @@ class Repository(SQLModel, table=True):
     issues_opened_ltm: Optional[int]
     issues_history: Optional[str]
     stars_history: Optional[str]
+    last_month_stars: Optional[int]
 
 
 class RepositoryResponse(BaseModel):
@@ -51,6 +52,7 @@ class RepositoryResponse(BaseModel):
     watchers_count: Optional[int]
     health: Optional[int]
     issues_opened_ltm: Optional[int]
+    last_month_stars: Optional[int]
 
     def __init__(self, *args, **kwargs):
         settings = kwargs.pop("settings", None)
@@ -77,6 +79,7 @@ class RepositoryCreate(BaseModel):
     issues_opened_ltm: Optional[int]
     issues_history: Optional[str]
     stars_history: Optional[str]
+    last_month_stars: Optional[int]
 
     def __init__(self, *args, **kwargs):
         settings = kwargs.pop("settings", None)

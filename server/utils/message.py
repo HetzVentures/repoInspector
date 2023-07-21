@@ -170,11 +170,8 @@ class MessageCreator:
         message_text = message_text + f'<b>Watchers:</b> {self.repo.watchers_count}<br>'
 
         stars_per_month = 0
-        current_date = datetime.now().strftime("%Y.%m")
-        stars_history_dict = json.loads(self.repo.stars_history)
-
-        if current_date in stars_history_dict:
-            stars_per_month = round((stars_history_dict[current_date]["count"] / self.repo.stargazers_count) * 100, 2)
+        if "last_month_stars" in self.repo:
+            stars_per_month = round((self.repo.last_month_stars / self.repo.stargazers_count) * 100, 2)
 
         message_text = message_text + f'<b>Stars added per month:</b> {stars_per_month}%<br>'
         message_text = message_text + f'<b>Total forks / total stars:</b> {round(self.repo.forks_count / self.repo.stargazers_count, 2)}<br>'
@@ -214,17 +211,19 @@ class MessageCreator:
 
         # common limit for shown data in charts
         data_limit = 12
+
         # stargazers chart
-        stars_chart_labels = list(stars_history_dict.keys())
-        stars_chart_dataset = [item["count"] for item in stars_history_dict.values()]
+        stars_history_dict = json.loads(self.repo.stars_history)
+        stars_chart_labels = sorted(stars_history_dict.keys())
+        stars_chart_dataset = [stars_history_dict[key]["count"] for key in stars_chart_labels]
         stars_chart_data = {
             "type": "line",
             "data": {
-                "labels": stars_chart_labels[:data_limit][::-1],
+                "labels": stars_chart_labels[:data_limit],
                 "datasets": [
                     {
                         "label": "Stargazers history",
-                        "data": stars_chart_dataset[:data_limit][::-1]
+                        "data": stars_chart_dataset[:data_limit]
                     }
                 ]
             }
@@ -239,21 +238,21 @@ class MessageCreator:
 
         # issues chart
         issues_history_dict = json.loads(self.repo.issues_history)
-        issues_chart_labels = list(issues_history_dict.keys())
-        issues_chart_dataset_opened = [item["opened"] for item in issues_history_dict.values()]
-        issues_chart_dataset_closed = [item["closed"] for item in issues_history_dict.values()]
+        issues_chart_labels = sorted(issues_history_dict.keys())
+        issues_chart_dataset_opened = [issues_history_dict[key]["opened"] for key in issues_chart_labels]
+        issues_chart_dataset_closed = [issues_history_dict[key]["closed"] for key in issues_chart_labels]
         issues_chart_data = {
-            "type": "line",
+            "type": "bar",
             "data": {
-                "labels": issues_chart_labels[:data_limit][::-1],
+                "labels": issues_chart_labels[:data_limit],
                 "datasets": [
                     {
                         "label": "Opened issues",
-                        "data": issues_chart_dataset_opened[:data_limit][::-1]
+                        "data": issues_chart_dataset_opened[:data_limit]
                     },
                     {
                         "label": "Closed issues",
-                        "data": issues_chart_dataset_closed[:data_limit][::-1]
+                        "data": issues_chart_dataset_closed[:data_limit]
                     }
                 ]
             }

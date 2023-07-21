@@ -2,7 +2,7 @@
 import { defineComponent } from 'vue';
 import { auth } from '@/features/authentication';
 import { api } from '@/features/api';
-import { getYearMonth, loadFromHistory } from '@/features/utils';
+import { loadFromHistory } from '@/features/utils';
 
 import type { PropType } from 'vue';
 import { STAGE } from '@/features/store/models';
@@ -29,17 +29,12 @@ export default defineComponent({
       return this.repoData.stage === STAGE.PAUSE;
     },
     starGrowthLastMonth() {
-      const yearMonth = getYearMonth(new Date());
-      const { stargazers_count, stars_history } = this.repoData;
+      const { stargazers_count, lastMonthStars } = this.repoData;
 
-      if (!stargazers_count || !stars_history) return undefined;
+      if (!stargazers_count || typeof lastMonthStars === 'undefined')
+        return undefined;
 
-      if (!stars_history[yearMonth]) return 0;
-
-      return (
-        (stars_history[yearMonth].count / stargazers_count) *
-        100
-      ).toFixed(2);
+      return ((lastMonthStars / stargazers_count) * 100).toFixed(2);
     },
     starsPerFork() {
       const { stargazers_count, forks_count } = this.repoData;

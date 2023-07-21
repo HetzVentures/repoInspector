@@ -1,4 +1,21 @@
 import { getYearMonth } from './getYearMonth';
+import { getKeysForStatisticPeriod } from './getKeysForStatisticPeriod';
+
+const fillMissingMonths = (chartData: ChartData) => {
+  const filledChartData = { ...chartData };
+  const allMonths = getKeysForStatisticPeriod(chartData);
+
+  allMonths.forEach((key) => {
+    if (!(key in filledChartData)) {
+      filledChartData[key] = {
+        opened: 0,
+        closed: 0,
+      };
+    }
+  });
+
+  return filledChartData;
+};
 
 export const getIssuesStatistic = (issues: Issue[]) => {
   const currentDate = new Date();
@@ -50,7 +67,7 @@ export const getIssuesStatistic = (issues: Issue[]) => {
   const health = (closedCount / openedCount) * 100 || 0;
 
   return {
-    chartData,
+    chartData: fillMissingMonths(chartData),
     health,
     openedLTM: openedCount,
   };

@@ -244,10 +244,11 @@ class RepoInspector {
       await this._stopByError();
     }
 
-    const stars_history = groupStarsHistoryByMonth(items);
+    const { stars_history, lastMonthStars } = groupStarsHistoryByMonth(items);
 
     // save collected users to global store
     inspectDataStore.set('stars_history', stars_history);
+    inspectDataStore.set('lastMonthStars', lastMonthStars);
 
     return { success: true };
   }
@@ -379,6 +380,7 @@ class RepoInspector {
         issues: inspectData.issues,
         pull_requests_merged_LTM: inspectData.pull_requests_merged_LTM,
         stars_history: inspectData.stars_history,
+        last_month_stars: inspectData.lastMonthStars,
       },
       forks,
       stargazers,
@@ -395,6 +397,7 @@ class RepoInspector {
       downloader.stars_history = inspectData.stars_history;
       downloader.issues_statistic = inspectData.issues;
       downloader.prsMergedLTM = inspectData.pull_requests_merged_LTM;
+      downloader.lastMonthStars = inspectData.lastMonthStars;
 
       notificationStore.set({
         type: NOTIFICATION_TYPES.SUCCESS,

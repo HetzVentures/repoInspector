@@ -28,7 +28,7 @@ export default {
       return {
         chart: {
           height: 250,
-          type: 'line',
+          type: this.chartType === 'stars' ? 'line' : 'bar',
           dropShadow: {
             enabled: true,
             color: '#000',
@@ -41,7 +41,7 @@ export default {
             show: false,
           },
         },
-        colors: ['#77B6EA', '#545454'],
+        colors: ['#77B6EA', '#FF8300'],
         dataLabels: {
           enabled: true,
         },
@@ -118,11 +118,6 @@ export default {
 
 <template>
   <div>
-    <apexchart
-      type="line"
-      height="250"
-      :options="chartOptions"
-      :series="chartSeries"
-    />
+    <apexchart height="250" :options="chartOptions" :series="chartSeries" />
   </div>
 </template>

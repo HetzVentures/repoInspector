@@ -42,6 +42,7 @@ type Downloader = {
   settings: Settings;
   issues_statistic?: IssuesStatistic;
   stars_history?: StarHistoryByMonth;
+  lastMonthStars?: number;
   prsMergedLTM?: number;
   lastStage?: LastStage;
   cursor?: string;
@@ -243,7 +244,6 @@ type StarHistory = {
 type StarHistoryByMonth = {
   [key: string]: {
     count: number;
-    users: string[];
   };
 };
 
@@ -253,4 +253,5 @@ type InspectData = {
   pull_requests_merged_LTM: number;
   stargaze_users: DBUser[];
   stars_history: StarHistoryByMonth;
+  lastMonthStars: number;
 };
