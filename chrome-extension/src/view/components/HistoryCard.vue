@@ -21,7 +21,7 @@ export default defineComponent({
     return {
       resendLoading: false,
       isDetailsOpen: false,
-      isPauseBTNDisabled: false,
+      isPauseBTNDisabled: true,
     };
   },
   computed: {
