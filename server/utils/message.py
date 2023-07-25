@@ -10,6 +10,7 @@ import logging
 import zipfile
 from os.path import basename
 import urllib.parse
+import pdfkit
 
 class MessageCreator:
 
@@ -27,6 +28,8 @@ class MessageCreator:
         if rows:
             file_path = f'{self.temp_path}.csv'
             json_file_path = f'{self.temp_path}.json'
+            pdf_file_path = f'{self.temp_path}.pdf'
+            message_text = self.create_message_text()
             self.create_csv(
                 file_path=file_path,
                 rows=rows,
@@ -34,9 +37,12 @@ class MessageCreator:
             )
             self.create_json(
                 file_path=json_file_path,
-                rows=rows,
+                rows=rows
             )
-            message_text = self.create_message_text()
+            self.create_pdf(
+                file_path=pdf_file_path,
+                html=message_text
+            )
         else:
             file_path = None
             json_file_path = None
@@ -45,6 +51,7 @@ class MessageCreator:
         archive_path = self.create_archive(
             file_path=file_path,
             json_file_path=json_file_path,
+            pdf_file_path=pdf_file_path,
         )
 
         return message_text, archive_path
@@ -53,6 +60,7 @@ class MessageCreator:
             self,
             file_path: str,
             json_file_path: str,
+            pdf_file_path: str,
     ) -> str:
         try:
             archive_path = f'{self.temp_path}.zip'
@@ -60,18 +68,21 @@ class MessageCreator:
             with zipfile.ZipFile(archive_path, 'w', zipfile.ZIP_DEFLATED) as archive:
                 archive.write(file_path, basename(file_path))
                 archive.write(json_file_path, basename(json_file_path))
+                archive.write(pdf_file_path, basename(pdf_file_path))
 
             return archive_path
         except BaseException:
             return self.create_archive(
                 file_path=file_path,
                 json_file_path=json_file_path,
+                pdf_file_path=pdf_file_path,
             )
 
     def clear_temp(self):
         os.remove(f'{self.temp_path}.csv')
         os.remove(f'{self.temp_path}.json')
         os.remove(f'{self.temp_path}.zip')
+        os.remove(f'{self.temp_path}.pdf')
 
     @staticmethod
     def create_csv(
@@ -115,6 +126,14 @@ class MessageCreator:
         with open(file_path, 'w', newline='', encoding='utf-8') as file:
             file.write(json_data)
 
+    @staticmethod
+    def create_pdf(
+            file_path: str,
+            html: str,
+    ) -> None:
+        styled_html = f'<html><head><style>body {{ background-color: #fff; }}</style></head><body>{html}</body></html>'
+        pdfkit.from_string(styled_html, file_path)
+
     def create_message_text(self) -> str:
         session = self.session
         repo_id = self.repo_id
@@ -143,13 +162,14 @@ class MessageCreator:
         active_users = session.query(RepositoryUser.id).where(RepositoryUser.repository_id == repo_id, 
                                     RepositoryUser.active_user.is_(True)).count()
 
-        message_text = '<img src="https://www.hetzventures.org/static/email-header.gif">'
+        message_text = '<center><img src="https://www.hetzventures.org/static/email-header.gif"></center>'
         message_text = message_text + f'<br><br>Hi,<br><br>Below (and attached) is your report for repository https://github.com/{self.repo.name}<br><br>'
         message_text = message_text + "<i>Thanks for using repoInspector! Give us a <a href='https://github.com/HetzVentures/repoInspector'>Star</a></i><br><br>"
 
         settings = json.loads(self.repo.settings)
         def setting_status(v):
-            return '✓' if v else '✗'
+            return 'v' if v else 'x'
+            # return '✓' if v else '✗'
             
         message_text = message_text + f"<b>Settings:</b> \
             {setting_status(settings['stars'])} Stars \
@@ -202,7 +222,8 @@ class MessageCreator:
         real_users_text = f'<b>Real users:</b> {"%.2f" % (real_users / (total_users) * 100)} % ({real_users} ' \
                           f'profile(s))<br>'
         message_text = message_text + '<br>' + real_users_text
-        message_text += f'<br><b>Geo breakdown:</b><br>'
+
+        # message_text += f'<br><b>Geo breakdown:</b><br>'
 
         for location in country_summary:
             if location.country:
@@ -214,55 +235,61 @@ class MessageCreator:
 
         # stargazers chart
         stars_history_dict = json.loads(self.repo.stars_history)
-        stars_chart_labels = sorted(stars_history_dict.keys())
-        stars_chart_dataset = [stars_history_dict[key]["count"] for key in stars_chart_labels]
-        stars_chart_data = {
-            "type": "line",
-            "data": {
-                "labels": stars_chart_labels[:data_limit],
-                "datasets": [
-                    {
-                        "label": "Stargazers history",
-                        "data": stars_chart_dataset[:data_limit]
-                    }
-                ]
-            }
-        }
-        stars_chart_data_str = json.dumps(stars_chart_data)
-        stars_chart_encoded_data = urllib.parse.quote(stars_chart_data_str)
-        stars_chart_data_url = f"https://quickchart.io/chart?width=800&height=350&devicePixelRatio=1&c={stars_chart_encoded_data}"
-        
-        stars_chart_data_string = json.dumps(stars_chart_data)
 
-        message_text = message_text + f'<img src="{stars_chart_data_url}" alt="Stargazers history"><br>'
+        if stars_history_dict:
+            stars_chart_labels = sorted(stars_history_dict.keys())
+            stars_chart_dataset = [stars_history_dict[key]["count"] for key in stars_chart_labels]
+            stars_chart_data = {
+                "type": "line",
+                "data": {
+                    "labels": stars_chart_labels[:data_limit],
+                    "datasets": [
+                        {
+                            "label": "Stargazers",
+                            "data": stars_chart_dataset[:data_limit]
+                        }
+                    ]
+                }
+            }
+            stars_chart_data_str = json.dumps(stars_chart_data)
+            stars_chart_encoded_data = urllib.parse.quote(stars_chart_data_str)
+            stars_chart_data_url = f"https://quickchart.io/chart?width=800&height=350&devicePixelRatio=1&c={stars_chart_encoded_data}"
+
+            stars_chart_data_string = json.dumps(stars_chart_data)
+
+            message_text += f'<br><b>Stargazers history for last 12 months:</b><br>'
+            message_text = message_text + f'<img src="{stars_chart_data_url}" alt="Stargazers history"><br>'
 
         # issues chart
         issues_history_dict = json.loads(self.repo.issues_history)
-        issues_chart_labels = sorted(issues_history_dict.keys())
-        issues_chart_dataset_opened = [issues_history_dict[key]["opened"] for key in issues_chart_labels]
-        issues_chart_dataset_closed = [issues_history_dict[key]["closed"] for key in issues_chart_labels]
-        issues_chart_data = {
-            "type": "bar",
-            "data": {
-                "labels": issues_chart_labels[:data_limit],
-                "datasets": [
-                    {
-                        "label": "Opened issues",
-                        "data": issues_chart_dataset_opened[:data_limit]
-                    },
-                    {
-                        "label": "Closed issues",
-                        "data": issues_chart_dataset_closed[:data_limit]
-                    }
-                ]
-            }
-        }
-        issues_chart_data_str = json.dumps(issues_chart_data)
-        issues_chart_encoded_data = urllib.parse.quote(issues_chart_data_str)
-        issues_chart_data_url = f"https://quickchart.io/chart?width=800&height=350&devicePixelRatio=1&c={issues_chart_encoded_data}"
-        
-        issues_chart_data_string = json.dumps(issues_chart_data)
 
-        message_text = message_text + f'<img src="{issues_chart_data_url}" alt="Issues history"><br>'
+        if issues_history_dict:
+            issues_chart_labels = sorted(issues_history_dict.keys())
+            issues_chart_dataset_opened = [issues_history_dict[key]["opened"] for key in issues_chart_labels]
+            issues_chart_dataset_closed = [issues_history_dict[key]["closed"] for key in issues_chart_labels]
+            issues_chart_data = {
+                "type": "bar",
+                "data": {
+                    "labels": issues_chart_labels[:data_limit],
+                    "datasets": [
+                        {
+                            "label": "Opened issues",
+                            "data": issues_chart_dataset_opened[:data_limit]
+                        },
+                        {
+                            "label": "Closed issues",
+                            "data": issues_chart_dataset_closed[:data_limit]
+                        }
+                    ]
+                }
+            }
+            issues_chart_data_str = json.dumps(issues_chart_data)
+            issues_chart_encoded_data = urllib.parse.quote(issues_chart_data_str)
+            issues_chart_data_url = f"https://quickchart.io/chart?width=800&height=350&devicePixelRatio=1&c={issues_chart_encoded_data}"
+
+            issues_chart_data_string = json.dumps(issues_chart_data)
+
+            message_text += f'<br><b>Issues history for last 12 months:</b><br>'
+            message_text = message_text + f'<img src="{issues_chart_data_url}" alt="Issues history"><br>'
 
         return message_text
