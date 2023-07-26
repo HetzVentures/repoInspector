@@ -15,6 +15,7 @@ export default defineComponent({
     remove() {
       this.$emit('remove', {});
     },
+
     progress(progress: Progress) {
       if (progress?.current && progress?.max) {
         return `${((progress.current / progress.max) * 100).toFixed(0)}%`;
@@ -22,9 +23,11 @@ export default defineComponent({
 
       return 0;
     },
+
     typeStatus(v: boolean) {
       return v ? '✓' : '✗';
     },
+
     timeRemaining(progress: Progress) {
       const ESTIMATED_SECONDS_PER_CALL = 1.2;
 
@@ -95,6 +98,10 @@ export default defineComponent({
         </li>
         <li>Stars: {{ downloader?.stargazers_count }}</li>
         <li>Forks: {{ downloader?.forks_count }}</li>
+        <li>Issues: {{ downloader?.issues_count }}</li>
+        <li>Pull requests: {{ downloader?.pull_requests_count }}</li>
+        <li>Contributors: {{ downloader?.contributors_count }}</li>
+        <li>Watchers: {{ downloader?.watchers_count }}</li>
       </details>
       <div class="progress-wrapper">
         <a href="#" @click="remove()">

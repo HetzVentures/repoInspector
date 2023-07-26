@@ -4,12 +4,20 @@ import { initialData } from '@/entry/popup';
 import { auth } from '@/features/authentication';
 import { downloaderStore } from '@/features/store/downloader';
 import { historyStore } from '@/features/store/history';
+import { STAGE } from '@/features/store/models';
+import {
+  MINIMUM_REQUEST_LIMIT_AMOUNT,
+  USERS_QUERY_LIMIT,
+} from '@/features/constants';
 import {
   createName,
+  getOctokitRepoData,
   getOwnTabs,
   octokitRepoUrl,
   timeout,
 } from '@/features/utils';
+import { repositoryQuery } from '@/features/gql/queries';
+import { type RepositoryQueryQuery } from '@/features/gql/graphql.schema';
 import DownloadCard from './components/DownloadCard.vue';
 
 interface PopupData {
@@ -56,9 +64,11 @@ export default {
       }
     }
 
-    setInterval(() => {
-      this.refreshStore();
-    }, 5000);
+    await this.refreshStore();
+
+    chrome.storage.onChanged.addListener(async () => {
+      await this.refreshStore();
+    });
 
     this.currentUser = await auth.getStoredUser();
 
@@ -91,6 +101,7 @@ export default {
         downloaderStore.set(this.downloader);
       }
     },
+
     async runInspect() {
       // collect initial data on repo and send message to background to start inspecting it.
       try {
@@ -121,66 +132,137 @@ export default {
           return;
         }
 
+        const { owner, name } = getOctokitRepoData(this.repoUrl);
+
+        if (!owner || !name) {
+          this.showError('Please check repo URL!');
+
+          return;
+        }
+
         this.downloader.url = this.repoUrl;
         this.downloader.octokitUrl = octokitRepoUrl(this.downloader.url);
 
         const octokit = initOctokit(this.token);
-        let {
-          data: { stargazers_count, forks },
-        } = await octokit.request(`GET ${this.downloader.octokitUrl}`);
+        const result = await octokit.graphql<RepositoryQueryQuery>(
+          repositoryQuery,
+          {
+            owner,
+            name,
+          },
+        );
+
+        if (
+          !result?.rateLimit ||
+          result.rateLimit.remaining <= MINIMUM_REQUEST_LIMIT_AMOUNT
+        ) {
+          this.showError(
+            `Queries limit reached. Try after ${new Date(
+              result?.rateLimit?.resetAt ?? new Date(),
+            ).toLocaleTimeString()}`,
+          );
+
+          return;
+        }
+
+        const contributorsURL = `https://api.github.com/repos/${owner}/${name}/contributors`;
+        const { data } = await octokit.request(`GET ${contributorsURL}`);
+        const contributorsCount = data.length;
 
         // set the data for inspection based on the settings
         const { settings } = this.downloader;
 
-        if (settings.sample) {
-          forks = Math.ceil(forks * (settings.samplePercent / 100));
-          stargazers_count = Math.ceil(
-            stargazers_count * (settings.samplePercent / 100),
-          );
+        const { repository } = result;
+
+        if (!repository) {
+          this.showError('Something went wrong try again later');
+
+          return;
         }
 
-        this.downloader.stargazers_count = settings.stars
-          ? stargazers_count
-          : 0;
-        this.downloader.forks_count = settings.forks ? forks : 0;
+        const {
+          stargazerCount,
+          stargazers: { totalCount: stargazerUsers },
+          forkCount,
+          forks: { totalCount: forkUsers },
+          issues: { totalCount: issuesCount },
+          pullRequests: { totalCount: pullRequestsCount },
+          watchers: { totalCount: watchersCount },
+        } = repository;
+
+        // number of fork count and fork users may be different, so we use number of fork users
+        // to limit number of requested users according to sample settings
+        const forks_users = settings.sample
+          ? Math.ceil(forkUsers * (settings.samplePercent / 100))
+          : forkUsers;
+        const stargazer_users = settings.sample
+          ? Math.ceil(stargazerUsers * (settings.samplePercent / 100))
+          : stargazerUsers;
+
+        // Calculate total number of requests needed to collect all data
+        const maxRequests =
+          Math.ceil(issuesCount / 100) +
+          Math.ceil(pullRequestsCount / 100) +
+          Math.ceil(stargazerCount / 100) +
+          (settings.stars ? Math.ceil(forks_users / USERS_QUERY_LIMIT) : 0) +
+          (settings.forks ? Math.ceil(stargazer_users / USERS_QUERY_LIMIT) : 0);
+
+        this.downloader.stargazers_count = stargazerCount;
+        this.downloader.forks_count = forkCount;
+        this.downloader.stargazers_users = settings.stars ? stargazer_users : 0;
+        this.downloader.forks_users = settings.forks ? forks_users : 0;
+        this.downloader.issues_count = issuesCount;
+        this.downloader.pull_requests_count = pullRequestsCount;
+        this.downloader.watchers_count = watchersCount;
+        this.downloader.contributors_count = contributorsCount;
         this.downloader.name = createName(this.downloader.url);
         this.downloader.date = new Date().getTime();
         this.downloader.active = true;
+        this.downloader.stage = STAGE.INITIATED;
+        this.downloader.progress = {
+          ...this.downloader.progress,
+          max: maxRequests,
+        };
+
         await downloaderStore.set(this.downloader);
+
         chrome.runtime.openOptionsPage();
       } catch (error: any) {
-        if (error.status === 401) {
-          this.showError('Token has expired!');
-        } else {
-          this.showError('Something went wrong');
-        }
+        this.showError('Something went wrong');
 
         console.error(error);
       }
     },
+
     openDownloads() {
       chrome.runtime.openOptionsPage();
     },
+
     async refreshStore() {
       this.downloader = await downloaderStore.get();
     },
+
     keys(data: any) {
       return Object.keys(data);
     },
+
     async cancelUrl() {
       await downloaderStore.reset();
       this.refreshStore();
       this.cancel = 0;
     },
+
     showError(error: string) {
       this.error = error;
       setTimeout(() => {
         this.error = null;
       }, 5000);
     },
+
     openLogin() {
       auth.loginWithGoogle();
     },
+
     async runLogout() {
       await downloaderStore.reset();
       await historyStore.reset();
