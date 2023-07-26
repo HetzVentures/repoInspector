@@ -2,14 +2,10 @@
 import { defineComponent } from 'vue';
 import { auth } from '@/features/authentication';
 import { api } from '@/features/api';
-import { loadFromHistory } from '@/features/utils';
 
 import type { PropType } from 'vue';
-import { STAGE } from '@/features/store/models';
-import StatisticChart from './StatisticChart.vue';
 
 export default defineComponent({
-  components: { StatisticChart },
   props: {
     repoData: {
       type: Object as PropType<Downloader>,
@@ -20,66 +16,9 @@ export default defineComponent({
   data() {
     return {
       resendLoading: false,
-      isDetailsOpen: false,
-      isPauseBTNDisabled: true,
     };
   },
-  computed: {
-    isPaused() {
-      return this.repoData.stage === STAGE.PAUSE;
-    },
-    starGrowthLastMonth() {
-      const { stargazers_count, lastMonthStars } = this.repoData;
-
-      if (!stargazers_count || typeof lastMonthStars === 'undefined')
-        return undefined;
-
-      return ((lastMonthStars / stargazers_count) * 100).toFixed(2);
-    },
-    starsPerFork() {
-      const { stargazers_count, forks_count } = this.repoData;
-
-      if (!stargazers_count || !forks_count) return undefined;
-
-      return (forks_count / stargazers_count).toFixed(2);
-    },
-    restoreLimitDate() {
-      const { restoreLimitsDate } = this.repoData;
-
-      if (!restoreLimitsDate) return undefined;
-
-      const dateOfRestoreLimits = new Date(restoreLimitsDate);
-
-      return dateOfRestoreLimits.toLocaleTimeString();
-    },
-  },
-  mounted() {
-    if (!this.repoData.id)
-      if (this.repoData.stage === STAGE.PAUSE) {
-        setInterval(() => {
-          this._checkIsLimitsRestored();
-        }, 3000);
-      }
-  },
   methods: {
-    _checkIsLimitsRestored() {
-      const now = new Date().getTime();
-
-      if (
-        now >= new Date(this.repoData.restoreLimitsDate ?? new Date()).getTime()
-      ) {
-        this.isPauseBTNDisabled = false;
-      }
-    },
-    async unpause() {
-      const downloader = { ...this.repoData };
-      const result = await loadFromHistory(downloader);
-
-      if (result.success) this.remove();
-    },
-    toggleDetails() {
-      this.isDetailsOpen = !this.isDetailsOpen;
-    },
     typeStatus(v: boolean) {
       return v ? '✓' : '✗';
     },
@@ -164,93 +103,16 @@ export default defineComponent({
         >
           Resend
         </button>
-        <div v-if="isPaused && !repoData.id" class="buttons-block">
-          <div class="paused-info">
-            <span v-if="isPauseBTNDisabled"
-              >Paused until {{ restoreLimitDate }}</span
-            >
-            <span
-              >Progress:
-              {{
-                (
-                  (repoData.progress.current / repoData.progress.max) *
-                  100
-                ).toFixed(0)
-              }}%</span
-            >
-          </div>
-          <button
-            :disabled="isPauseBTNDisabled"
-            class="secondary outline small-button pull-right"
-            @click="unpause()"
-          >
-            Continue
-          </button>
-        </div>
-        <span v-if="!repoData.id && !isPaused" class="error-pill pull-right"
-          >Error</span
-        >
+        <span v-else class="error-pill pull-right">Error</span>
       </div>
     </div>
     <footer>
       <details>
-        <summary @click="toggleDetails">
+        <summary>
           {{ repoData.date !== null && dateTime(repoData.date) }}
         </summary>
         <li>Stars: {{ repoData.stargazers_count }}</li>
         <li>Forks: {{ repoData.forks_count }}</li>
-        <li v-if="typeof repoData?.issues_count !== 'undefined'">
-          Issues: {{ repoData?.issues_count }}
-        </li>
-        <li v-if="typeof repoData?.pull_requests_count !== 'undefined'">
-          Pull requests: {{ repoData?.pull_requests_count }}
-        </li>
-        <li v-if="typeof repoData?.contributors_count !== 'undefined'">
-          Contributors: {{ repoData?.contributors_count }}
-        </li>
-        <li v-if="typeof repoData?.watchers_count !== 'undefined'">
-          Watchers: {{ repoData?.watchers_count }}
-        </li>
-        <li v-if="typeof starGrowthLastMonth !== 'undefined'">
-          Stars added per month: {{ starGrowthLastMonth }}%
-        </li>
-        <li v-if="typeof starsPerFork !== 'undefined'">
-          Total forks / total stars: {{ starsPerFork }}
-        </li>
-        <li v-if="typeof repoData?.issues_statistic?.openedLTM !== 'undefined'">
-          Issues created in last 12 month:
-          {{ repoData?.issues_statistic?.openedLTM }}
-        </li>
-        <li v-if="typeof repoData?.issues_statistic?.health !== 'undefined'">
-          Health (% issues closed in LTM):
-          {{ repoData?.issues_statistic?.health }}
-        </li>
-        <li v-if="typeof repoData?.prsMergedLTM !== 'undefined'">
-          Pull requests merged LTM:
-          {{ repoData?.prsMergedLTM }}
-        </li>
-        <div
-          v-if="repoData?.stars_history && isDetailsOpen && !isPaused"
-          class="chart-wrapper"
-        >
-          <StatisticChart
-            :chart-data="repoData?.stars_history"
-            :chart-title="'Stargazers statistic'"
-            :chart-type="'stars'"
-          />
-        </div>
-        <div
-          v-if="
-            repoData?.issues_statistic?.chartData && isDetailsOpen && !isPaused
-          "
-          class="chart-wrapper"
-        >
-          <StatisticChart
-            :chart-data="repoData?.issues_statistic?.chartData"
-            :chart-title="'Issues statistic'"
-            :chart-type="'issues'"
-          />
-        </div>
       </details>
     </footer>
   </article>
@@ -304,21 +166,5 @@ export default defineComponent({
 }
 .close:after {
   transform: rotate(-45deg);
-}
-.chart-wrapper {
-  display: block;
-  height: 300px;
-  padding-top: 20px;
-}
-.paused-info {
-  display: flex;
-  flex-direction: column;
-}
-.buttons-block {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: flex-start;
-  gap: 24px;
 }
 </style>

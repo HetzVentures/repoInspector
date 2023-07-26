@@ -1,460 +1,141 @@
 import { Octokit } from '@octokit/core';
-import {
-  getForkersQuery,
-  getStargazersQuery,
-  issuesQuery,
-  pullRequestsQuery,
-  starHistoryQuery,
-} from '@/features/gql/queries';
-import type {
-  GetForkersQueryQuery,
-  GetStargazersQueryQuery,
-  IssuesQueryQuery,
-  PullRequestsQueryQuery,
-  StarHistoryQueryQuery,
-} from '@/features/gql/graphql.schema';
-import {
-  getIssuesStatistic,
-  getOctokitRepoData,
-  getPullRequestStatistic,
-  groupStarsHistoryByMonth,
-  initToken,
-  serializeUser,
-} from './utils';
+import { asyncForEach, initToken, timeout } from './utils';
 import { initOctokit } from './octokit';
-
-import { STAGE } from './store/models';
+import { userUrlQueue } from './userUrlQueue';
 import { downloaderStore } from './store/downloader';
-import { inspectDataStore } from './store/inspectData';
-import { NOTIFICATION_TYPES, notificationStore } from './store/notification';
-import { api } from './api';
-import { auth } from './authentication';
-import { historyStore } from './store/history';
-import { MINIMUM_REQUEST_LIMIT_AMOUNT, USERS_QUERY_LIMIT } from './constants';
 
 let octokit: Octokit;
+const PER_PAGE = 100;
 
 initToken().then((token) => {
   octokit = initOctokit(token);
 });
 
 class RepoInspector {
-  // used for prevent double recording current inspection state to local store when query limit reached
-  alreadyPaused: boolean;
-
-  constructor() {
-    this.alreadyPaused = false;
-  }
-
   async inspectAssets(downloader: Downloader) {
-    const { url, stage, lastStage } = downloader;
+    // Set up the inspectionParams based on the inspection settings
+    const inspectionParams = [];
 
-    // If there are no inspections running, do nothing.
-    if (stage < STAGE.INITIATED || stage > STAGE.GETTING_USERS) return;
-
-    const { owner, name } = getOctokitRepoData(url);
-
-    // if we can't receive owner or name of repository, do nothing
-    if (!owner || !name) {
-      await this._stopByError('Please check repository URL');
-
-      return;
-    }
-
-    this.alreadyPaused = false;
-    // check if it is new inspection or we continue previous one which was paused
-    let isUnpaused = stage === STAGE.UNPAUSED;
-    const isInitiated = stage === STAGE.INITIATED;
-
-    if (isInitiated) inspectDataStore.refresh();
-
-    if (lastStage === 'additional' || isInitiated) {
-      await downloaderStore.setStage(STAGE.GETTING_ADDITIONAL_STATISTIC);
-      isUnpaused = false;
-
-      // Promise.all allows us to make paralleled requests for faster responses
-      await Promise.all([
-        await this.getIssues(owner, name),
-        await this.getPullRequests(owner, name),
-        await this.getStarHistory(owner, name),
-      ]);
-    }
-
-    await downloaderStore.setStage(STAGE.GETTING_USERS);
-
-    // if it is new inspection or if it was paused on stage getting stargazers
-    if (!isUnpaused || lastStage === 'stargazers') {
-      if (downloader.settings?.stars) {
-        await this.getUsers(
-          owner,
-          name,
-          'stargazers',
-          USERS_QUERY_LIMIT,
-          downloader.stargazers_users,
-          downloader.stargazers_users_data ?? [],
-          downloader.cursor,
-        );
-      }
-
-      if (downloader.settings?.forks) {
-        await this.getUsers(
-          owner,
-          name,
-          'forks',
-          USERS_QUERY_LIMIT,
-          downloader.forks_users,
-        );
-      }
-    }
-
-    // only if it was paused on stage getting forkers
-    if (isUnpaused && lastStage === 'forks' && downloader.settings?.forks) {
-      await this.getUsers(
-        owner,
-        name,
-        'forks',
-        USERS_QUERY_LIMIT,
-        downloader.forks_users,
-        downloader.forks_users_data,
-        downloader.cursor,
-      );
-    }
-
-    if (!this.alreadyPaused) {
-      this._finishInspection();
-    }
-  }
-
-  async getUsers(
-    owner: string,
-    name: string,
-    type: 'stargazers' | 'forks',
-    limit: number,
-    max: number,
-    prev: DBUser[] = [],
-    cursor: null | string = null,
-  ): Promise<{ success: boolean }> {
-    const downloader = await downloaderStore.get();
-    if (!downloader.active) return { success: false };
-
-    let items: any[] = [...prev];
-
-    const query = type === 'stargazers' ? getStargazersQuery : getForkersQuery;
-
-    const inspectDataPropertyName =
-      type === 'stargazers' ? 'stargaze_users' : 'fork_users';
-
-    try {
-      const resp = await octokit.graphql<
-        GetForkersQueryQuery & GetStargazersQueryQuery
-      >(query, {
-        owner,
-        name,
-        cursor,
-        limit,
+    if (downloader.settings?.stars) {
+      inspectionParams.push({
+        mapper: (data: any[]) => data.map((x) => x.url),
+        type: 'stargazers',
+        max: downloader.stargazers_count,
       });
-
-      const hasNextPage = resp?.repository?.[type].pageInfo.hasNextPage;
-      const endCursor = resp?.repository?.[type].pageInfo.endCursor;
-      const currentRequestItems = resp?.repository?.[type].edges ?? [];
-      const requestRemaining = resp?.rateLimit?.remaining;
-
-      // remove artifacts of graphQL response and normalize data
-      const normalizedCurrentRequestItems = await Promise.all(
-        currentRequestItems.map(async (item) => {
-          const mappedItem: GithubUser =
-            type === 'stargazers'
-              ? { ...(item as StargazerUser).node }
-              : { ...(item as ForkUser).node.owner };
-
-          if (!mappedItem.login) return {};
-
-          const serializedItem = serializeUser(mappedItem, octokit);
-
-          return serializedItem;
-        }),
-      );
-      items = [...items, ...normalizedCurrentRequestItems];
-
-      downloaderStore.increaseProgress();
-
-      // if query limits reached - pause inspection
-      if (requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
-        await inspectDataStore.set(inspectDataPropertyName, items as DBUser[]);
-        this._pauseInspection(type, resp?.rateLimit.resetAt, endCursor);
-
-        return { success: false };
-      }
-
-      // if there are more data than we already receive - request for new portion of data
-      if (hasNextPage && items.length < max) {
-        return await this.getUsers(
-          owner,
-          name,
-          type,
-          USERS_QUERY_LIMIT,
-          max,
-          items,
-          endCursor,
-        );
-      }
-    } catch (error) {
-      await this._stopByError();
     }
 
-    // save collected users to global store
-    inspectDataStore.set(inspectDataPropertyName, items as DBUser[]);
-
-    return { success: true };
-  }
-
-  async getStarHistory(
-    owner: string,
-    name: string,
-    prev: StarHistory[] = [],
-    cursor: null | string = null,
-  ): Promise<{ success: boolean }> {
-    const downloader = await downloaderStore.get();
-    if (!downloader.active) return { success: false };
-
-    let items: StarHistory[] = [...prev];
-
-    try {
-      const resp = await octokit.graphql<StarHistoryQueryQuery>(
-        starHistoryQuery,
-        {
-          owner,
-          name,
-          cursor,
-        },
-      );
-
-      const hasNextPage = resp?.repository?.stargazers?.pageInfo.hasNextPage;
-      const endCursor = resp?.repository?.stargazers?.pageInfo.endCursor;
-      items = [...items, ...(resp?.repository?.stargazers?.edges ?? [])];
-      const requestRemaining = resp?.rateLimit.remaining;
-
-      // if query limits reached - pause inspection
-      if (requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
-        this._pauseInspection('additional', resp?.rateLimit.resetAt);
-
-        return { success: false };
-      }
-
-      downloaderStore.increaseProgress();
-
-      // if there are more data than we already receive - request for new portion of data
-      if (hasNextPage) {
-        return await this.getStarHistory(owner, name, items, endCursor);
-      }
-    } catch (error) {
-      await this._stopByError();
-    }
-
-    const { stars_history, lastMonthStars } = groupStarsHistoryByMonth(items);
-
-    // save collected users to global store
-    inspectDataStore.set('stars_history', stars_history);
-    inspectDataStore.set('lastMonthStars', lastMonthStars);
-
-    return { success: true };
-  }
-
-  async getIssues(
-    owner: string,
-    name: string,
-    prev: Issue[] = [],
-    cursor: null | string = null,
-  ): Promise<{ success: boolean }> {
-    const downloader = await downloaderStore.get();
-    if (!downloader.active) return { success: false };
-
-    let items: Issue[] = [...prev];
-
-    try {
-      const resp = await octokit.graphql<IssuesQueryQuery>(issuesQuery, {
-        owner,
-        name,
-        cursor,
+    if (downloader.settings?.forks) {
+      inspectionParams.push({
+        mapper: (data: any[]) => data.map((x) => x.owner.url),
+        type: 'forks',
+        max: downloader.forks_count,
       });
-
-      const hasNextPage = resp?.repository?.issues?.pageInfo.hasNextPage;
-      const endCursor = resp?.repository?.issues?.pageInfo.endCursor;
-      items = [...items, ...(resp?.repository?.issues?.edges ?? [])];
-      const requestRemaining = resp?.rateLimit.remaining;
-
-      // if query limits reached - pause inspection
-      if (requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
-        this._pauseInspection('additional', resp?.rateLimit.resetAt);
-
-        return { success: false };
-      }
-
-      downloaderStore.increaseProgress();
-
-      // if there are more data than we already receive - request for new portion of data
-      if (hasNextPage) {
-        return await this.getIssues(owner, name, items, endCursor);
-      }
-    } catch (error) {
-      await this._stopByError();
     }
 
-    const issues = getIssuesStatistic(items);
-
-    // save collected users to global store
-    inspectDataStore.set('issues', issues);
-
-    return { success: true };
+    this.inspect(inspectionParams);
   }
 
-  async getPullRequests(
-    owner: string,
-    name: string,
-    prev: PullRequest[] = [],
-    cursor: null | string = null,
-  ): Promise<{ success: boolean }> {
-    const downloader = await downloaderStore.get();
-    if (!downloader.active) return { success: false };
+  async inspect(
+    inspectionParams: Array<{
+      type: string;
+      max: number;
+      mapper: Mapper;
+    }>,
+  ) {
+    // inspect function runs in the background and looks at all the users from "forks" and "stargazers" lists. For each
+    // one of these categories, the octokit API will return PER_PAGE users. As the background job runs every minute, and both
+    // "forks" and "stargazers" are run sequentially, this results in an initial set of API calls made to collect the users urls.
+    // The "inspect" function can handle only one repo at a time, once it is done extracting all the user urls, it sends them to a queueing
+    // service (see queue.js) so that the data can be collected and throttled to manage rate limits.
+    // The data it collected by the qto a server for further processing.
+    // All data regarding a particular repo are stored in a JS object and not in the local storage. This means that if chrome is
+    // restarted, all data collected will be lost.
 
-    let items: PullRequest[] = [...prev];
+    await asyncForEach(inspectionParams, async (inspection) => {
+      const { type, max, mapper } = inspection;
 
-    try {
-      const resp = await octokit.graphql<PullRequestsQueryQuery>(
-        pullRequestsQuery,
-        {
-          owner,
-          name,
-          cursor,
-        },
-      );
+      // the github API return a max of PER_PAGE users per API call, the max pages we must parse to inspect the repo is therefore <user_count>/PER_PAGE
+      const maxPages = Math.ceil(max / PER_PAGE);
 
-      const hasNextPage = resp?.repository?.pullRequests?.pageInfo.hasNextPage;
-      const endCursor = resp?.repository?.pullRequests?.pageInfo.endCursor;
-      items = [...items, ...(resp?.repository?.pullRequests?.edges ?? [])];
-      const requestRemaining = resp?.rateLimit.remaining;
+      // Look for all assets's users
+      for (
+        let inspectedPages = 1;
+        inspectedPages <= maxPages;
+        inspectedPages++
+      ) {
+        // while we haven't finished parsing through the current chunk, look for users in repo
+        try {
+          const downloader = await downloaderStore.get();
 
-      // if query limits reached - pause inspection
-      if (requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
-        this._pauseInspection('additional', resp?.rateLimit.resetAt);
+          if (!downloader.active) {
+            // only continue if repo hasn't been deleted
+            return;
+          }
 
-        return { success: false };
+          const url = `${downloader.octokitUrl}/${type}?page=${inspectedPages}&per_page=${PER_PAGE}`;
+          const status = await this.run(type, url, mapper);
+          // status will return false if the attempt to get more user links is blocked by github
+
+          if (!status) {
+            break;
+          }
+        } catch (error) {
+          console.log(error);
+        }
       }
-
-      downloaderStore.increaseProgress();
-
-      // if there are more data than we already receive - request for new portion of data
-      if (hasNextPage) {
-        return await this.getPullRequests(owner, name, items, endCursor);
-      }
-    } catch (error) {
-      await this._stopByError();
-    }
-
-    const prsMergedLTM = getPullRequestStatistic(items);
-
-    // save collected users to global store
-    inspectDataStore.set('pull_requests_merged_LTM', prsMergedLTM);
-
-    return { success: true };
-  }
-
-  async _stopByError(message?: string) {
-    const errorMessage =
-      message || 'Something went wrong. Please start from begin';
-
-    notificationStore.set({
-      type: NOTIFICATION_TYPES.ERROR,
-      message: errorMessage,
     });
 
-    inspectDataStore.refresh();
-    await downloaderStore.reset();
+    // after all data has been added to the queue, update inspector settings on queue and activate the queue interval
+    userUrlQueue.run();
   }
 
-  async _finishInspection() {
-    // on finish inspection we send the data to the server for packaging and emailing it.
-    const downloader = await downloaderStore.get();
+  async run(type: string, url: string, mapper: Mapper) {
+    // TODO run over inputted url and store the data. At the end of a inspection look over all failed URLs and retry them
+    // eslint-disable-next-line no-async-promise-executor
+    return new Promise(async (resolve) => {
+      try {
+        const downloader = await downloaderStore.get();
 
-    const inspectData = inspectDataStore.inspectDataDb;
-    const forks = inspectData.fork_users.filter(({ login }: any) => login);
-    const stargazers = inspectData.stargaze_users.filter(
-      ({ login }: any) => login,
-    );
-    const postData = {
-      repository: {
-        ...downloader,
-        issues: inspectData.issues,
-        pull_requests_merged_LTM: inspectData.pull_requests_merged_LTM,
-        stars_history: inspectData.stars_history,
-        last_month_stars: inspectData.lastMonthStars,
-      },
-      forks,
-      stargazers,
-    };
+        if (!downloader.active) {
+          // only continue adding to queue if repo hasn't been deleted
+          resolve(true);
+        }
 
-    try {
-      const data = await api.post(
-        `repository/?user_id=${auth.currentUser.uuid}`,
-        postData,
-      );
+        // minimal throttling for initial run. This makes sure that if we have many stars and forks we don't endanger the limit
+        await timeout(300);
+        const { data } = await octokit.request(`GET ${url}`);
+        const userUrls = mapper(data);
 
-      downloader.stage = STAGE.DONE;
-      downloader.id = data.id;
-      downloader.stars_history = inspectData.stars_history;
-      downloader.issues_statistic = inspectData.issues;
-      downloader.prsMergedLTM = inspectData.pull_requests_merged_LTM;
-      downloader.lastMonthStars = inspectData.lastMonthStars;
+        if (!userUrls.length) {
+          // there aren't any more pages to look through
+          resolve(true);
+        }
 
-      notificationStore.set({
-        type: NOTIFICATION_TYPES.SUCCESS,
-        message: 'Nice! Your repo data has been sent to your email.',
-      });
-    } catch (error) {
-      alert(error);
-      downloader.stage = STAGE.ERROR;
-    }
+        userUrls.forEach(async (userUrl, i, arr) => {
+          // add the user url and the parsing type to the queue service to gather further data.
+          // we use a queue as fetching the data directly can hit rate limits on the API. We don't want to control
+          // for that in this part of the code because this code runs every minute and could potentially trigger multiple
+          // queries simultaneously. Instead we run the queries directly through the queue in a single thread with throttling
+          // to account for API needs.
 
-    // save data to history
-    await historyStore.set(downloader);
-    inspectDataStore.refresh();
-    await downloaderStore.reset();
-  }
+          userUrlQueue.queue.enqueue({ type, userUrl });
 
-  async _pauseInspection(
-    lastStage: LastStage,
-    restoreLimitsDate: Date,
-    cursor?: string,
-  ) {
-    // for now we use pause if github API request limits are reached
-    const downloader = await downloaderStore.get();
-
-    if (!this.alreadyPaused) {
-      this.alreadyPaused = true;
-      const inspectData = inspectDataStore.inspectDataDb;
-
-      downloader.stage = STAGE.PAUSE;
-      downloader.lastStage = lastStage;
-      downloader.cursor = cursor;
-      downloader.restoreLimitsDate = restoreLimitsDate;
-      downloader.stars_history = inspectData.stars_history;
-      downloader.issues_statistic = inspectData.issues;
-      downloader.stargazers_users_data = inspectData.stargaze_users;
-      downloader.forks_users_data = inspectData.fork_users;
-      downloader.prsMergedLTM = inspectData.pull_requests_merged_LTM;
-
-      // save data to history
-      await historyStore.set(downloader);
-      inspectDataStore.refresh();
-      await downloaderStore.reset();
-
-      notificationStore.set({
-        type: NOTIFICATION_TYPES.ERROR,
-        message: `Queries limit reached. Try after ${new Date(
-          restoreLimitsDate,
-        ).toLocaleTimeString()}`,
-      });
-    }
+          if (i === arr.length - 1) {
+            resolve(true);
+          }
+        });
+      } catch (error: any) {
+        if (error.message.includes('rel=last')) {
+          alert(
+            'Seems like this is a really big repo, we will start inspecting what github has allowed us',
+          );
+          resolve(false);
+        } else {
+          alert(`Github is blocking us: ${error}`);
+          resolve(false);
+        }
+      }
+    });
   }
 }
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { initialData } from '@/entry/options';
 import { repoInspector } from '@/features/repoInspector';
+import { userUrlQueue } from '@/features/userUrlQueue';
 import { downloaderStore } from '@/features/store/downloader';
 import { STAGE } from '@/features/store/models';
 import { historyStore } from '@/features/store/history';
@@ -40,21 +41,28 @@ export default {
       logout: 0,
     };
   },
-  async mounted() {
+  mounted() {
     (async () => {
-      if (
-        this.downloader?.stage === STAGE.INITIATED ||
-        this.downloader?.stage === STAGE.UNPAUSED
-      ) {
+      if (this.downloader?.stage === STAGE.GETTING_URLS) {
+        // if we stopped in the middle of collecting user urls, start again
         repoInspector.inspectAssets(this.downloader);
+      }
+      // if we stopped in the middle of inspecting a repos users, continue from where we saved
+      else if (this.downloader?.stage === STAGE.GETTING_USERS) {
+        const loadState = await userUrlQueue.loadQueueState();
+
+        if (loadState) {
+          userUrlQueue.continueFromSave();
+        } else {
+          // if we started getting users, but didn't save the state, start again
+          repoInspector.inspectAssets(this.downloader);
+        }
       }
     })();
 
-    await this.refreshStore();
-
-    chrome.storage.onChanged.addListener(async () => {
-      await this.refreshStore();
-    });
+    setInterval(() => {
+      this.refreshStore();
+    }, 5000);
 
     // set notification to show once window is closed
     const NOTIFICATION_STATE = true;
@@ -75,10 +83,14 @@ export default {
 
       if (
         this.downloader?.active &&
-        (this.downloader.stage === STAGE.INITIATED ||
-          this.downloader.stage === STAGE.UNPAUSED)
+        this.downloader.stage === STAGE.INITIATED
       ) {
+        // clean anything that may have been left over in the queue
+        userUrlQueue.deactivateInterval();
+
         // start the download process
+        this.downloader.stage = STAGE.GETTING_URLS;
+        await downloaderStore.set(this.downloader);
         repoInspector.inspectAssets(this.downloader);
       }
 
@@ -155,7 +167,7 @@ export default {
           @remove="() => (cancel = downloader?.url || '')"
         />
       </template>
-      <template v-for="(repo, i) in history" :key="repo.id ?? i">
+      <template v-for="(repo, i) in history" :key="i">
         <HistoryCard
           v-if="+i < historyMax"
           :repo-data="repo"

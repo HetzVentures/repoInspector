@@ -25,32 +25,6 @@ class DownloaderStore {
 
     return DOWNLOADER;
   }
-
-  async setStage(stage: number) {
-    const { DOWNLOADER } = (await chrome.storage.local.get()) as {
-      DOWNLOADER: Downloader;
-    };
-
-    const downloader = { ...DOWNLOADER, stage };
-
-    await chrome.storage.local.set({ DOWNLOADER: downloader });
-  }
-
-  async increaseProgress(value = 1) {
-    const { DOWNLOADER } = (await chrome.storage.local.get()) as {
-      DOWNLOADER: Downloader;
-    };
-
-    const downloader = {
-      ...DOWNLOADER,
-      progress: {
-        ...DOWNLOADER.progress,
-        current: DOWNLOADER.progress.current + value,
-      },
-    };
-
-    await chrome.storage.local.set({ DOWNLOADER: downloader });
-  }
 }
 
 export const downloaderStore = new DownloaderStore();
