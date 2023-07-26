@@ -15,7 +15,13 @@ export const DOWNLOADER_MODEL: Downloader = {
     max: 0,
   },
   stargazers_count: 0,
+  stargazers_users: 0,
   forks_count: 0,
+  forks_users: 0,
+  issues_count: 0,
+  pull_requests_count: 0,
+  watchers_count: 0,
+  contributors_count: 0,
   settings: {
     stars: true,
     forks: false,
@@ -25,20 +31,24 @@ export const DOWNLOADER_MODEL: Downloader = {
   },
 };
 
-export const USER_DB = {
-  forks: {},
-  forks_urls: [],
-  stargazers: {},
-  stargazers_urls: [],
-  repo: '',
+export const INSPECT_DATA_DB: InspectData = {
+  fork_users: [],
+  stargaze_users: [],
+  issues: {},
+  pull_requests_merged_LTM: 0,
+  stars_history: {},
+  lastMonthStars: 0,
 };
 
 export const STAGE = {
-  INITIATED: 0,
-  GETTING_URLS: 1,
-  GETTING_USERS: 2,
-  DONE: 3,
-  ERROR: 4,
+  NOT_STARTED: 0,
+  INITIATED: 1,
+  UNPAUSED: 2,
+  GETTING_ADDITIONAL_STATISTIC: 3,
+  GETTING_USERS: 4,
+  DONE: 5,
+  ERROR: 6,
+  PAUSE: 7,
 };
 
 export class Queue {
