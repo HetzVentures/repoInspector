@@ -315,12 +315,12 @@ export default {
       >
         <article>
           <header>
-            Your login on
+            Your username on
             <a target="_blank" href="https://www.geonames.org/">GeoNames</a>
           </header>
           If you don't need statistics by user country you can skip this step
         </article>
-        <label for="geoNamesLoginData">Login</label>
+        <label for="geoNamesLoginData">GeoNames username</label>
         <input
           v-model="newGeoNamesLogin"
           type="text"
