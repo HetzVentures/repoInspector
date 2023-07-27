@@ -1,4 +1,5 @@
 <script lang="ts">
+import type { PropType } from 'vue';
 import VueApexCharts from 'vue3-apexcharts';
 
 export default {
@@ -7,7 +8,7 @@ export default {
   },
   props: {
     chartData: {
-      type: Object as PropType<StarHistoryByMonth>,
+      type: Object as PropType<StarHistoryByMonth | ChartData>,
       required: true,
     },
     chartTitle: {

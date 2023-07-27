@@ -54,18 +54,18 @@ export default defineComponent({
     },
   },
   mounted() {
-    if (!this.repoData.id)
-      if (this.repoData.stage === STAGE.PAUSE) {
-        setInterval(() => {
-          this._checkIsLimitsRestored();
-        }, 3000);
-      }
+    if (!this.repoData.id && this.repoData.stage === STAGE.PAUSE)
+      setInterval(() => {
+        this._checkIsLimitsRestored();
+      }, 3000);
   },
   methods: {
     _checkIsLimitsRestored() {
       const now = new Date().getTime();
 
-      if (now >= new Date(this.repoData.restoreLimitsDate).getTime()) {
+      if (
+        now >= new Date(this.repoData.restoreLimitsDate ?? new Date()).getTime()
+      ) {
         this.isPauseBTNDisabled = false;
       }
     },

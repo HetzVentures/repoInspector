@@ -40,19 +40,21 @@ export default {
       logout: 0,
     };
   },
-  mounted() {
+  async mounted() {
     (async () => {
       if (
         this.downloader?.stage === STAGE.INITIATED ||
-        this.downloader.stage === STAGE.UNPAUSED
+        this.downloader?.stage === STAGE.UNPAUSED
       ) {
         repoInspector.inspectAssets(this.downloader);
       }
     })();
 
-    setInterval(() => {
-      this.refreshStore();
-    }, 5000);
+    await this.refreshStore();
+
+    chrome.storage.onChanged.addListener(async () => {
+      await this.refreshStore();
+    });
 
     // set notification to show once window is closed
     const NOTIFICATION_STATE = true;

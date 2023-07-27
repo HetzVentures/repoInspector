@@ -1,5 +1,19 @@
 import { Octokit } from '@octokit/core';
 import {
+  getForkersQuery,
+  getStargazersQuery,
+  issuesQuery,
+  pullRequestsQuery,
+  starHistoryQuery,
+} from '@/features/gql/queries';
+import type {
+  GetForkersQueryQuery,
+  GetStargazersQueryQuery,
+  IssuesQueryQuery,
+  PullRequestsQueryQuery,
+  StarHistoryQueryQuery,
+} from '@/features/gql/graphql.schema';
+import {
   getIssuesStatistic,
   getOctokitRepoData,
   getPullRequestStatistic,
@@ -8,13 +22,6 @@ import {
   serializeUser,
 } from './utils';
 import { initOctokit } from './octokit';
-import {
-  getForkersQuery,
-  getStargazersQuery,
-  issuesQuery,
-  pullRequestsQuery,
-  starHistoryQuery,
-} from './queries';
 
 import { STAGE } from './store/models';
 import { downloaderStore } from './store/downloader';
@@ -132,33 +139,33 @@ class RepoInspector {
 
     let items: any[] = [...prev];
 
-    const query =
-      type === 'stargazers'
-        ? getStargazersQuery(limit)
-        : getForkersQuery(limit);
+    const query = type === 'stargazers' ? getStargazersQuery : getForkersQuery;
 
     const inspectDataPropertyName =
       type === 'stargazers' ? 'stargaze_users' : 'fork_users';
 
     try {
-      const resp: UserResponse = await octokit.graphql(query, {
+      const resp = await octokit.graphql<
+        GetForkersQueryQuery & GetStargazersQueryQuery
+      >(query, {
         owner,
         name,
         cursor,
+        limit,
       });
 
-      const hasNextPage = resp?.repository[type].pageInfo.hasNextPage;
-      const endCursor = resp?.repository[type].pageInfo.endCursor;
-      const currentRequestItems = resp?.repository[type].edges ?? [];
-      const requestRemaining = resp?.rateLimit.remaining;
+      const hasNextPage = resp?.repository?.[type].pageInfo.hasNextPage;
+      const endCursor = resp?.repository?.[type].pageInfo.endCursor;
+      const currentRequestItems = resp?.repository?.[type].edges ?? [];
+      const requestRemaining = resp?.rateLimit?.remaining;
 
       // remove artifacts of graphQL response and normalize data
       const normalizedCurrentRequestItems = await Promise.all(
         currentRequestItems.map(async (item) => {
           const mappedItem: GithubUser =
             type === 'stargazers'
-              ? { ...(item as StargazerUser).node }
-              : { ...(item as ForkUser).node.owner };
+              ? { ...(item as StargazerUser)?.node }
+              : { ...(item as ForkUser)?.node?.owner };
 
           if (!mappedItem.login) return {};
 
@@ -172,9 +179,12 @@ class RepoInspector {
       downloaderStore.increaseProgress();
 
       // if query limits reached - pause inspection
-      if (requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
+      if (
+        requestRemaining &&
+        requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT
+      ) {
         await inspectDataStore.set(inspectDataPropertyName, items as DBUser[]);
-        this._pauseInspection(type, resp?.rateLimit.resetAt, endCursor);
+        this._pauseInspection(type, resp?.rateLimit?.resetAt, endCursor);
 
         return { success: false };
       }
@@ -213,7 +223,7 @@ class RepoInspector {
     let items: StarHistory[] = [...prev];
 
     try {
-      const resp: StarHistoryResponse = await octokit.graphql(
+      const resp = await octokit.graphql<StarHistoryQueryQuery>(
         starHistoryQuery,
         {
           owner,
@@ -224,12 +234,17 @@ class RepoInspector {
 
       const hasNextPage = resp?.repository?.stargazers?.pageInfo.hasNextPage;
       const endCursor = resp?.repository?.stargazers?.pageInfo.endCursor;
-      items = [...items, ...(resp?.repository?.stargazers?.edges ?? [])];
-      const requestRemaining = resp?.rateLimit.remaining;
+      const responseItems =
+        resp?.repository?.stargazers?.edges?.filter(Boolean) ?? [];
+      items = [...items, ...(responseItems as StarHistory[])];
+      const requestRemaining = resp?.rateLimit?.remaining;
 
       // if query limits reached - pause inspection
-      if (requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
-        this._pauseInspection('additional', resp?.rateLimit.resetAt);
+      if (
+        requestRemaining &&
+        requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT
+      ) {
+        this._pauseInspection('additional', resp?.rateLimit?.resetAt);
 
         return { success: false };
       }
@@ -265,7 +280,7 @@ class RepoInspector {
     let items: Issue[] = [...prev];
 
     try {
-      const resp: IssuesResponse = await octokit.graphql(issuesQuery, {
+      const resp = await octokit.graphql<IssuesQueryQuery>(issuesQuery, {
         owner,
         name,
         cursor,
@@ -273,12 +288,19 @@ class RepoInspector {
 
       const hasNextPage = resp?.repository?.issues?.pageInfo.hasNextPage;
       const endCursor = resp?.repository?.issues?.pageInfo.endCursor;
-      items = [...items, ...(resp?.repository?.issues?.edges ?? [])];
-      const requestRemaining = resp?.rateLimit.remaining;
+      items = [
+        ...items,
+        ...((resp?.repository?.issues?.edges?.filter(Boolean) as Issue[]) ??
+          []),
+      ];
+      const requestRemaining = resp?.rateLimit?.remaining;
 
       // if query limits reached - pause inspection
-      if (requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
-        this._pauseInspection('additional', resp?.rateLimit.resetAt);
+      if (
+        requestRemaining &&
+        requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT
+      ) {
+        this._pauseInspection('additional', resp?.rateLimit?.resetAt);
 
         return { success: false };
       }
@@ -313,7 +335,7 @@ class RepoInspector {
     let items: PullRequest[] = [...prev];
 
     try {
-      const resp: PullRequestsResponse = await octokit.graphql(
+      const resp = await octokit.graphql<PullRequestsQueryQuery>(
         pullRequestsQuery,
         {
           owner,
@@ -324,12 +346,20 @@ class RepoInspector {
 
       const hasNextPage = resp?.repository?.pullRequests?.pageInfo.hasNextPage;
       const endCursor = resp?.repository?.pullRequests?.pageInfo.endCursor;
-      items = [...items, ...(resp?.repository?.pullRequests?.edges ?? [])];
-      const requestRemaining = resp?.rateLimit.remaining;
+      items = [
+        ...items,
+        ...((resp?.repository?.pullRequests?.edges?.filter(
+          Boolean,
+        ) as PullRequest[]) ?? []),
+      ];
+      const requestRemaining = resp?.rateLimit?.remaining;
 
       // if query limits reached - pause inspection
-      if (requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
-        this._pauseInspection('additional', resp?.rateLimit.resetAt);
+      if (
+        requestRemaining &&
+        requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT
+      ) {
+        this._pauseInspection('additional', resp?.rateLimit?.resetAt);
 
         return { success: false };
       }
@@ -370,10 +400,8 @@ class RepoInspector {
     const downloader = await downloaderStore.get();
 
     const inspectData = inspectDataStore.inspectDataDb;
-    const forks = inspectData.fork_users.filter(({ login }: any) => login);
-    const stargazers = inspectData.stargaze_users.filter(
-      ({ login }: any) => login,
-    );
+    const forks = inspectData.fork_users.filter(({ login }) => login);
+    const stargazers = inspectData.stargaze_users.filter(({ login }) => login);
     const postData = {
       repository: {
         ...downloader,
@@ -417,7 +445,7 @@ class RepoInspector {
   async _pauseInspection(
     lastStage: LastStage,
     restoreLimitsDate: Date,
-    cursor?: string,
+    cursor?: string | null,
   ) {
     // for now we use pause if github API request limits are reached
     const downloader = await downloaderStore.get();
