@@ -22,6 +22,8 @@ import DownloadCard from './components/DownloadCard.vue';
 interface PopupData {
   token: null | void | string;
   newToken: null | void | string;
+  geoNamesLoginData: null | GeoNamesLoginData;
+  newGeoNamesLogin: null | string;
   repoUrl: null | string;
   history: null | HistoryType;
   downloader: null | Downloader;
@@ -41,6 +43,8 @@ export default {
     return {
       token: initialData.token,
       newToken: initialData.token,
+      geoNamesLoginData: initialData.geoNamesLoginData,
+      newGeoNamesLogin: initialData.geoNamesLoginData?.login,
       repoUrl: initialData.url,
       history: initialData.history,
       downloader: initialData.downloader,
@@ -87,6 +91,22 @@ export default {
       const githubInspectorToken = this.newToken;
       chrome.storage.local.set({ githubInspectorToken });
       this.token = this.newToken;
+    },
+    saveGeoNamesLogin() {
+      const newGeoNamesLoginData = {
+        skipped: false,
+        login: this.newGeoNamesLogin,
+      };
+      chrome.storage.local.set({ geoNamesLogin: newGeoNamesLoginData });
+      this.geoNamesLoginData = newGeoNamesLoginData;
+    },
+    skipGeoNamesLogin() {
+      const skippedGeoNamesLoginData = {
+        skipped: true,
+        login: this.newGeoNamesLogin,
+      };
+      chrome.storage.local.set({ geoNamesLogin: skippedGeoNamesLoginData });
+      this.geoNamesLoginData = skippedGeoNamesLoginData;
     },
     setSettings(
       k: 'stars' | 'forks' | 'location' | 'sample' | 'samplePercent',
@@ -290,6 +310,27 @@ export default {
         <input v-model="newToken" type="text" name="token" />
         <button :disabled="!newToken" @click="saveToken">Save</button>
       </template>
+      <template
+        v-else-if="!geoNamesLoginData?.skipped && !geoNamesLoginData?.login"
+      >
+        <article>
+          <header>
+            Your login on
+            <a target="_blank" href="https://www.geonames.org/">GeoNames</a>
+          </header>
+          If you don't need statistics by user country you can skip this step
+        </article>
+        <label for="geoNamesLoginData">Login</label>
+        <input
+          v-model="newGeoNamesLogin"
+          type="text"
+          name="geoNamesLoginData"
+        />
+        <button :disabled="!newGeoNamesLogin" @click="saveGeoNamesLogin">
+          Save
+        </button>
+        <button class="outline" @click="skipGeoNamesLogin">Skip</button>
+      </template>
       <template v-else-if="!currentUser.email">
         <article>
           <header>Almost there!</header>
@@ -375,6 +416,21 @@ export default {
                 @change="setSettings('forks', downloader?.settings.forks)"
               />
               Get users who have <b>forked</b> the repo
+            </label>
+          </fieldset>
+          <fieldset
+            v-if="!geoNamesLoginData?.skipped && geoNamesLoginData?.login"
+          >
+            <label for="location">
+              <input
+                id="location"
+                v-model="downloader.settings.location"
+                type="checkbox"
+                name="location"
+                role="switch"
+                @change="setSettings('location', downloader?.settings.location)"
+              />
+              Get user <b>location</b> data
             </label>
           </fieldset>
           <fieldset>

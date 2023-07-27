@@ -253,5 +253,7 @@ type InspectData = {
   pull_requests_merged_LTM: number;
   stargaze_users: DBUser[];
   stars_history: StarHistoryByMonth;
-  lastMonthStars: number;
+  lastMonthStars?: number;
 };
+
+type GeoNamesLoginData = { skipped: boolean; login: string | null };

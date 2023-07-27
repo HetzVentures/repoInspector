@@ -17,6 +17,7 @@
     "@picocss/pico": "github:picocss/pico",
     "apexcharts": "^3.41.0",
     "core-js": "^3.8.3",
+    "geonames.js": "^3.0.6",
     "rollbar": "^2.26.0",
     "vue": "^3.2.13",
     "vue3-apexcharts": "^1.4.4"

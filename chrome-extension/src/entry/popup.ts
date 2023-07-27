@@ -12,9 +12,11 @@ import { historyStore } from '@/features/store/history';
 
 import settings from '@/features/env';
 import Rollbar from 'rollbar';
+import { initGeoNamesLogin } from '@/features/utils/initGeoNamesLogin';
 
 interface InitialData {
   token: null | void | string;
+  geoNamesLoginData: GeoNamesLoginData;
   url: null | string;
   history: null | HistoryType;
   downloader: null | Downloader;
@@ -22,6 +24,7 @@ interface InitialData {
 
 export const initialData: InitialData = {
   token: null,
+  geoNamesLoginData: { skipped: false, login: null },
   url: null,
   history: null,
   downloader: null,
@@ -30,6 +33,7 @@ export const initialData: InitialData = {
 (async () => {
   // initialize storage data before loading the app
   initialData.token = await initToken();
+  initialData.geoNamesLoginData = await initGeoNamesLogin();
   initialData.url = await initUrl();
   initialData.downloader = await downloaderStore.get();
   initialData.history = await historyStore.get();

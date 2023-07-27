@@ -223,7 +223,8 @@ class MessageCreator:
                           f'profile(s))<br>'
         message_text = message_text + '<br>' + real_users_text
 
-        # message_text += f'<br><b>Geo breakdown:</b><br>'
+        if len(country_summary) > 1:
+            message_text += f'<br><b>Geo breakdown:</b><br>'
 
         for location in country_summary:
             if location.country:

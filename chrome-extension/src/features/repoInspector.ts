@@ -84,6 +84,7 @@ class RepoInspector {
           'stargazers',
           USERS_QUERY_LIMIT,
           downloader.stargazers_users,
+          downloader.settings.location,
           downloader.stargazers_users_data ?? [],
           downloader.cursor,
         );
@@ -96,6 +97,7 @@ class RepoInspector {
           'forks',
           USERS_QUERY_LIMIT,
           downloader.forks_users,
+          downloader.settings.location,
         );
       }
     }
@@ -108,6 +110,7 @@ class RepoInspector {
         'forks',
         USERS_QUERY_LIMIT,
         downloader.forks_users,
+        downloader.settings.location,
         downloader.forks_users_data,
         downloader.cursor,
       );
@@ -124,6 +127,7 @@ class RepoInspector {
     type: 'stargazers' | 'forks',
     limit: number,
     max: number,
+    isExtendLocation: boolean,
     prev: DBUser[] = [],
     cursor: null | string = null,
   ): Promise<{ success: boolean }> {
@@ -162,7 +166,11 @@ class RepoInspector {
 
           if (!mappedItem.login) return {};
 
-          const serializedItem = serializeUser(mappedItem, octokit);
+          const serializedItem = serializeUser(
+            mappedItem,
+            octokit,
+            isExtendLocation,
+          );
 
           return serializedItem;
         }),
@@ -187,6 +195,7 @@ class RepoInspector {
           type,
           USERS_QUERY_LIMIT,
           max,
+          isExtendLocation,
           items,
           endCursor,
         );

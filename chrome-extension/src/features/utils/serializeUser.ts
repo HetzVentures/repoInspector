@@ -81,7 +81,7 @@ export const serializeUser = async (
     try {
       const locationData = await getLocation(location);
 
-      serializedUser.country = locationData[0]?.address?.country;
+      serializedUser.country = locationData[0]?.countryName;
       serializedUser.lat = locationData[0]?.lat;
       serializedUser.lon = locationData[0]?.lon;
     } catch (error) {
