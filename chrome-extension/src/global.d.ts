@@ -45,7 +45,7 @@ type Downloader = {
   lastMonthStars?: number;
   prsMergedLTM?: number;
   lastStage?: LastStage;
-  cursor?: string;
+  cursor?: string | null;
   restoreLimitsDate?: Date;
 };
 
@@ -60,8 +60,6 @@ type NotificationType = {
   type: string;
   message: string;
 };
-
-type Mapper = (data: any[]) => any[];
 
 type StargazerUserResponse = {
   repository: {
@@ -170,17 +168,6 @@ type DBUser = {
   updated_at: Date;
 };
 
-type IssuesResponse = {
-  repository: {
-    issues: {
-      totalCount: number;
-      edges: Issue[];
-      pageInfo: PageInfo;
-    };
-  };
-  rateLimit: RateLimit;
-};
-
 type Issue = {
   node: {
     createdAt: Date;
@@ -203,17 +190,6 @@ type IssuesStatistic = {
   openedLTM?: number;
 };
 
-type PullRequestsResponse = {
-  repository: {
-    pullRequests: {
-      totalCount: number;
-      edges: PullRequest[];
-      pageInfo: PageInfo;
-    };
-  };
-  rateLimit: RateLimit;
-};
-
 type PullRequest = {
   node: {
     createdAt: Date;
@@ -221,17 +197,6 @@ type PullRequest = {
     state: 'OPEN' | 'CLOSED';
     closedAt: Date | null;
   };
-};
-
-type StarHistoryResponse = {
-  repository: {
-    stargazers: {
-      totalCount: number;
-      edges: StarHistory[];
-      pageInfo: PageInfo;
-    };
-  };
-  rateLimit: RateLimit;
 };
 
 type StarHistory = {

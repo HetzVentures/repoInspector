@@ -37,6 +37,7 @@ export const INSPECT_DATA_DB: InspectData = {
   issues: {},
   pull_requests_merged_LTM: 0,
   stars_history: {},
+  lastMonthStars: 0,
 };
 
 export const STAGE = {
@@ -49,40 +50,3 @@ export const STAGE = {
   ERROR: 6,
   PAUSE: 7,
 };
-
-export class Queue {
-  items: {
-    [key: number]: any;
-  };
-
-  headIndex: number;
-
-  tailIndex: number;
-
-  constructor() {
-    this.items = {};
-    this.headIndex = 0;
-    this.tailIndex = 0;
-  }
-
-  enqueue(item: any) {
-    this.items[this.tailIndex] = item;
-    this.tailIndex++;
-  }
-
-  dequeue() {
-    const item = this.items[this.headIndex];
-    delete this.items[this.headIndex];
-    this.headIndex++;
-
-    return item;
-  }
-
-  peek() {
-    return this.items[this.headIndex];
-  }
-
-  get length() {
-    return this.tailIndex - this.headIndex;
-  }
-}

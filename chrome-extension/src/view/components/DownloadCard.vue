@@ -86,11 +86,6 @@ export default defineComponent({
             Progress: {{ progress(downloader.progress) }} Estimated Time:
             {{ timeRemaining(downloader.progress) }}
           </template>
-          <template v-else>
-            Note: The more stars and forks the repo has, the longer it will take
-            to start. Don't worry if it hasn't started yet, it should be a few
-            seconds to a few minutes to start progressing.
-          </template>
         </summary>
         <li v-if="downloader?.progress?.current">
           Scanned {{ downloader?.progress?.current }} of

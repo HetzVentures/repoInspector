@@ -19,18 +19,14 @@ class InspectDataStore {
 
   set(
     type: keyof InspectData,
-    value:
-      | DBUser[]
-      | IssuesStatistic
-      | number
-      | StarHistoryByMonth
-      | string
-      | Date,
+    value: DBUser[] | IssuesStatistic | number | StarHistoryByMonth | Date,
   ) {
     // set data to global variable by key value
-    // FIXME: fix types
-    // @ts-ignore
-    this.inspectDataDb[type] = value;
+    this.inspectDataDb[type] = value as DBUser[] &
+      IssuesStatistic &
+      number &
+      StarHistoryByMonth &
+      Date;
   }
 
   load(data: InspectData) {

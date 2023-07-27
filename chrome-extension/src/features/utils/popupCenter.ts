@@ -40,7 +40,7 @@ export const popupCenter = ({
       `,
   );
 
-  if (newWindow && newWindow !== null) {
+  if (newWindow !== null) {
     newWindow.focus();
   }
 
