@@ -16,7 +16,8 @@ import {
   octokitRepoUrl,
   timeout,
 } from '@/features/utils';
-import { repositoryQuery } from '@/features/queries';
+import { repositoryQuery } from '@/features/gql/queries';
+import { type RepositoryQueryQuery } from '@/features/gql/graphql.schema';
 import DownloadCard from './components/DownloadCard.vue';
 
 interface PopupData {
@@ -67,9 +68,11 @@ export default {
       }
     }
 
-    setInterval(() => {
-      this.refreshStore();
-    }, 5000);
+    await this.refreshStore();
+
+    chrome.storage.onChanged.addListener(async () => {
+      await this.refreshStore();
+    });
 
     this.currentUser = await auth.getStoredUser();
 
@@ -161,15 +164,21 @@ export default {
         this.downloader.octokitUrl = octokitRepoUrl(this.downloader.url);
 
         const octokit = initOctokit(this.token);
-        const result = await octokit.graphql(repositoryQuery, {
-          owner,
-          name,
-        });
+        const result = await octokit.graphql<RepositoryQueryQuery>(
+          repositoryQuery,
+          {
+            owner,
+            name,
+          },
+        );
 
-        if (result.rateLimit.remaining <= MINIMUM_REQUEST_LIMIT_AMOUNT) {
+        if (
+          !result?.rateLimit ||
+          result.rateLimit.remaining <= MINIMUM_REQUEST_LIMIT_AMOUNT
+        ) {
           this.showError(
             `Queries limit reached. Try after ${new Date(
-              result.rateLimit.resetAt,
+              result?.rateLimit?.resetAt ?? new Date(),
             ).toLocaleTimeString()}`,
           );
 
@@ -183,17 +192,23 @@ export default {
         // set the data for inspection based on the settings
         const { settings } = this.downloader;
 
+        const { repository } = result;
+
+        if (!repository) {
+          this.showError('Something went wrong try again later');
+
+          return;
+        }
+
         const {
-          repository: {
-            stargazerCount,
-            stargazers: { totalCount: stargazerUsers },
-            forkCount,
-            forks: { totalCount: forkUsers },
-            issues: { totalCount: issuesCount },
-            pullRequests: { totalCount: pullRequestsCount },
-            watchers: { totalCount: watchersCount },
-          },
-        } = result;
+          stargazerCount,
+          stargazers: { totalCount: stargazerUsers },
+          forkCount,
+          forks: { totalCount: forkUsers },
+          issues: { totalCount: issuesCount },
+          pullRequests: { totalCount: pullRequestsCount },
+          watchers: { totalCount: watchersCount },
+        } = repository;
 
         // number of fork count and fork users may be different, so we use number of fork users
         // to limit number of requested users according to sample settings

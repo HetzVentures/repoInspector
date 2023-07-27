@@ -9,6 +9,7 @@ export const loadFromHistory = async (downloader: Downloader) => {
     issues_statistic,
     stars_history,
     prsMergedLTM,
+    lastMonthStars,
   } = downloader;
 
   const fork_users = forks_users_data?.length ? [...forks_users_data] : [];
@@ -22,6 +23,7 @@ export const loadFromHistory = async (downloader: Downloader) => {
     issues: issues_statistic ?? {},
     stars_history: stars_history ?? {},
     pull_requests_merged_LTM: prsMergedLTM ?? 0,
+    lastMonthStars: lastMonthStars ?? 0,
   };
 
   inspectDataStore.load(inspectData);
