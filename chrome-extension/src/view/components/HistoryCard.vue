@@ -54,12 +54,10 @@ export default defineComponent({
     },
   },
   mounted() {
-    if (!this.repoData.id)
-      if (this.repoData.stage === STAGE.PAUSE) {
-        setInterval(() => {
-          this._checkIsLimitsRestored();
-        }, 3000);
-      }
+    if (!this.repoData.id && this.repoData.stage === STAGE.PAUSE)
+      setInterval(() => {
+        this._checkIsLimitsRestored();
+      }, 3000);
   },
   methods: {
     _checkIsLimitsRestored() {

@@ -22,7 +22,7 @@ export class Authentication {
         const data = await api.post('login/email_user/');
         currentUser = data;
         await chrome.storage.local.set({ CURRENT_USER: currentUser });
-      } else if (CURRENT_USER.uuid && !CURRENT_USER.email) {
+      } else if (CURRENT_USER?.uuid && !CURRENT_USER.email) {
         // if we have created a user, make sure the login from google has worked and the email is updated
         const data = await api.get(`login/email_user/${CURRENT_USER.uuid}`);
         currentUser = data;
@@ -46,19 +46,12 @@ export class Authentication {
   }
 
   loginWithGoogle() {
-    const loginPopup = popupCenter({
+    popupCenter({
       url: `${api.urlBase}login/${this.currentUser.uuid}`,
       title: 'login',
       w: 100,
       h: 100,
     });
-
-    // close popup once the login is complete
-    const timer = setInterval(() => {
-      if (loginPopup?.closed) {
-        clearInterval(timer);
-      }
-    }, 1000);
   }
 }
 

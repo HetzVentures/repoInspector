@@ -45,7 +45,7 @@ type Downloader = {
   lastMonthStars?: number;
   prsMergedLTM?: number;
   lastStage?: LastStage;
-  cursor?: string;
+  cursor?: string | null;
   restoreLimitsDate?: Date;
 };
 
@@ -60,8 +60,6 @@ type NotificationType = {
   type: string;
   message: string;
 };
-
-type Mapper = (data: any[]) => any[];
 
 type StargazerUserResponse = {
   repository: {
