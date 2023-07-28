@@ -231,7 +231,7 @@ class MessageCreator:
                 message_text = message_text + f'     {location.country}: {location_percent} % ({location.count} profile(s))<br>'
 
         # common limit for shown data in charts
-        data_limit = 12
+        data_limit = -24
 
         # stargazers chart
         stars_history_dict = json.loads(self.repo.stars_history)
@@ -242,11 +242,11 @@ class MessageCreator:
             stars_chart_data = {
                 "type": "line",
                 "data": {
-                    "labels": stars_chart_labels[:data_limit],
+                    "labels": stars_chart_labels[data_limit:],
                     "datasets": [
                         {
                             "label": "Stargazers",
-                            "data": stars_chart_dataset[:data_limit]
+                            "data": stars_chart_dataset[data_limit:]
                         }
                     ]
                 }
@@ -257,7 +257,7 @@ class MessageCreator:
 
             stars_chart_data_string = json.dumps(stars_chart_data)
 
-            message_text += f'<br><b>Stargazers history for last 12 months:</b><br>'
+            message_text += f'<br><b>Stargazers history for last 24 months:</b><br>'
             message_text = message_text + f'<img src="{stars_chart_data_url}" alt="Stargazers history"><br>'
 
         # issues chart
@@ -270,15 +270,15 @@ class MessageCreator:
             issues_chart_data = {
                 "type": "bar",
                 "data": {
-                    "labels": issues_chart_labels[:data_limit],
+                    "labels": issues_chart_labels[data_limit:],
                     "datasets": [
                         {
                             "label": "Opened issues",
-                            "data": issues_chart_dataset_opened[:data_limit]
+                            "data": issues_chart_dataset_opened[data_limit:]
                         },
                         {
                             "label": "Closed issues",
-                            "data": issues_chart_dataset_closed[:data_limit]
+                            "data": issues_chart_dataset_closed[data_limit:]
                         }
                     ]
                 }
@@ -289,7 +289,7 @@ class MessageCreator:
 
             issues_chart_data_string = json.dumps(issues_chart_data)
 
-            message_text += f'<br><b>Issues history for last 12 months:</b><br>'
+            message_text += f'<br><b>Issues history for last 24 months:</b><br>'
             message_text = message_text + f'<img src="{issues_chart_data_url}" alt="Issues history"><br>'
 
         return message_text
