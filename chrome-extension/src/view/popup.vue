@@ -393,6 +393,19 @@ export default {
             </label>
           </fieldset>
           <fieldset>
+            <label for="location">
+              <input
+                id="location"
+                v-model="downloader.settings.location"
+                type="checkbox"
+                name="location"
+                role="switch"
+                @change="setSettings('location', downloader?.settings.location)"
+              />
+              Get user <b>location</b> data
+            </label>
+          </fieldset>
+          <fieldset>
             <label for="sample">
               <input
                 id="sample"

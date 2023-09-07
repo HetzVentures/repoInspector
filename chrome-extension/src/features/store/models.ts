@@ -27,7 +27,7 @@ export const DOWNLOADER_MODEL: Downloader = {
     forks: false,
     sample: false,
     samplePercent: 0,
-    location: true,
+    location: false,
   },
 };
 
