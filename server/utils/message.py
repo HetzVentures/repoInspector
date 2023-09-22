@@ -29,7 +29,7 @@ class MessageCreator:
             file_path = f'{self.temp_path}.csv'
             json_file_path = f'{self.temp_path}.json'
             pdf_file_path = f'{self.temp_path}.pdf'
-            message_text = self.create_message_text()
+            message_text, report_content = self.create_message_text()
             self.create_csv(
                 file_path=file_path,
                 rows=rows,
@@ -41,7 +41,7 @@ class MessageCreator:
             )
             self.create_pdf(
                 file_path=pdf_file_path,
-                html=message_text
+                html=report_content
             )
         else:
             file_path = None
@@ -126,15 +126,18 @@ class MessageCreator:
         with open(file_path, 'w', newline='', encoding='utf-8') as file:
             file.write(json_data)
 
+
+
     @staticmethod
     def create_pdf(
             file_path: str,
             html: str,
     ) -> None:
-        styled_html = f'<html><head><style>body {{ background-color: #fff; }}</style></head><body>{html}</body></html>'
+        # add the actual base URL
+        styled_html = f'<html><head><link rel="stylesheet" type="text/css" href="http://127.0.0.1:8000/static/css/report.css"><link href="https://db.onlinewebfonts.com/c/b3823b7c622063a0b860fc0123b9c1da?family=Brutal+Type+W00+Light" rel="stylesheet"><link href="https://db.onlinewebfonts.com/c/0964446ac2793b90c9a3e49de5a3323f?family=Brutal+Type" rel="stylesheet"></head><body><div class="report">{html}</div></body></html>'
         pdfkit.from_string(styled_html, file_path)
 
-    def create_message_text(self) -> str:
+    def create_message_text(self) -> tuple:
         session = self.session
         repo_id = self.repo_id
 
@@ -162,14 +165,14 @@ class MessageCreator:
         active_users = session.query(RepositoryUser.id).where(RepositoryUser.repository_id == repo_id, 
                                     RepositoryUser.active_user.is_(True)).count()
 
+        # email content
         message_text = '<center><img src="https://www.hetzventures.org/static/email-header.gif"></center>'
-        message_text = message_text + f'<br><br>Hi,<br><br>Below (and attached) is your report for repository https://github.com/{self.repo.name}<br><br>'
-        message_text = message_text + "<i>Thanks for using repoInspector! Give us a <a href='https://github.com/HetzVentures/repoInspector'>Star</a></i><br><br>"
+        message_text = message_text + f'<p style="font-weight: 600; color: #000000 margin-bottom: 60px;">Hi, there! Below (and attached) is your report for repository <a style="font-weight: 400; color: #2540f2" href="https://github.com/{self.repo.name}">https://github.com/{self.repo.name}</a></p>'
+        message_text = message_text + "<p style='font-weight: 600; color: #000000 margin-bottom: 60px;'>Thanks for using repoInspector! <a style='font-weight: 400; color: #2540f2' href='https://github.com/HetzVentures/repoInspector'>Give us a Star></p>"
 
         settings = json.loads(self.repo.settings)
         def setting_status(v):
-            return 'v' if v else 'x'
-            # return '✓' if v else '✗'
+            return '✓' if v else '✗'
             
         message_text = message_text + f"<b>Settings:</b> \
             {setting_status(settings['stars'])} Stars \
@@ -210,9 +213,9 @@ class MessageCreator:
         for organization in company_summary:
             if organization.count > 3:
                 organization_percent = "%.2f" % (organization.count / (total_users) * 100)
-                org_message_text = org_message_text + f'     {organization.company}: {organization_percent} % ' \
+                org_message_text = org_message_text + f'{organization.company}: {organization_percent} % ' \
                                               f'({organization.count} profile(s))<br>'
-
+        
         if org_message_text:
             message_text += f'<br><b>Org breakdown:</b><br>' + org_message_text
 
@@ -226,7 +229,7 @@ class MessageCreator:
         # message_text += f'<br><b>Geo breakdown:</b><br>'
         if len(country_summary) > 1:
             message_text += f'<br><b>Geo breakdown:</b><br>'
-
+ 
         for location in country_summary:
             if location.country:
                 location_percent = "%.2f" % (location.count / total_users * 100)
@@ -247,15 +250,38 @@ class MessageCreator:
                     "labels": stars_chart_labels[data_limit:],
                     "datasets": [
                         {
-                            "label": "Stargazers",
-                            "data": stars_chart_dataset[data_limit:]
+                            "label": "",
+                            "data": stars_chart_dataset[data_limit:],
+                            "backgroundColor": 'rgba(55, 119, 255, 0.5)',
+                            "borderColor": 'rgb(55, 119, 255)',
+                            "fill": 'start',
+                            "lineTension": 0.4,
                         }
                     ]
+                },
+                "options": {
+                    "legend": { "display": False },
+                    "scales": {
+                        "xAxes": [{
+                            "gridLines": {
+                                "display": False
+                            },
+                            "ticks": {
+                                "fontColor": '#2335f3',
+                            },
+                        }],
+                        "yAxes": [{
+                            "ticks": {
+                                "fontColor": '#2335f3',
+                            },
+                        }]
+                    }
                 }
             }
+
             stars_chart_data_str = json.dumps(stars_chart_data)
             stars_chart_encoded_data = urllib.parse.quote(stars_chart_data_str)
-            stars_chart_data_url = f"https://quickchart.io/chart?width=800&height=350&devicePixelRatio=1&c={stars_chart_encoded_data}"
+            stars_chart_data_url = f"https://quickchart.io/chart?width=950&height=350&devicePixelRatio=1&c={stars_chart_encoded_data}"
 
             stars_chart_data_string = json.dumps(stars_chart_data)
 
@@ -276,22 +302,194 @@ class MessageCreator:
                     "datasets": [
                         {
                             "label": "Opened issues",
-                            "data": issues_chart_dataset_opened[data_limit:]
+                            "data": issues_chart_dataset_opened[data_limit:],
+                            "backgroundColor": "#8efbe1",
+                            "barPercentage": 0.4,
                         },
                         {
                             "label": "Closed issues",
-                            "data": issues_chart_dataset_closed[data_limit:]
+                            "data": issues_chart_dataset_closed[data_limit:],
+                            "backgroundColor": "#2335f3",
+                            "barPercentage": 0.4,
                         }
                     ]
+                },
+                "options": {
+                    "legend": { 
+                        "labels": {
+                            "fontColor": '#2335f3'
+                        },
+                        "position": 'top',
+                        "align": 'end'
+                    },
+                    "scales": {
+                        "xAxes": [{
+                            "gridLines": {
+                                "display": False
+                            },
+                            "ticks": {
+                                "fontColor": '#2335f3',
+                            },
+                        }],
+                        "yAxes": [{
+                            "ticks": {
+                                "fontColor": '#2335f3',
+                            },
+                        }]
+                    },
+                    "plugins": {
+                        "roundedBars": True 
+                    }
                 }
             }
+
             issues_chart_data_str = json.dumps(issues_chart_data)
             issues_chart_encoded_data = urllib.parse.quote(issues_chart_data_str)
-            issues_chart_data_url = f"https://quickchart.io/chart?width=800&height=350&devicePixelRatio=1&c={issues_chart_encoded_data}"
+            issues_chart_data_url = f"https://quickchart.io/chart?width=950&height=350&devicePixelRatio=1&c={issues_chart_encoded_data}"
 
             issues_chart_data_string = json.dumps(issues_chart_data)
 
             message_text += f'<br><b>Issues history for last 24 months:</b><br>'
             message_text = message_text + f'<img src="{issues_chart_data_url}" alt="Issues history"><br>'
 
-        return message_text
+        # PDF report content
+
+        # add the actual base URL
+        report_content = '<div class="report-header report__header"><img class="report-header__main-logo" src="http://127.0.0.1:8000/static/img/main-logo.png" alt="main-logo"><img src="http://127.0.0.1:8000/static/img/extra-logo.png" alt="extra-logo" class="report-header__extra-logo"></div>'
+        report_content = report_content + f'<p class="report-text report-text_mb_30">Hi, there! Below (and attached) is your report for repository <a class="report-repo-link" href="https://github.com/{self.repo.name}">https://github.com/{self.repo.name}</a></p>'
+        report_content = report_content + "<p class='report-text report-text_nowrap report-text_mb_30'>Thanks for using repoInspector! <a class='report-star-link' href='https://github.com/HetzVentures/repoInspector'>Give us a Star</a></p>"
+
+        def report_setting_status(v):
+            # add the actual base URL
+            return "http://127.0.0.1:8000/static/img/check-icon.png" if v else "http://127.0.0.1:8000/static/img/cross-icon.png"
+
+        report_summary_content = f"<p class='report-settings__text'>Settings:</p> \
+            <div class='report-settings__item'><img class='report-settings__icon' src={report_setting_status(settings['stars'])} alt='check-icon'><p class='report-settings__text'>Stars</p></div> \
+            <div class='report-settings__item'><img class='report-settings__icon'  src={report_setting_status(settings['forks'])} alt='check-icon'><p class='report-settings__text'>Forks</p></div> \
+            <div class='report-settings__item'><img class='report-settings__icon'  src={report_setting_status(settings['sample'])} alt='cross-icon'><p class='report-settings__text'>Sample</p></div>"
+        report_content = report_content + f'<div class="report-field report-field_mb_30 report-summary"><p class="report-text report-summary__text">Summary</p><div class="report-settings">{report_summary_content}</div></div>'
+
+        if settings.get('sample'):
+            report_content = report_content + f"<div class='report-field report-field_mb_30'><p class='report-text report-text_nowrap'>Sample percent:</p><span class='report-value'>{settings['samplePercent']}%</span></div>"
+
+        report_content = report_content + f'<div class="report-field report-field_mb_30"><p class="report-text report-text_nowrap">Total number of profiles inspected:</p><span class="report-value">{total_users}</span></div>'
+        report_content = report_content + f'<div class="report-field report-field_mb_15"><p class="report-text report-text_nowrap">Issues:</p><span class="report-value">{self.repo.issues_count}</span></div>'
+        report_content = report_content + f'<div class="report-field report-field_mb_15"><p class="report-text report-text_nowrap">Pull requests:</p><span class="report-value">{self.repo.pull_requests_count}</span></div>'
+        report_content = report_content + f'<div class="report-field report-field_mb_15"><p class="report-text report-text_nowrap">Contributors:</p><span class="report-value">{self.repo.contributors_count}</span></div>'
+        report_content = report_content + f'<div class="report-field report-field_mb_15"><p class="report-text report-text_nowrap">Watchers:</p><span class="report-value">{self.repo.watchers_count}</span></div>'
+        report_content = report_content + f'<div class="report-field report-field_mb_15"><p class="report-text report-text_nowrap">Stars added per month:</p><span class="report-value">{stars_per_month}%</span></div>'
+        report_content = report_content + f'<div class="report-field report-field_mb_15"><p class="report-text report-text_nowrap">Total forks / total stars:</p><span class="report-value">{round(self.repo.forks_count / self.repo.stargazers_count, 2)}</span></div>'
+        report_content = report_content + f'<div class="report-field report-field_mb_30"><p class="report-text report-text_nowrap">Pull requests merged LTM:</p><span class="report-value">{self.repo.pull_requests_merged_ltm}</span></div>'
+        # Add actual rating from server
+        repo_rating = 78
+        report_content = report_content + f'<div class="report-progressbar report-progressbar_mb_30"><div class="report-progressbar__header"><p class="report-text report-text_nowrap report-text_blue">Repository rating:</p><span class="report-value report-value_blue">{repo_rating}%</span></div><div class="report-progressbar__track"><div class="report-progressbar__progress" style="width: {repo_rating}%"></div></div></div>'
+
+        if settings.get('sample'):
+            report_stars_chart_data_url = f"https://quickchart.io/chart?width=950&height=350&devicePixelRatio=1&c={stars_chart_encoded_data}"
+        else:
+            report_stars_chart_data_url = f"https://quickchart.io/chart?width=950&height=400&devicePixelRatio=1&c={stars_chart_encoded_data}"
+
+        if stars_history_dict:
+            report_content = report_content + f'<img class="report-stars-chart" src="{report_stars_chart_data_url}" alt="Stargazers history chart">'
+        
+        report_content = report_content + f'<div class="report-field report-field_mb_30"><div class="report-info-item report-info-item_left"><p class="report-info-item__text">Repository Stars: <span class="report-info-item__value">{self.repo.stargazers_count}</span></p></div><div class="report-info-item report-info-item_right"><p class="report-info-item__text">Repository Forks: <span class="report-info-item__value">{self.repo.forks_count}</span></p></div></div>'
+
+        if stars_history_dict:   
+            report_content = report_content + '<div class="report-header report__header"><img class="report-header__main-logo" src="http://127.0.0.1:8000/static/img/main-logo.png" alt="main-logo"><img src="http://127.0.0.1:8000/static/img/extra-logo.png" alt="extra-logo" class="report-header__extra-logo"></div>'
+        
+        def render_radial_chart_center_area(title, percents, count):
+            return f'<div class="report-radial-chart-content"><p class="report-radial-chart-content__title">{title}</p><p class="report-radial-chart-content__text">{percents}%</p><p class="report-radial-chart-content__text">({count} profile(s))</p></div>'
+        
+        def create_radial_chart_data(val):
+            radial_chart_data = {
+                "type": "radialGauge",
+                "data": {
+                    "datasets": [
+                        {
+                            "data": [val],
+                            'backgroundColor': '#2335f3',
+                        }
+                    ]
+                },
+                "options": {
+                    "domain": [0, 100],
+                    "trackColor": '#f0f8ff', 
+                    "centerPercentage": 90,
+                    "centerArea": {
+                        "displayText": False, 
+                    },
+                }
+            }
+            radial_chart_data_str = json.dumps(radial_chart_data)
+            radial_chart_encoded_data = urllib.parse.quote(radial_chart_data_str)
+            radial_chart_data_url = f"https://quickchart.io/chart?width=350&height=350&devicePixelRatio=1&c={radial_chart_encoded_data}"
+
+            return radial_chart_data_url
+        
+        org_radial_chart_content = render_radial_chart_center_area(title='Organization:',percents=organizations_percent,count=organizations_total)
+        email_users_radial_chart_content = render_radial_chart_center_area(title='Email users:',percents=users_with_email_percent,count=users_with_email)
+
+        report_content = report_content + f'<div class="report-radial-charts-group"><div class="report-radial-chart-wrapper"><img class="report-radial-chart" src="{create_radial_chart_data(organizations_percent)}" alt="Organization radial chart">{org_radial_chart_content}</div><div class="report-radial-chart-wrapper report-radial-chart-wrapper_ml"><img class="report-radial-chart" src="{create_radial_chart_data(users_with_email_percent)}" alt="Email users radial chart">{email_users_radial_chart_content}</div></div>'
+        report_content = report_content + f'<div class="report-progressbar report-progressbar_mb_30"><div class="report-progressbar__header"><p class="report-text report-text_nowrap report-text_blue">Active users:</p><span class="report-value report-value_blue">{"%.2f" % (active_users / (total_users) * 100)}% ({active_users} profile(s))</span></div><div class="report-progressbar__track"><div class="report-progressbar__progress" style="width: {"%.2f" % (active_users / (total_users) * 100)}%"></div></div></div>'
+
+        report_org_name = ""
+        report_organization_percent = ""
+        report_organization_percent_text = ""
+
+        for organization in company_summary:
+            if organization.count > 3:
+                organization_percent = "%.2f" % (organization.count / (total_users) * 100)
+                report_organization_percent = report_organization_percent + organization_percent
+                report_org_name = report_org_name + f'@{organization.company}'
+                report_organization_percent_text = report_organization_percent_text + f'{organization_percent} % ({organization.count} profile(s))'
+
+        if report_org_name and report_organization_percent and report_organization_percent_text:
+            report_content = report_content + f'<div class="report-progressbar report-progressbar_mb_30"><div class="report-progressbar__header"><p class="report-text report-text_nowrap report-text_blue">Real users:</p><span class="report-value report-value_blue">{"%.2f" % (real_users / (total_users) * 100)}% ({real_users} profile(s))</span></div><div class="report-progressbar__track"><div class="report-progressbar__progress" style="width: {"%.2f" % (real_users / (total_users) * 100)}%"></div></div></div>'
+            report_content = report_content + f'<div class="report-progressbar report-progressbar_mb_40"><div class="report-progressbar__header"><p class="report-text report-text_nowrap report-text_blue">Org breakdown: {report_org_name}</p><span class="report-value report-value_blue">{report_organization_percent_text}</span></div><div class="report-progressbar__track"><div class="report-progressbar__progress" style="width: {report_organization_percent}%"></div></div></div>'
+        else: 
+            report_content = report_content + f'<div class="report-progressbar report-progressbar_mb_40"><div class="report-progressbar__header"><p class="report-text report-text_nowrap report-text_blue">Real users:</p><span class="report-value report-value_blue">{"%.2f" % (real_users / (total_users) * 100)}% ({real_users} profile(s))</span></div><div class="report-progressbar__track"><div class="report-progressbar__progress" style="width: {"%.2f" % (real_users / (total_users) * 100)}%"></div></div></div>'
+
+        report_issues_chart_data_url = f"https://quickchart.io/chart?width=950&height=400&devicePixelRatio=1&c={issues_chart_encoded_data}"
+
+        if issues_history_dict:
+            report_content = report_content + f'<img class="report-issues-chart" src="{report_issues_chart_data_url}" alt="Issues history chart"><br>'
+            report_content = report_content + f'<div class="report-field report-field_mb_100"><p class="report-info-item__text">In last 12 month:</p><div class="report-field-item-group"><div class="report-info-item"><p class="report-info-item__text">Issues: <span class="report-info-item__value">{self.repo.issues_opened_ltm}</span></p></div><div class="report-info-item report-info-item_ml_20"><p class="report-info-item__text">Health: <span class="report-info-item__value">{self.repo.health}% issues closed</span></p></div></div></div>'
+            
+        else:
+            report_content = report_content + f'<div class="report-field report-field_mb_30"><p class="report-info-item__text">In last 12 month:</p><div class="report-field-item-group"><div class="report-info-item"><p class="report-info-item__text">Issues: <span class="report-info-item__value">{self.repo.issues_opened_ltm}</span></p></div><div class="report-info-item report-info-item_ml_20"><p class="report-info-item__text">Health: <span class="report-info-item__value">{self.repo.health}% issues closed</span></p></div></div></div>'
+
+        if len(country_summary) > 1 and issues_history_dict:
+            report_content = report_content + '<div class="report-header report__header"><img class="report-header__main-logo" src="http://127.0.0.1:8000/static/img/main-logo.png" alt="main-logo"><img src="http://127.0.0.1:8000/static/img/extra-logo.png" alt="extra-logo" class="report-header__extra-logo"></div>'
+            report_content = report_content + '<p class="report-text report-text_nowrap report-text_mb_30 report-text_blue">Geo breakdown:</p>'
+
+        if len(country_summary) > 1 and len(country_summary) < 50:
+            country_list = ''
+
+            for location in country_summary:
+                if location.country:
+                    location_percent = "%.2f" % (location.count / total_users * 100)
+                    country_list = country_list + f'<p class="report-location-text">{location.country}: {location_percent} % ({location.count} profile(s))</p>'
+
+            report_content = report_content + country_list
+        
+        if len(country_summary) > 49:
+            left_country_list = ''
+            right_country_list = ''
+
+            first_half = country_summary[:50]
+            second_half = country_summary[51:]
+
+
+            for location in first_half:
+                if location.country:
+                    location_percent = "%.2f" % (location.count / total_users * 100)
+                    left_country_list = left_country_list + f'<p class="report-location-text">{location.country}: {location_percent} % ({location.count} profile(s))</p>'
+            
+            for location in second_half:
+                if location.country:
+                    location_percent = "%.2f" % (location.count / total_users * 100)
+                    right_country_list = right_country_list + f'<p class="report-location-text">{location.country}: {location_percent} % ({location.count} profile(s))</p>'
+                    
+            report_content = report_content + f'<div class="report-location"><div class="report-location-wrapper">{left_country_list}</div><div class="report-location-wrapper report-location-wrapper_ml">{right_country_list}</div></div>'
+
+        return message_text, report_content

@@ -6,7 +6,7 @@ def load_settings():
     return Dynaconf(
         envvar_prefix="API",
         preload=[os.path.join(BASE_PATH, "default.toml")],
-        settings_files=[os.path.join(BASE_PATH, "settings.toml"), os.path.join(BASE_PATH, ".secrets.toml")],
+        settings_files=[os.path.join(BASE_PATH, "settings.toml"), os.path.join(BASE_PATH, "secrets.toml")],
         environments=["development", "production", "testing"],
         env_switcher="API_env",
         load_dotenv=False,

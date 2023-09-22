@@ -2,7 +2,8 @@ class Api {
   urlBase: string;
 
   constructor() {
-    this.urlBase = 'https://www.hetzventures.org/';
+    // this.urlBase = 'https://www.hetzventures.org/';
+    this.urlBase = 'http://127.0.0.1:8000/';
   }
 
   async post(url = '', data = {}) {
