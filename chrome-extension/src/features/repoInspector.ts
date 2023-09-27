@@ -31,6 +31,7 @@ import { api } from './api';
 import { auth } from './authentication';
 import { historyStore } from './store/history';
 import { MINIMUM_REQUEST_LIMIT_AMOUNT, USERS_QUERY_LIMIT } from './constants';
+import { calculateTotalRating } from './utils/calculateTotalRating';
 
 let octokit: Octokit;
 
@@ -418,10 +419,30 @@ class RepoInspector {
         pull_requests_merged_LTM: inspectData.pull_requests_merged_LTM,
         stars_history: inspectData.stars_history,
         last_month_stars: inspectData.lastMonthStars,
+        total_rating: 0,
       },
       forks,
       stargazers,
     };
+
+    const dataForRating: DataForRating = {
+      stars: postData.repository.stargazers_count,
+      contributors: postData.repository.contributors_count,
+      starsGrowth:
+        ((postData.repository.lastMonthStars ?? 0) /
+          postData.repository.stargazers_count) *
+        100,
+      starsActivity:
+        postData.repository.stargazers_count /
+        Object.keys(postData.repository?.stars_history ?? []).length,
+      forksStars:
+        postData.repository.forks_count / postData.repository.stargazers_count,
+      issuesOpenedLTM: postData.repository.issues.openedLTM ?? 0,
+      issuesClosedLTM: postData.repository.issues.closedLTM ?? 0,
+      pmMergedLTM: postData.repository.pull_requests_merged_LTM ?? 0,
+    };
+
+    postData.repository.total_rating = calculateTotalRating(dataForRating);
 
     try {
       const data = await api.post(

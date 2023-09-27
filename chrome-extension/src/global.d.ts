@@ -188,6 +188,7 @@ type IssuesStatistic = {
   chartData?: ChartData;
   health?: number;
   openedLTM?: number;
+  closedLTM?: number;
 };
 
 type PullRequest = {
@@ -219,4 +220,15 @@ type InspectData = {
   stargaze_users: DBUser[];
   stars_history: StarHistoryByMonth;
   lastMonthStars: number;
+};
+
+type DataForRating = {
+  stars?: number;
+  contributors: number;
+  starsGrowth?: number;
+  starsActivity?: number;
+  forksStars?: number;
+  issuesOpenedLTM: number;
+  issuesClosedLTM: number;
+  pmMergedLTM: number;
 };

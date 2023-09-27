@@ -70,5 +70,6 @@ export const getIssuesStatistic = (issues: Issue[]) => {
     chartData: fillMissingMonths(chartData),
     health,
     openedLTM: openedCount,
+    closedLTM: closedCount,
   };
 };
