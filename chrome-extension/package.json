@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@octokit/core": "^4.2.0",
-    "@picocss/pico": "github:picocss/pico",
+    "@picocss/pico": "^1.5.10",
     "apexcharts": "^3.41.0",
     "core-js": "^3.8.3",
     "graphql": "^16.7.1",

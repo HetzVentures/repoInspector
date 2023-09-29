@@ -12,10 +12,10 @@ class EmailNotifier:
     _message_template = 'Subject: {subject}\n\n{message}'
 
     def __init__(self):
-        self.sender_email = settings.email.username
-        self.sender_pwd = settings.email.password
-        self.smtp_server = settings.email.smtp_server
-        self.port = settings.email.port
+        self.sender_email = settings.smtp_username
+        self.sender_pwd = settings.smtp_password
+        self.smtp_server = settings.smtp_server
+        self.port = settings.smtp_port
 
     def send_message(
             self,

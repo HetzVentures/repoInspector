@@ -2,7 +2,7 @@ class Api {
   urlBase: string;
 
   constructor() {
-    this.urlBase = 'https://www.hetzventures.org/';
+    this.urlBase = 'https://repoinspector.fly.dev/';
   }
 
   async post(url = '', data = {}) {

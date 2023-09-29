@@ -118,7 +118,7 @@ def login(request: Request, email_user_uuid):
     # google login page
     return templates.TemplateResponse("login.html", {
         "request": request, 
-        "data_client_id": settings.google.data_client_id,
+        "data_client_id": settings.data_client_id,
         "email_user_uuid": email_user_uuid,
         "rollbar_access_token": os.getenv("ROLLBAR_CLIENT_TOKEN"),
     })
@@ -136,7 +136,7 @@ async def login(email_user_uuid, request: Request, g_csrf_token: str = Form(), c
     if csrf_token_cookie != g_csrf_token:
         raise HTTPException(status_code=400, detail='Failed to verify double submit cookie.')
      
-    id_info = id_token.verify_oauth2_token(credential, requests.Request(), settings.google.data_client_id)
+    id_info = id_token.verify_oauth2_token(credential, requests.Request(), settings.data_client_id)
     
     email_user = session.query(models.EmailUser).where(models.EmailUser.uuid == email_user_uuid).first()
     email_user.email = id_info['email']
