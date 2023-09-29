@@ -435,9 +435,9 @@ class MessageCreator:
         report_content = report_content + f'<div class="report-field report-field_mb_30"><p class="report-text report-text_nowrap report-text_blue">Repository rating:</p><span class="report-value report-value_blue">{repo_rating}</span></div>'
 
         if settings.get('sample'):
-            report_stars_chart_data_url = f"https://quickchart.io/chart?width=950&height=350&devicePixelRatio=1&c={stars_chart_encoded_data}"
-        else:
             report_stars_chart_data_url = f"https://quickchart.io/chart?width=950&height=400&devicePixelRatio=1&c={stars_chart_encoded_data}"
+        else:
+            report_stars_chart_data_url = f"https://quickchart.io/chart?width=950&height=450&devicePixelRatio=1&c={stars_chart_encoded_data}"
 
         if stars_history_dict:
             report_content = report_content + f'<img class="report-stars-chart" src="{report_stars_chart_data_url}" alt="Stargazers history chart">'
