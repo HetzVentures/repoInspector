@@ -6,7 +6,7 @@
 body {
   background-color: #fff;
   font-size: 26px;
-  font-family: "Brutal Type W00 Light";
+  font-family: 'Brutal Type W00 Light';
 }
 
 .report {
@@ -16,7 +16,7 @@ body {
 .report-header {
   width: 100%;
   position: relative;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .report-header__main-logo {
@@ -30,7 +30,7 @@ body {
 }
 
 .report-text {
-  font-family: "Brutal Type";
+  font-family: 'Brutal Type';
   font-size: 26px;
   color: #000000;
   font-weight: 500;
@@ -47,6 +47,10 @@ body {
   margin-bottom: 30px;
 }
 
+.report-text_mb_15 {
+  margin-bottom: 15px;
+}
+
 .report-text_blue {
   color: #2540f2;
 }
@@ -54,7 +58,7 @@ body {
 .report-repo-link,
 .report-star-link {
   color: #2540f2;
-  font-family: "Brutal Type W00 Light";
+  font-family: 'Brutal Type W00 Light';
   text-decoration: none;
   white-space: nowrap;
 }
@@ -189,14 +193,14 @@ body {
 
 .report-info-item__text {
   color: #2335f3;
-  font-family: "Brutal Type";
+  font-family: 'Brutal Type';
   font-size: 20px;
   font-weight: 500;
   white-space: nowrap;
 }
 
 .report-info-item__value {
-  font-family: "Brutal Type W00 Light";
+  font-family: 'Brutal Type W00 Light';
 }
 
 .report-field-item-group {
@@ -251,22 +255,24 @@ body {
 }
 
 .report-radial-chart-content__title {
-  font-family: "Brutal Type";
+  font-family: 'Brutal Type';
   font-weight: 500;
   margin-bottom: 10px;
 }
 
 .report-radial-chart-content__text {
-  font-family: "Brutal Type W00 Light";
+  font-family: 'Brutal Type W00 Light';
 }
 
 .report-location {
   width: 100%;
+  vertical-align: top;
 }
 
 .report-location-wrapper {
   display: inline-block;
   width: 50%;
+  vertical-align: top;
 }
 
 .report-location-text {

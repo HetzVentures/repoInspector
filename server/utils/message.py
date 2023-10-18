@@ -194,7 +194,6 @@ class MessageCreator:
         settings = json.loads(self.repo.settings)
 
         def email_setting_status(v):
-            # FIXME: Add the actual URL from customer`s server for icons
             return "https://repoinspector.fly.dev/static/img/check-icon.png" if v else "https://repoinspector.fly.dev/static/img/cross-icon.png"
 
         email_settings_content = f'<div class="summary-settings__item" id="message-summary-settings-item" style="align-items: center; display: inline-flex; gap: 5px;"><p class="summary-settings__text" id="message-summary-settings-text" style="margin: 0; color: #000000; display: inline-block; font-family: Brutal Type, sans-serif; font-size: 16px; font-weight: normal; line-height: 26px; margin: 0 !important; padding: 0; text-align: left; white-space: wrap;">Settings:</p></div>\
@@ -404,13 +403,13 @@ class MessageCreator:
         # PDF report content
 
         # FIXME: Add the actual base URL from customer`s server for logos
-        report_content = '<div class="report-header report__header"><img class="report-header__main-logo" src="http://127.0.0.1:8000/static/img/main-logo.png" alt="main-logo"><img src="http://127.0.0.1:8000/static/img/extra-logo.png" alt="extra-logo" class="report-header__extra-logo"></div>'
+        report_content = '<div class="report-header report__header"><img class="report-header__main-logo" src="https://repoinspector.fly.dev/static/img/main-logo.png" alt="main-logo"><img src="https://repoinspector.fly.dev/static/img/extra-logo.png" alt="extra-logo" class="report-header__extra-logo"></div>'
         report_content = report_content + f'<p class="report-text report-text_mb_30">Hi, there! Below (and attached) is your report for repository <a class="report-repo-link" href="https://github.com/{self.repo.name}">https://github.com/{self.repo.name}</a></p>'
         report_content = report_content + "<p class='report-text report-text_nowrap report-text_mb_30'>Thanks for using repoInspector! <a class='report-star-link' href='https://github.com/HetzVentures/repoInspector'>Give us a Star</a></p>"
 
         def report_setting_status(v):
             # FIXME: Add the actual base URL from customer`s server for icons
-            return "http://127.0.0.1:8000/static/img/check-icon.png" if v else "http://127.0.0.1:8000/static/img/cross-icon.png"
+            return "https://repoinspector.fly.dev/static/img/check-icon.png" if v else "https://repoinspector.fly.dev/static/img/cross-icon.png"
 
         report_summary_content = f"<p class='report-settings__text'>Settings:</p> \
             <div class='report-settings__item'><img class='report-settings__icon' src={report_setting_status(settings['stars'])} alt='check-icon'><p class='report-settings__text'>Stars</p></div> \
@@ -441,10 +440,10 @@ class MessageCreator:
         if stars_history_dict:
             report_content = report_content + f'<img class="report-stars-chart" src="{report_stars_chart_data_url}" alt="Stargazers history chart">'
         
-        report_content = report_content + f'<div class="report-field report-field_mb_30"><div class="report-info-item report-info-item_left"><p class="report-info-item__text">Repository Stars: <span class="report-info-item__value">{self.repo.stargazers_count}</span></p></div><div class="report-info-item report-info-item_right"><p class="report-info-item__text">Repository Forks: <span class="report-info-item__value">{self.repo.forks_count}</span></p></div></div>'
+        report_content = report_content + f'<div class="report-field report-field_mb_30" style="page-break-after: always;" ><div class="report-info-item report-info-item_left"><p class="report-info-item__text">Repository Stars: <span class="report-info-item__value">{self.repo.stargazers_count}</span></p></div><div class="report-info-item report-info-item_right"><p class="report-info-item__text">Repository Forks: <span class="report-info-item__value">{self.repo.forks_count}</span></p></div></div>'
 
         if stars_history_dict:   
-            report_content = report_content + '<div class="report-header report__header"><img class="report-header__main-logo" src="http://127.0.0.1:8000/static/img/main-logo.png" alt="main-logo"><img src="http://127.0.0.1:8000/static/img/extra-logo.png" alt="extra-logo" class="report-header__extra-logo"></div>'
+            report_content = report_content + '<div class="report-header report__header"><img class="report-header__main-logo" src="https://repoinspector.fly.dev/static/img/main-logo.png" alt="main-logo"><img src="https://repoinspector.fly.dev/static/img/extra-logo.png" alt="extra-logo" class="report-header__extra-logo"></div>'
         
         def render_radial_chart_center_area(title, percents, count):
             return f'<div class="report-radial-chart-content"><p class="report-radial-chart-content__title">{title}</p><p class="report-radial-chart-content__text">{percents}%</p><p class="report-radial-chart-content__text">({count} profile(s))</p></div>'
@@ -508,10 +507,10 @@ class MessageCreator:
             report_content = report_content + f'<div class="report-field report-field_mb_30"><p class="report-info-item__text">In last 12 month:</p><div class="report-field-item-group"><div class="report-info-item"><p class="report-info-item__text">Issues: <span class="report-info-item__value">{self.repo.issues_opened_ltm}</span></p></div><div class="report-info-item report-info-item_ml_20"><p class="report-info-item__text">Health: <span class="report-info-item__value">{self.repo.health}% issues closed</span></p></div></div></div>'
 
         if len(country_summary) > 1 and issues_history_dict:
-            report_content = report_content + '<div class="report-header report__header"><img class="report-header__main-logo" src="http://127.0.0.1:8000/static/img/main-logo.png" alt="main-logo"><img src="http://127.0.0.1:8000/static/img/extra-logo.png" alt="extra-logo" class="report-header__extra-logo"></div>'
-            report_content = report_content + '<p class="report-text report-text_nowrap report-text_mb_30 report-text_blue">Geo breakdown:</p>'
+            report_content = report_content + '<div class="report-header report__header" style="page-break-before: always;"><img class="report-header__main-logo" src="https://repoinspector.fly.dev/static/img/main-logo.png" alt="main-logo"><img src="https://repoinspector.fly.dev/static/img/extra-logo.png" alt="extra-logo" class="report-header__extra-logo"></div>'
+            report_content = report_content + '<p class="report-text report-text_nowrap report-text_mb_15 report-text_blue">Geo breakdown:</p>'
 
-        if len(country_summary) > 1 and len(country_summary) < 50:
+        if len(country_summary) > 1 and len(country_summary) < 46:
             country_list = ''
 
             for location in country_summary:
@@ -521,12 +520,15 @@ class MessageCreator:
 
             report_content = report_content + country_list
         
-        if len(country_summary) > 49:
+        if len(country_summary) > 45:
             left_country_list = ''
             right_country_list = ''
 
-            first_half = country_summary[:50]
-            second_half = country_summary[51:]
+            to_center = len(country_summary) // 2 + 1
+            from_center = len(country_summary) // 2 + 1
+
+            first_half = country_summary[:to_center]
+            second_half = country_summary[from_center:]
 
 
             for location in first_half:
