@@ -20,6 +20,17 @@ type RepoParams = {
 
 type LastStage = 'stargazers' | 'forks' | 'additional';
 
+type TotalRatingWeights = {
+  starsWeight: number;
+  contributorsWeight: number;
+  starsGrowthWeight: number;
+  starsActivityWeight: number;
+  forksStarsWeight: number;
+  issuesOpenedLTMWeight: number;
+  issuesClosedLTMWeight: number;
+  PRMergedLTMWeight: number;
+};
+
 type Downloader = {
   id: null | string;
   active: boolean;
@@ -47,6 +58,8 @@ type Downloader = {
   lastStage?: LastStage;
   cursor?: string | null;
   restoreLimitsDate?: Date;
+  total_rating?: number;
+  totalRatingWeights: TotalRatingWeights;
 };
 
 type HistoryType = Downloader[];

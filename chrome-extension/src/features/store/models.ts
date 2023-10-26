@@ -29,6 +29,16 @@ export const DOWNLOADER_MODEL: Downloader = {
     samplePercent: 0,
     location: false,
   },
+  totalRatingWeights: {
+    starsWeight: 0.225,
+    contributorsWeight: 0.2,
+    starsGrowthWeight: 0.05,
+    starsActivityWeight: 0.125,
+    forksStarsWeight: 0.15,
+    issuesOpenedLTMWeight: 0.05,
+    issuesClosedLTMWeight: 0.05,
+    PRMergedLTMWeight: 0.15,
+  },
 };
 
 export const INSPECT_DATA_DB: InspectData = {

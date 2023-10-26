@@ -64,7 +64,7 @@ export const getIssuesStatistic = (issues: Issue[]) => {
     }
   });
 
-  const health = (closedCount / openedCount) * 100 || 0;
+  const health = Number(((closedCount / openedCount) * 100)?.toFixed(2)) || 0;
 
   return {
     chartData: fillMissingMonths(chartData),

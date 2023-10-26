@@ -442,7 +442,10 @@ class RepoInspector {
       pmMergedLTM: postData.repository.pull_requests_merged_LTM ?? 0,
     };
 
-    postData.repository.total_rating = calculateTotalRating(dataForRating);
+    postData.repository.total_rating = calculateTotalRating(
+      dataForRating,
+      downloader.totalRatingWeights,
+    );
 
     try {
       const data = await api.post(
@@ -456,6 +459,7 @@ class RepoInspector {
       downloader.issues_statistic = inspectData.issues;
       downloader.prsMergedLTM = inspectData.pull_requests_merged_LTM;
       downloader.lastMonthStars = inspectData.lastMonthStars;
+      downloader.total_rating = postData.repository.total_rating;
 
       notificationStore.set({
         type: NOTIFICATION_TYPES.SUCCESS,

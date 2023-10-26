@@ -24,30 +24,31 @@ export default {
     chartOptions() {
       const allChartLabels = Object.keys(this.chartData);
       const chartLabels =
-        allChartLabels.length > 12 ? allChartLabels.slice(-12) : allChartLabels;
+        allChartLabels.length > 24 ? allChartLabels.slice(-24) : allChartLabels;
 
       return {
         chart: {
-          height: 250,
-          type: this.chartType === 'stars' ? 'line' : 'bar',
-          dropShadow: {
-            enabled: true,
-            color: '#000',
-            top: 12,
-            left: 6,
-            blur: 10,
-            opacity: 0.2,
-          },
+          height: 350,
+          foreColor: '#4076eb',
+          type: this.chartType === 'stars' ? 'area' : 'bar',
           toolbar: {
             show: false,
           },
         },
-        colors: ['#77B6EA', '#FF8300'],
+        colors: ['#4076eb', '#8bfcde'],
         dataLabels: {
-          enabled: true,
+          enabled: false,
         },
         stroke: {
           curve: 'smooth',
+        },
+        fill: {
+          colors:
+            this.chartType === 'stars'
+              ? ['#9abbfe', '#8bfcde']
+              : ['#3844d3', '#8bfcde'],
+          opacity: 1,
+          type: 'solid',
         },
         title: {
           text: this.chartTitle,
@@ -55,13 +56,14 @@ export default {
         },
         grid: {
           borderColor: '#e7e7e7',
-          row: {
-            colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
-            opacity: 0.5,
-          },
         },
         markers: {
-          size: 1,
+          size: 3,
+          colors: ['transparent', '#8bfcde'],
+          strokeColors: ['#4076eb', '#8bfcde'],
+          hover: {
+            size: 5,
+          },
         },
         xaxis: {
           categories: chartLabels,
@@ -76,6 +78,12 @@ export default {
           offsetY: -25,
           offsetX: -5,
         },
+        plotOptions: {
+          bar: {
+            borderRadiusApplication: 'end',
+            columnWidth: 4,
+          },
+        },
       };
     },
     chartSeries() {
@@ -83,7 +91,7 @@ export default {
 
       const allChartData = Object.values(this.chartData);
       const dataForChart =
-        allChartData.length > 12 ? allChartData.slice(-12) : allChartData;
+        allChartData.length > 24 ? allChartData.slice(-24) : allChartData;
 
       if (this.chartType === 'stars') {
         const starsHistory = dataForChart.map((v) => v.count);
@@ -119,6 +127,6 @@ export default {
 
 <template>
   <div>
-    <apexchart height="250" :options="chartOptions" :series="chartSeries" />
+    <apexchart height="300" :options="chartOptions" :series="chartSeries" />
   </div>
 </template>

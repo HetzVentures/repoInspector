@@ -19,6 +19,7 @@ import {
 import { repositoryQuery } from '@/features/gql/queries';
 import { type RepositoryQueryQuery } from '@/features/gql/graphql.schema';
 import DownloadCard from './components/DownloadCard.vue';
+import TotalRatingWeightsSettings from './components/TotalRatingWeightsSettings.vue';
 
 interface PopupData {
   token: null | void | string;
@@ -33,11 +34,12 @@ interface PopupData {
   showHistory: boolean;
   logout: 0 | 1;
   setupDelay: boolean;
+  isTotalRatingWeightsSettingsOpened: boolean;
 }
 
 export default {
   name: 'App',
-  components: { DownloadCard },
+  components: { DownloadCard, TotalRatingWeightsSettings },
   data(): PopupData {
     return {
       token: initialData.token,
@@ -52,6 +54,7 @@ export default {
       showHistory: false,
       logout: 0,
       setupDelay: true,
+      isTotalRatingWeightsSettingsOpened: false,
     };
   },
   async mounted() {
@@ -91,15 +94,20 @@ export default {
       chrome.storage.local.set({ githubInspectorToken });
       this.token = this.newToken;
     },
-    setSettings(
-      k: 'stars' | 'forks' | 'location' | 'sample' | 'samplePercent',
-      v: any,
-    ) {
+    setSettings(k: keyof Settings, v: any) {
       if (this.downloader?.settings) {
         // @ts-ignore
         this.downloader.settings[k] = v;
         downloaderStore.set(this.downloader);
       }
+    },
+
+    openTotalRatingWeightsSettings() {
+      this.isTotalRatingWeightsSettingsOpened = true;
+    },
+
+    closeTotalRatingWeightsSettings() {
+      this.isTotalRatingWeightsSettingsOpened = false;
     },
 
     async runInspect() {
@@ -343,13 +351,15 @@ export default {
         </article>
       </template>
       <template v-else>
-        <input
-          v-model="repoUrl"
-          :placeholder="downloader?.active ? 'Scanning repo...' : 'Repo URL'"
-          type="text"
-          :disabled="downloader?.active"
-          name="repoUrl"
-        />
+        <template v-if="!isTotalRatingWeightsSettingsOpened">
+          <input
+            v-model="repoUrl"
+            :placeholder="downloader?.active ? 'Scanning repo...' : 'Repo URL'"
+            type="text"
+            :disabled="downloader?.active"
+            name="repoUrl"
+          />
+        </template>
 
         <template v-if="downloader?.active">
           <DownloadCard
@@ -364,7 +374,13 @@ export default {
           default data (Only Stars) or another option from the menu below. Then
           click Inspect.
         </article>
-        <article v-if="downloader !== null && !downloader.active">
+        <article
+          v-if="
+            downloader !== null &&
+            !downloader.active &&
+            !isTotalRatingWeightsSettingsOpened
+          "
+        >
           <header>Settings</header>
           <fieldset>
             <label for="stars">
@@ -436,6 +452,10 @@ export default {
             />
           </fieldset>
 
+          <button class="text-button" @click="openTotalRatingWeightsSettings">
+            Change rating weights
+          </button>
+
           <footer>
             <svg
               viewBox="0 0 15 15"
@@ -457,19 +477,34 @@ export default {
             >
           </footer>
         </article>
-        <button
-          :aria-busy="!!downloader?.active"
-          :disabled="downloader?.active"
-          @click="runInspect"
+        <article
+          v-if="
+            downloader !== null &&
+            !downloader.active &&
+            isTotalRatingWeightsSettingsOpened
+          "
         >
-          Inspect
-        </button>
-        <button class="outline" @click="openDownloads()">
-          Inspection History
-        </button>
-        <button class="secondary outline mt-32" @click="logout = 1">
-          Log out
-        </button>
+          <header>Rating weights settings</header>
+          <TotalRatingWeightsSettings
+            :values="downloader.totalRatingWeights"
+            :on-close="closeTotalRatingWeightsSettings"
+          />
+        </article>
+        <template v-if="!isTotalRatingWeightsSettingsOpened">
+          <button
+            :aria-busy="!!downloader?.active"
+            :disabled="downloader?.active"
+            @click="runInspect"
+          >
+            Inspect
+          </button>
+          <button class="outline" @click="openDownloads()">
+            Inspection History
+          </button>
+          <button class="secondary outline mt-32" @click="logout = 1">
+            Log out
+          </button>
+        </template>
       </template>
       <dialog :open="!!cancel">
         <article>
@@ -548,5 +583,23 @@ body {
 .percent-picker {
   margin-top: 12px;
   margin-bottom: 0;
+}
+.text-button {
+  border: none;
+  /* border-bottom: 1px solid transparent; */
+  border-radius: 0;
+  padding: 4px 8px;
+  background: none;
+  width: fit-content;
+  margin-left: auto;
+  font-size: 16px;
+  color: #32cc92;
+}
+.text-button:hover {
+  /* border-bottom: 1px solid #32cc92; */
+  /* font-weight: 500;
+  padding-right: 7px; */
+  color: #83fdcf;
+  text-decoration: underline;
 }
 </style>

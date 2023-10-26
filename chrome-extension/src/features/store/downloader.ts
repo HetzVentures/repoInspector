@@ -3,7 +3,7 @@ import { DOWNLOADER_MODEL } from './models';
 class DownloaderStore {
   constructor() {
     chrome.storage.local.get(async ({ DOWNLOADER }) => {
-      if (!DOWNLOADER) {
+      if (!DOWNLOADER ?? !DOWNLOADER.totalRatingWeights) {
         chrome.storage.local.set({ DOWNLOADER: DOWNLOADER_MODEL });
       }
     });
@@ -32,6 +32,16 @@ class DownloaderStore {
     };
 
     const downloader = { ...DOWNLOADER, stage };
+
+    await chrome.storage.local.set({ DOWNLOADER: downloader });
+  }
+
+  async setWeightsSettings(totalRatingWeights: TotalRatingWeights) {
+    const { DOWNLOADER } = (await chrome.storage.local.get()) as {
+      DOWNLOADER: Downloader;
+    };
+
+    const downloader = { ...DOWNLOADER, totalRatingWeights };
 
     await chrome.storage.local.set({ DOWNLOADER: downloader });
   }
