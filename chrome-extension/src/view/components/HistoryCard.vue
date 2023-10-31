@@ -402,10 +402,10 @@ export default defineComponent({
 .tooltip-container {
   position: relative;
   display: inline-block;
+}
 
-  &:hover {
-    cursor: help;
-  }
+.tooltip-container:hover {
+  cursor: help;
 }
 
 .tooltip {
@@ -426,22 +426,22 @@ export default defineComponent({
   pointer-events: none;
   width: max-content;
   display: none;
+}
 
-  li,
-  p {
-    color: #fff;
-    font-size: 0.75rem;
-    line-height: 120%;
-  }
+.tooltip li,
+.tooltip p {
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 120%;
+}
 
-  p {
-    margin-bottom: 16px;
-    max-width: 300px;
-  }
+.tooltip p {
+  margin-bottom: 16px;
+  max-width: 300px;
+}
 
-  ul {
-    margin-bottom: 0;
-  }
+.tooltip ul {
+  margin-bottom: 0;
 }
 
 .tooltip::after {

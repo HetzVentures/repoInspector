@@ -209,9 +209,10 @@ form {
   line-height: 20px;
   appearance: textfield;
   -moz-appearance: textfield;
-  &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button {
-    display: none;
-  }
+}
+
+.small-input::-webkit-inner-spin-button,
+.small-input::-webkit-outer-spin-button {
+  display: none;
 }
 </style>
