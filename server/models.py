@@ -17,7 +17,6 @@ class INTERACTION_TYPE(int, EnumValue):
     FORK = 1
     STARGAZER = 2
 
-
 class Repository(SQLModel, table=True):
     __tablename__ = "repository"
     id: Optional[int] = Field(nullable=False, primary_key=True)
@@ -27,6 +26,17 @@ class Repository(SQLModel, table=True):
     stargazers_count: int
     forks_count: int
     email_user_id: Optional[int] = Field(foreign_key="email_user.id")
+    contributors_count: Optional[int]
+    issues_count: Optional[int]
+    pull_requests_count: Optional[int]
+    pull_requests_merged_ltm: Optional[int]
+    total_rating: Optional[int]
+    watchers_count: Optional[int]
+    health: Optional[int]
+    issues_opened_ltm: Optional[int]
+    issues_history: Optional[str]
+    stars_history: Optional[str]
+    last_month_stars: Optional[int]
 
 
 class RepositoryResponse(BaseModel):
@@ -36,6 +46,15 @@ class RepositoryResponse(BaseModel):
     settings: Optional[str]
     stargazers_count: int
     forks_count: int
+    contributors_count: Optional[int]
+    issues_count: Optional[int]
+    pull_requests_count: Optional[int]
+    pull_requests_merged_ltm: Optional[int]
+    total_rating: Optional[int]
+    watchers_count: Optional[int]
+    health: Optional[int]
+    issues_opened_ltm: Optional[int]
+    last_month_stars: Optional[int]
 
     def __init__(self, *args, **kwargs):
         settings = kwargs.pop("settings", None)
@@ -53,11 +72,35 @@ class RepositoryCreate(BaseModel):
     settings: Optional[str]
     stargazers_count: int
     forks_count: int
+    contributors_count: Optional[int]
+    issues_count: Optional[int]
+    pull_requests_count: Optional[int]
+    pull_requests_merged_ltm: Optional[int]
+    total_rating: Optional[int]
+    watchers_count: Optional[int]
+    health: Optional[int]
+    issues_opened_ltm: Optional[int]
+    issues_history: Optional[str]
+    stars_history: Optional[str]
+    last_month_stars: Optional[int]
 
     def __init__(self, *args, **kwargs):
         settings = kwargs.pop("settings", None)
         if isinstance(settings, dict):
             kwargs["settings"] = json.dumps(settings)
+        
+        issues = kwargs.pop("issues", None)
+        if issues:
+            kwargs["issues_history"] = json.dumps(issues["chartData"])
+            kwargs["health"] = issues["health"]
+            kwargs["issues_opened_ltm"] = issues["openedLTM"]
+        
+        stars_history = kwargs.pop("stars_history", None)
+        if isinstance(stars_history, dict):
+            kwargs["stars_history"] = json.dumps(stars_history)
+
+        kwargs["pull_requests_merged_ltm"] = kwargs["pull_requests_merged_LTM"]
+
         super().__init__(*args, **kwargs)
 
 

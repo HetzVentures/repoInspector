@@ -1,0 +1,3 @@
+export const USERS_QUERY_LIMIT = 20;
+
+export const MINIMUM_REQUEST_LIMIT_AMOUNT = 10;

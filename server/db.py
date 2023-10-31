@@ -4,9 +4,9 @@ from models import SQLModel
 from config import settings
 
 engine = create_engine(
-    settings.db.sql_url,
-    echo=settings.db.echo,
-    connect_args={'options': '-csearch_path={}'.format('repo_inspector')}
+    settings.DATABASE_URL,
+    echo=False,
+    # connect_args={'options': '-csearch_path={}'.format('repo_inspector')}
 )
 
 def update_engine(new_engine):

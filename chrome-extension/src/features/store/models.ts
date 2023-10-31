@@ -15,65 +15,48 @@ export const DOWNLOADER_MODEL: Downloader = {
     max: 0,
   },
   stargazers_count: 0,
+  stargazers_users: 0,
   forks_count: 0,
+  forks_users: 0,
+  issues_count: 0,
+  pull_requests_count: 0,
+  watchers_count: 0,
+  contributors_count: 0,
   settings: {
     stars: true,
     forks: false,
     sample: false,
     samplePercent: 0,
-    location: true,
+    location: false,
+  },
+  totalRatingWeights: {
+    starsWeight: 0.225,
+    contributorsWeight: 0.2,
+    starsGrowthWeight: 0.05,
+    starsActivityWeight: 0.125,
+    forksStarsWeight: 0.15,
+    issuesOpenedLTMWeight: 0.05,
+    issuesClosedLTMWeight: 0.05,
+    PRMergedLTMWeight: 0.15,
   },
 };
 
-export const USER_DB = {
-  forks: {},
-  forks_urls: [],
-  stargazers: {},
-  stargazers_urls: [],
-  repo: '',
+export const INSPECT_DATA_DB: InspectData = {
+  fork_users: [],
+  stargaze_users: [],
+  issues: {},
+  pull_requests_merged_LTM: 0,
+  stars_history: {},
+  lastMonthStars: 0,
 };
 
 export const STAGE = {
-  INITIATED: 0,
-  GETTING_URLS: 1,
-  GETTING_USERS: 2,
-  DONE: 3,
-  ERROR: 4,
+  NOT_STARTED: 0,
+  INITIATED: 1,
+  UNPAUSED: 2,
+  GETTING_ADDITIONAL_STATISTIC: 3,
+  GETTING_USERS: 4,
+  DONE: 5,
+  ERROR: 6,
+  PAUSE: 7,
 };
-
-export class Queue {
-  items: {
-    [key: number]: any;
-  };
-
-  headIndex: number;
-
-  tailIndex: number;
-
-  constructor() {
-    this.items = {};
-    this.headIndex = 0;
-    this.tailIndex = 0;
-  }
-
-  enqueue(item: any) {
-    this.items[this.tailIndex] = item;
-    this.tailIndex++;
-  }
-
-  dequeue() {
-    const item = this.items[this.headIndex];
-    delete this.items[this.headIndex];
-    this.headIndex++;
-
-    return item;
-  }
-
-  peek() {
-    return this.items[this.headIndex];
-  }
-
-  get length() {
-    return this.tailIndex - this.headIndex;
-  }
-}

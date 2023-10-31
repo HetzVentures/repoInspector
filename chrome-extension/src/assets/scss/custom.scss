@@ -1,9 +1,9 @@
 /* Lime Light scheme (Default) */
 /* Can be forced with data-theme="light" */
-[data-theme="light"],
-:root:not([data-theme="dark"]) {
+[data-theme='light'],
+:root:not([data-theme='dark']) {
   --primary: #32cc92;
-  --primary-hover: #83FDCF;
+  --primary-hover: #83fdcf;
   --primary-focus: rgba(192, 202, 51, 0.125);
   --primary-inverse: rgba(0, 0, 0, 0.75);
 }
@@ -11,9 +11,9 @@
 /* Lime Dark scheme (Auto) */
 /* Automatically enabled if user has Dark mode enabled */
 @media only screen and (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme='light']) {
     --primary: #32cc92;
-    --primary-hover: #83FDCF;
+    --primary-hover: #83fdcf;
     --primary-focus: rgba(192, 202, 51, 0.25);
     --primary-inverse: rgba(0, 0, 0, 0.75);
   }
@@ -21,9 +21,9 @@
 
 /* Lime Dark scheme (Forced) */
 /* Enabled if forced with data-theme="dark" */
-[data-theme="dark"] {
+[data-theme='dark'] {
   --primary: #32cc92;
-  --primary-hover: #83FDCF;
+  --primary-hover: #83fdcf;
   --primary-focus: rgba(192, 202, 51, 0.25);
   --primary-inverse: rgba(0, 0, 0, 0.75);
 }
@@ -34,4 +34,64 @@
   --form-element-focus-color: var(--primary-focus);
   --switch-color: var(--primary-inverse);
   --switch-checked-background-color: var(--primary);
+}
+
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+
+  &:hover {
+    cursor: help;
+  }
+}
+
+.tooltip {
+  position: absolute;
+  z-index: 99;
+  bottom: 100%;
+  left: 50%;
+  padding: 0.5rem;
+  transform: translate(-50%, -0.25rem);
+  border-radius: 0.25rem;
+  background: hsl(205, 30%, 15%);
+  color: #fff;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.875rem;
+  text-decoration: none;
+  white-space: pre-line;
+  pointer-events: none;
+  width: max-content;
+  display: none;
+
+  li,
+  p {
+    color: #fff;
+    font-size: 0.75rem;
+    line-height: 120%;
+  }
+
+  p {
+    margin-bottom: 16px;
+    max-width: 300px;
+  }
+
+  ul {
+    margin-bottom: 0;
+  }
+}
+
+.tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: 0%;
+  left: 50%;
+  transform: translate(-50%, 100%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #1b2832 transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip {
+  display: block;
 }
