@@ -26,13 +26,19 @@ export const serializeUser = async (
 
   let event_count;
   let lastEventDate;
+  let rateLimitRemaining;
+  let rateLimitReset;
 
   try {
     // get user event count
     const eventsURL = `https://api.github.com/users/${login}`;
-    const { data } = await octokit.request(
+    const response = await octokit.request(
       `GET ${eventsURL}/events?per_page=100`,
     );
+
+    const { data, headers } = response;
+    rateLimitRemaining = headers['x-ratelimit-remaining'];
+    rateLimitReset = Number(headers['x-ratelimit-reset']) * 1000;
 
     event_count = data.length;
     lastEventDate = data.length && data[0]?.created_at;
@@ -89,5 +95,5 @@ export const serializeUser = async (
     }
   }
 
-  return serializedUser;
+  return { serializedUser, rateLimits: { rateLimitRemaining, rateLimitReset } };
 };
