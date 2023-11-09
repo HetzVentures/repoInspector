@@ -30,8 +30,14 @@ import { NOTIFICATION_TYPES, notificationStore } from './store/notification';
 import { api } from './api';
 import { auth } from './authentication';
 import { historyStore } from './store/history';
-import { MINIMUM_REQUEST_LIMIT_AMOUNT, USERS_QUERY_LIMIT } from './constants';
+import {
+  MINIMUM_REQUEST_LIMIT_AMOUNT,
+  MINIMUM_REST_REQUEST_LIMIT_AMOUNT,
+  USERS_QUERY_LIMIT,
+} from './constants';
 import { calculateTotalRating } from './utils/calculateTotalRating';
+import { getStargazersFallbackQuery } from './gql/queries/getStargazersQuery';
+import { getForkersFallbackQuery } from './gql/queries/getForkersQuery';
 
 let octokit: Octokit;
 
@@ -163,6 +169,8 @@ class RepoInspector {
       const endCursor = resp?.repository?.[type].pageInfo.endCursor;
       const currentRequestItems = resp?.repository?.[type].edges ?? [];
       const requestRemaining = resp?.rateLimit?.remaining;
+      let restRequestRemaining = 5000;
+      let restRateLimitResetAt;
 
       // remove artifacts of graphQL response and normalize data
       const normalizedCurrentRequestItems = await Promise.all(
@@ -174,26 +182,44 @@ class RepoInspector {
 
           if (!mappedItem.login) return {};
 
-          const serializedItem = serializeUser(
+          const { serializedUser, rateLimits } = await serializeUser(
             mappedItem,
             octokit,
             isExtendLocation,
           );
 
-          return serializedItem;
+          restRequestRemaining = Number(rateLimits.rateLimitRemaining);
+          restRateLimitResetAt = rateLimits.rateLimitReset;
+
+          return serializedUser;
         }),
       );
       items = [...items, ...normalizedCurrentRequestItems];
 
       downloaderStore.increaseProgress();
 
-      // if query limits reached - pause inspection
+      // if graphQL query limits reached - pause inspection
       if (
         requestRemaining &&
         requestRemaining <= MINIMUM_REQUEST_LIMIT_AMOUNT
       ) {
         await inspectDataStore.set(inspectDataPropertyName, items as DBUser[]);
         this._pauseInspection(type, resp?.rateLimit?.resetAt, endCursor);
+
+        return { success: false };
+      }
+
+      // if REST query limits reached - pause inspection
+      if (
+        restRequestRemaining &&
+        restRequestRemaining <= MINIMUM_REST_REQUEST_LIMIT_AMOUNT
+      ) {
+        await inspectDataStore.set(inspectDataPropertyName, items as DBUser[]);
+        this._pauseInspection(
+          type,
+          restRateLimitResetAt ?? new Date(),
+          endCursor,
+        );
 
         return { success: false };
       }
@@ -212,6 +238,62 @@ class RepoInspector {
         );
       }
     } catch (error) {
+      const isBadProfileDetected =
+        (error as { errors?: { message: string }[] }).errors?.length &&
+        (error as { errors?: { message: string }[] }).errors?.find(
+          ({ message }) =>
+            message.includes(
+              'Something went wrong while executing your query. Please include',
+            ),
+        );
+
+      if (isBadProfileDetected && limit > 2) {
+        return await this.getUsers(
+          owner,
+          name,
+          type,
+          Math.floor(limit / 2),
+          max,
+          isExtendLocation,
+          items,
+          cursor,
+        );
+      }
+
+      if (isBadProfileDetected && limit <= 2) {
+        const fallbackQuery =
+          type === 'stargazers'
+            ? getStargazersFallbackQuery
+            : getForkersFallbackQuery;
+
+        const resp = await octokit.graphql<
+          GetForkersQueryQuery & GetStargazersQueryQuery
+        >(fallbackQuery, {
+          owner,
+          name,
+          cursor,
+          limit: 1,
+        });
+
+        const hasFallbackNextPage =
+          resp?.repository?.[type].pageInfo.hasNextPage;
+        const fallbackEndCursor = resp?.repository?.[type].pageInfo.endCursor;
+
+        if (hasFallbackNextPage && items.length < max) {
+          return await this.getUsers(
+            owner,
+            name,
+            type,
+            USERS_QUERY_LIMIT,
+            max,
+            isExtendLocation,
+            items,
+            fallbackEndCursor,
+          );
+        }
+      }
+
+      this.alreadyPaused = true;
       await this._stopByError();
     }
 
@@ -266,6 +348,7 @@ class RepoInspector {
         return await this.getStarHistory(owner, name, items, endCursor);
       }
     } catch (error) {
+      this.alreadyPaused = true;
       await this._stopByError();
     }
 
@@ -322,6 +405,7 @@ class RepoInspector {
         return await this.getIssues(owner, name, items, endCursor);
       }
     } catch (error) {
+      this.alreadyPaused = true;
       await this._stopByError();
     }
 
@@ -381,6 +465,7 @@ class RepoInspector {
         return await this.getPullRequests(owner, name, items, endCursor);
       }
     } catch (error) {
+      this.alreadyPaused = true;
       await this._stopByError();
     }
 

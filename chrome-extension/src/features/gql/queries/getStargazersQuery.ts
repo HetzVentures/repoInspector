@@ -52,3 +52,27 @@ export const query = gql`
 `;
 
 export const getStargazersQuery = print(query);
+
+export const fallbackQuery = gql`
+  query getStargazersQuery(
+    $owner: String!
+    $name: String!
+    $cursor: String = null
+    $limit: Int
+  ) {
+    repository(owner: $owner, name: $name) {
+      stargazers(
+        first: $limit
+        after: $cursor
+        orderBy: { field: STARRED_AT, direction: DESC }
+      ) {
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+      }
+    }
+  }
+`;
+
+export const getStargazersFallbackQuery = print(fallbackQuery);

@@ -56,3 +56,27 @@ export const query = gql`
 `;
 
 export const getForkersQuery = print(query);
+
+export const fallbackQuery = gql`
+  query getForkersQuery(
+    $owner: String!
+    $name: String!
+    $cursor: String = null
+    $limit: Int
+  ) {
+    repository(owner: $owner, name: $name) {
+      forks(
+        first: $limit
+        after: $cursor
+        orderBy: { field: CREATED_AT, direction: DESC }
+      ) {
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+      }
+    }
+  }
+`;
+
+export const getForkersFallbackQuery = print(query);

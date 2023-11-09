@@ -212,8 +212,10 @@ export default {
           Math.ceil(issuesCount / 100) +
           Math.ceil(pullRequestsCount / 100) +
           Math.ceil(stargazerCount / 100) +
-          (settings.stars ? Math.ceil(forks_users / USERS_QUERY_LIMIT) : 0) +
-          (settings.forks ? Math.ceil(stargazer_users / USERS_QUERY_LIMIT) : 0);
+          (settings.stars
+            ? Math.ceil(stargazer_users / USERS_QUERY_LIMIT)
+            : 0) +
+          (settings.forks ? Math.ceil(forks_users / USERS_QUERY_LIMIT) : 0);
 
         this.downloader.stargazers_count = stargazerCount;
         this.downloader.forks_count = forkCount;
