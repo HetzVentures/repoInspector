@@ -65,6 +65,7 @@ class MessageCreator:
         else:
             file_path = None
             json_file_path = None
+            pdf_file_path = None
             html = 'Nothing was found by session'
 
         archive_path = self.create_archive(
@@ -360,7 +361,9 @@ class MessageCreator:
         if len(company_summary) > 2:
             message_text = message_text + f'<table class="row greeting" id="message-greeting" style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;"><tbody><tr style="padding: 0; text-align: left; vertical-align: top;"><th id="message-greeting-wrapper" class="small-12 large-12 columns first last" style="-moz-box-sizing: border-box; -moz-hyphens: auto; -webkit-box-sizing: border-box; -webkit-hyphens: auto; margin: 0 auto; background-color: #fff; border-collapse: collapse !important; box-sizing: border-box; hyphens: auto; line-height: 1.3; margin: 0 auto; padding: 0 0 20px; text-align: left; vertical-align: top; width: 100%; word-wrap: break-word;"><table style="border-collapse: collapse; border-spacing: 0; padding: 0; text-align: left; vertical-align: top; width: 100%;"><tbody><tr style="padding: 0; text-align: left; vertical-align: top;"><th style="-moz-box-sizing: border-box; -moz-hyphens: auto; -webkit-box-sizing: border-box; -webkit-hyphens: auto; Margin: 0; border-collapse: collapse !important; box-sizing: border-box; color: #0a0a0a; hyphens: auto; line-height: 1.3; margin: 0; padding: 0; text-align: left; vertical-align: top; word-wrap: break-word;"><p id="message-main-text" class="main-text" style="margin: 0; color: #000000; display: inline-block; font-family: Brutal Type, sans-serif; font-size: 16px; font-weight: normal; line-height: 26px; margin: 0 !important; padding: 0; text-align: left; white-space: wrap;">Org breakdown:</p></th><th class="expander" style="-moz-box-sizing: border-box; -moz-hyphens: auto; -webkit-box-sizing: border-box; -webkit-hyphens: auto; Margin: 0; border-collapse: collapse !important; box-sizing: border-box; hyphens: auto; line-height: 1.3; margin: 0; padding: 0 !important; text-align: left; vertical-align: top; visibility: hidden; width: 0; word-wrap: break-word;"></th></tr></tbody></table></th></tr></tbody></table>'
 
-            splitted_companies = [company_summary[i:i + 50] for i in range(0, len(company_summary), 50)]
+            first_batch = company_summary[:50]
+            second_batch = company_summary[50:100]
+            splitted_companies = [first_batch, second_batch]
 
             companies_list = '<table style="margin: 0 20px 0 20px; width: 95%;"><tbody>'
 
@@ -387,10 +390,11 @@ class MessageCreator:
         countries_list = ''
 
         if len(country_summary) > 2:
-            print(country_summary)
             message_text = message_text + f'<table class="row greeting" id="message-greeting" style="border-collapse: collapse; border-spacing: 0; display: table; padding: 0; position: relative; text-align: left; vertical-align: top; width: 100%;"><tbody><tr style="padding: 0; text-align: left; vertical-align: top;"><th id="message-greeting-wrapper" class="small-12 large-12 columns first last" style="-moz-box-sizing: border-box; -moz-hyphens: auto; -webkit-box-sizing: border-box; -webkit-hyphens: auto; margin: 0 auto; background-color: #fff; border-collapse: collapse !important; box-sizing: border-box; hyphens: auto; line-height: 1.3; margin: 0 auto; padding: 0 0 20px; text-align: left; vertical-align: top; width: 100%; word-wrap: break-word;"><table style="border-collapse: collapse; border-spacing: 0; padding: 0; text-align: left; vertical-align: top; width: 100%;"><tbody><tr style="padding: 0; text-align: left; vertical-align: top;"><th style="-moz-box-sizing: border-box; -moz-hyphens: auto; -webkit-box-sizing: border-box; -webkit-hyphens: auto; Margin: 0; border-collapse: collapse !important; box-sizing: border-box; color: #0a0a0a; hyphens: auto; line-height: 1.3; margin: 0; padding: 0; text-align: left; vertical-align: top; word-wrap: break-word;"><p id="message-main-text" class="main-text" style="margin: 0; color: #000000; display: inline-block; font-family: Brutal Type, sans-serif; font-size: 16px; font-weight: normal; line-height: 26px; margin: 0 !important; padding: 0; text-align: left; white-space: wrap;">Geo breakdown:</p></th><th class="expander" style="-moz-box-sizing: border-box; -moz-hyphens: auto; -webkit-box-sizing: border-box; -webkit-hyphens: auto; Margin: 0; border-collapse: collapse !important; box-sizing: border-box; hyphens: auto; line-height: 1.3; margin: 0; padding: 0 !important; text-align: left; vertical-align: top; visibility: hidden; width: 0; word-wrap: break-word;"></th></tr></tbody></table></th></tr></tbody></table>'
 
-            splitted_countries = [country_summary[i:i + 50] for i in range(0, len(country_summary), 50)]
+            first_batch = country_summary[:50]
+            second_batch = country_summary[50:100]
+            splitted_countries = [first_batch, second_batch]
 
             countries_list = '<table style="margin: 0 20px; width: 100%;"><tbody>'
 
